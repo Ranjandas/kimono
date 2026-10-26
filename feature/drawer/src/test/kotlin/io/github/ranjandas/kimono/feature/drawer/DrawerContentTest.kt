@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono.feature.drawer
 
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -54,5 +55,19 @@ class DrawerContentTest {
     fun `an empty query matches everything`() {
         assertEquals(apps.size, drawerSections(apps, "").sumOf { it.apps.size })
         assertEquals(apps.size, drawerSections(apps, " ").sumOf { it.apps.size })
+    }
+
+    @Test
+    fun `apps without a brand icon take their group's, and phone apps say so`() {
+        assertEquals(KimonoIcon.Media, app("Jellyfin", AppCategory.Video).icon(DrawerGroup.Watch))
+        assertEquals(KimonoIcon.AppFallback, app("Files", AppCategory.Other).icon(DrawerGroup.System))
+        val phoneApp = app("Notes", AppCategory.Other).copy(isTvApp = false)
+        assertEquals(KimonoIcon.PhoneApp, phoneApp.icon(DrawerGroup.System))
+    }
+
+    @Test
+    fun `a brand icon wins over the group's`() {
+        val youTube = app("YouTube", AppCategory.Video).copy(packageName = "com.google.android.youtube.tv")
+        assertEquals(KimonoIcon.YouTube, youTube.icon(DrawerGroup.Watch))
     }
 }

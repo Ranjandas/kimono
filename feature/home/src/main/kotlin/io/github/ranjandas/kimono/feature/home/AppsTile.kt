@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono.feature.home
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -51,7 +52,7 @@ fun AppsTile(
         }
     }
     Tile(modifier = modifier) {
-        SectionHeader("~/${workspace.label}", trailing = apps?.let { count(it.size, "app") })
+        SectionHeader("~/${workspace.label}", icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
         // A different workspace is a different list, so it starts from the top.
         val listState = rememberLazyListState()
         LaunchedEffect(workspace) { listState.scrollToItem(0) }
@@ -74,6 +75,7 @@ fun AppsTile(
                         }
                     },
                     leading = "%02d".format(index + 1),
+                    icon = app.icon,
                     onLongClick = { onShowOptions(app) },
                     // The list is the right edge of the screen, so Right stays put instead of jumping to the top bar.
                     modifier = Modifier.focusProperties { right = FocusRequester.Cancel },
@@ -81,6 +83,14 @@ fun AppsTile(
                 )
             }
         }
+        AppsNotes(apps, status)
+    }
+}
+
+/** What the tile says under the list: that apps are loading or the workspace is empty, or that one won't open. */
+@Composable
+private fun AppsNotes(apps: List<InstalledApp>?, status: LaunchStatus?) {
+    Column {
         val emptyText = when {
             apps == null -> "loading apps…"
             apps.isEmpty() -> "nothing pinned to this workspace yet"

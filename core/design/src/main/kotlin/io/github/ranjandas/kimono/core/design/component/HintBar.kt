@@ -7,8 +7,11 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.ranjandas.kimono.core.design.icon.Icon
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
-/** The row of remote keys along the bottom of a screen, saying what each one does right now. */
+/** The row of remote keys along the bottom of a screen, after a remote icon, saying what each one does now. */
 @Composable
 fun HintBar(hints: List<Hint>, modifier: Modifier = Modifier) {
     Row(
@@ -16,6 +19,7 @@ fun HintBar(hints: List<Hint>, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(28.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(KimonoIcon.Remote, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)
         hints.forEach { KeyHint(it.key, it.action) }
     }
 }

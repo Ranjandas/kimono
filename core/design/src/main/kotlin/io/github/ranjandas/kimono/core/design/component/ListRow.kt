@@ -28,12 +28,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.design.icon.Icon
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * A row in a text list: an optional [leading] detail such as a number, a focus marker, the [text] itself,
- * and optional [trailing] detail. Focus fills the row and turns the text to the accent colour, with no
- * movement, so a D-pad move down a list reads as one thing lighting up after another.
+ * A row in a text list: an optional [leading] detail such as a number, a focus marker, an optional [icon],
+ * the [text] itself, and optional [trailing] detail. Focus fills the row and turns the icon and text to the
+ * accent colour, with no movement, so a D-pad move down a list reads as one thing lighting up after another.
  *
  * [onLongClick] is held OK, which opens the row's options.
  */
@@ -44,6 +46,7 @@ fun ListRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     leading: String? = null,
+    icon: KimonoIcon? = null,
     trailing: String? = null,
     onLongClick: (() -> Unit)? = null,
     shape: Shape = KimonoTheme.shapes.nested(TileDefaults.PADDING_DP),
@@ -84,6 +87,9 @@ fun ListRow(
             style = KimonoTheme.typography.body,
             color = colors.accent,
         )
+        if (icon != null) {
+            Icon(icon, color = if (focused) colors.accent else colors.textMuted)
+        }
         Text(
             text,
             modifier = Modifier.weight(1f),

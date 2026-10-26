@@ -25,6 +25,7 @@ import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
@@ -58,22 +59,27 @@ fun SettingsScreen(
     ) {
         Text("~/settings", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
         Tile(modifier = Modifier.width(SettingsWidth)) {
-            SectionHeader("appearance")
+            SectionHeader("appearance", icon = KimonoIcon.Settings)
             Column(
                 modifier = Modifier.padding(top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 SettingRow(
+                    KimonoIcon.Palette,
                     "theme",
                     theme.displayName.lowercase(),
                     onClick = { onThemeChange(theme.next()) },
                     modifier = Modifier.focusRequester(firstRow),
                 )
-                SettingRow("corners", cornerStyle.name.lowercase(), onClick = {
+                SettingRow(KimonoIcon.Corners, "corners", cornerStyle.name.lowercase(), onClick = {
                     onCornerStyleChange(cornerStyle.next())
                 })
-                SettingRow("text size", textSize.label, onClick = { onTextSizeChange(textSize.next()) })
-                SettingRow("clock", clockFormat.label, onClick = { onClockFormatChange(clockFormat.next()) })
+                SettingRow(KimonoIcon.TextSize, "text size", textSize.label, onClick = {
+                    onTextSizeChange(textSize.next())
+                })
+                SettingRow(KimonoIcon.Clock, "clock", clockFormat.label, onClick = {
+                    onClockFormatChange(clockFormat.next())
+                })
             }
         }
         // Pinned to the bottom, where home and the drawer keep theirs.
@@ -83,8 +89,14 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingRow(name: String, value: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    ListRow(text = name, onClick = onClick, modifier = modifier, trailing = "‹ $value ›")
+private fun SettingRow(
+    icon: KimonoIcon,
+    name: String,
+    value: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ListRow(text = name, onClick = onClick, modifier = modifier, icon = icon, trailing = "‹ $value ›")
 }
 
 /** The next entry, wrapping round, so OK steps through every value of a setting. */
