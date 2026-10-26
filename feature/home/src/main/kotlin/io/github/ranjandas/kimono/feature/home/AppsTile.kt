@@ -29,13 +29,13 @@ import kotlinx.coroutines.delay
 /**
  * The numbered app list on the home screen, holding the current workspace's apps. OK opens the focused app and
  * held OK its options; if it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of
- * crashing.
+ * crashing. [apps] is null while the list is still loading.
  *
  * It shows the first [MAX_APPS] apps; the drawer (M1-11) lists them all.
  */
 @Composable
 fun AppsTile(
-    apps: List<InstalledApp>,
+    apps: List<InstalledApp>?,
     onLaunchApp: (InstalledApp) -> LaunchResult,
     onShowOptions: (InstalledApp) -> Unit,
     workspace: Workspace,
@@ -50,7 +50,7 @@ fun AppsTile(
         }
     }
     Tile(modifier = modifier) {
-        SectionHeader("~/${workspace.label}", trailing = count(apps.size, "app"))
+        SectionHeader("~/${workspace.label}", trailing = apps?.let { count(it.size, "app") })
         // A different workspace is a different list, so it starts from the top.
         val listState = rememberLazyListState()
         LaunchedEffect(workspace) { listState.scrollToItem(0) }
@@ -63,7 +63,7 @@ fun AppsTile(
                 .focusRequester(listFocusRequester)
                 .focusRestorer(),
         ) {
-            itemsIndexed(apps.take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
+            itemsIndexed(apps.orEmpty().take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
                 ListRow(
                     text = app.label,
                     onClick = {
@@ -78,9 +78,14 @@ fun AppsTile(
                 )
             }
         }
-        if (apps.isEmpty()) {
+        val emptyText = when {
+            apps == null -> "loading apps…"
+            apps.isEmpty() -> "nothing pinned to this workspace yet"
+            else -> null
+        }
+        emptyText?.let {
             Text(
-                "nothing pinned to this workspace yet",
+                it,
                 modifier = Modifier.padding(top = 8.dp),
                 style = KimonoTheme.typography.body,
                 color = KimonoTheme.colors.textMuted,

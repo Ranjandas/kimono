@@ -26,12 +26,14 @@ private enum class Screen { Home, Drawer, Settings }
 
 /**
  * The launcher: home, the drawer and settings, themed from the stored settings. Nothing is drawn until the
- * settings and workspaces have loaded, so a chosen theme never flashes the default one first.
+ * settings and workspaces have loaded, so a chosen theme never flashes the default one first. The app list is
+ * collected from the start too, so it loads alongside them; it's null until the first list arrives.
  */
 @Composable
 internal fun KimonoApp(dependencies: KimonoDependencies) {
     val settings by dependencies.settingsStore.settings.collectAsStateWithLifecycle(initialValue = null)
     val workspaces by dependencies.workspaceStore.state.collectAsStateWithLifecycle(initialValue = null)
+    val apps by dependencies.appsRepository.apps.collectAsStateWithLifecycle(initialValue = null)
     val loadedSettings = settings ?: return
     val loadedWorkspaces = workspaces ?: return
     val scope = rememberCoroutineScope()
@@ -43,7 +45,7 @@ internal fun KimonoApp(dependencies: KimonoDependencies) {
         cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName),
         textScale = loadedSettings.textSize.scale,
     ) {
-        Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces)
+        Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps)
     }
 }
 
@@ -53,8 +55,8 @@ private fun Screens(
     settings: LauncherSettings,
     updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
     workspaces: WorkspaceState,
+    apps: List<InstalledApp>?,
 ) {
-    val apps by dependencies.appsRepository.apps.collectAsStateWithLifecycle(initialValue = emptyList())
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
     val actions = appCallbacks(dependencies, workspaces)
     val theme = ThemeId.fromName(settings.themeName)
@@ -76,7 +78,7 @@ private fun Screens(
         )
 
         Screen.Drawer -> DrawerScreen(
-            apps = apps,
+            apps = apps.orEmpty(),
             onLaunchApp = dependencies.appLauncher::launch,
             workspaces = workspaces,
             onTogglePin = actions.togglePin,

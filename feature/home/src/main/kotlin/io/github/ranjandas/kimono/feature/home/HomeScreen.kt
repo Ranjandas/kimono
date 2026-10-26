@@ -62,11 +62,11 @@ private object HomeDimens {
 /**
  * The home screen grid from the mockup: continue watching and recent apps on the left, system info and the apps
  * list on the right, the top bar above and key hints below. Tiles hold placeholders until their data lands
- * (continue watching in M3, recents in M2).
+ * (continue watching in M3, recents in M2). [apps] is null while the app list is still loading.
  */
 @Composable
 fun HomeScreen(
-    apps: List<InstalledApp>,
+    apps: List<InstalledApp>?,
     onLaunchApp: (InstalledApp) -> LaunchResult,
     workspaces: WorkspaceState,
     onSelectWorkspace: (Workspace) -> Unit,
@@ -81,10 +81,10 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val workspace = workspaces.current
-    val workspaceApps = remember(apps, workspace, workspaces) { apps.forWorkspace(workspace, workspaces) }
+    val workspaceApps = remember(apps, workspace, workspaces) { apps?.forWorkspace(workspace, workspaces) }
     val appsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
-    val hasApps = workspaceApps.isNotEmpty()
+    val hasApps = !workspaceApps.isNullOrEmpty()
     // Start on the apps list: it's the one tile with something to do until continue watching lands (M3). Come
     // back to it when its contents change (a workspace switch) and when the options panel closes, so focus is
     // never left on whatever the system picks first.
@@ -125,7 +125,7 @@ fun HomeScreen(
 /** The grid itself: top bar, the four tiles and the hint bar. */
 @Composable
 private fun HomeGrid(
-    apps: List<InstalledApp>,
+    apps: List<InstalledApp>?,
     onLaunchApp: (InstalledApp) -> LaunchResult,
     onShowOptions: (InstalledApp) -> Unit,
     workspace: Workspace,
