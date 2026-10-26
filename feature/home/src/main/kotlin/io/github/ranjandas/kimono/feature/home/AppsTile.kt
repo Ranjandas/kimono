@@ -2,6 +2,7 @@ package io.github.ranjandas.kimono.feature.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,7 +55,15 @@ fun AppsTile(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResu
     }
     Tile(modifier = modifier) {
         SectionHeader("~/apps", trailing = "${apps.size} installed")
-        LazyColumn(modifier = Modifier.weight(1f).padding(top = 8.dp)) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 8.dp)
+                // Coming back to the list lands on the row that was focused last.
+                .focusRequester(listFocusRequester)
+                .focusRestorer()
+                .focusGroup(),
+        ) {
             itemsIndexed(apps.take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
                 AppRow(
                     number = index + 1,

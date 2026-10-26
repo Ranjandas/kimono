@@ -1,7 +1,9 @@
 package io.github.ranjandas.kimono.feature.home
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +15,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +55,14 @@ private object HomeDimens {
  */
 @Composable
 fun HomeScreen(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResult, modifier: Modifier = Modifier) {
+    val appsFocus = remember { FocusRequester() }
+    val hasApps = apps.isNotEmpty()
+    // Start on the apps list: it's the one tile with something to do until continue watching lands (M3).
+    LaunchedEffect(hasApps) {
+        if (hasApps) appsFocus.requestFocusWhenLaidOut()
+    }
+    // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.
+    BackHandler { runCatching { appsFocus.requestFocus() } }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -72,7 +87,7 @@ fun HomeScreen(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchRe
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
                 SystemInfoTile(Modifier.fillMaxWidth())
-                AppsTile(apps, onLaunchApp, Modifier.fillMaxWidth().weight(1f))
+                AppsTile(apps, onLaunchApp, Modifier.fillMaxWidth().weight(1f), listFocusRequester = appsFocus)
             }
         }
         HintBar(Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
@@ -90,7 +105,8 @@ private fun TopBarPlaceholder(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ContinueTile(modifier: Modifier = Modifier) {
-    Tile(modifier = modifier) {
+    // Focusable now so D-pad moves stay the same once it gets resume and details buttons in M3.
+    Tile(modifier = modifier, onClick = {}) {
         SectionHeader("~/continue")
         Spacer(Modifier.weight(1f))
         Text("nothing to continue yet", style = KimonoTheme.typography.headline)
@@ -104,7 +120,10 @@ private fun ContinueTile(modifier: Modifier = Modifier) {
 
 @Composable
 private fun RecentsRow(modifier: Modifier = Modifier) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
+    Row(
+        modifier = modifier.focusRestorer().focusGroup(),
+        horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
+    ) {
         repeat(RECENT_SLOTS) {
             Tile(modifier = Modifier.weight(1f).fillMaxHeight(), onClick = {}) {
                 Icon(
@@ -162,6 +181,15 @@ private fun HintBar(modifier: Modifier = Modifier) {
     }
 }
 
+/** Requests focus, retrying for a few frames while a lazy list composes its first rows. */
+private suspend fun FocusRequester.requestFocusWhenLaidOut() {
+    repeat(FOCUS_ATTEMPTS) {
+        if (runCatching { requestFocus() }.getOrDefault(false)) return
+        withFrameNanos { }
+    }
+}
+
+private const val FOCUS_ATTEMPTS = 10
 private const val RECENT_SLOTS = 4
 private const val INFO_KEY_WIDTH = 10
 
