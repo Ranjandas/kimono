@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.component.TileDefaults
@@ -37,16 +38,16 @@ import io.github.ranjandas.kimono.data.apps.LaunchResult
 import kotlinx.coroutines.delay
 
 /**
- * The numbered app list on the home screen. OK opens the focused app; if it can't be opened (uninstalled or
- * disabled meanwhile), the tile says so instead of crashing.
+ * The numbered app list on the home screen, holding the current workspace's apps. OK opens the focused app; if
+ * it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of crashing.
  *
- * Until workspaces (M1-10) and recents (M2-6) exist it shows the first [MAX_APPS] apps by name; the drawer
- * (M1-11) lists them all.
+ * It shows the first [MAX_APPS] apps; the drawer (M1-11) lists them all.
  */
 @Composable
 fun AppsTile(
     apps: List<InstalledApp>,
     onLaunchApp: (InstalledApp) -> LaunchResult,
+    workspace: Workspace,
     modifier: Modifier = Modifier,
     listFocusRequester: FocusRequester = remember { FocusRequester() },
 ) {
@@ -58,7 +59,7 @@ fun AppsTile(
         }
     }
     Tile(modifier = modifier) {
-        SectionHeader("~/apps", trailing = "${apps.size} installed")
+        SectionHeader("~/${workspace.label}", trailing = "${apps.size} apps")
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -80,6 +81,14 @@ fun AppsTile(
                     },
                 )
             }
+        }
+        if (apps.isEmpty()) {
+            Text(
+                "nothing pinned to this workspace yet",
+                modifier = Modifier.padding(top = 8.dp),
+                style = KimonoTheme.typography.body,
+                color = KimonoTheme.colors.textMuted,
+            )
         }
         (status as? LaunchStatus.Unavailable)?.let {
             Text(

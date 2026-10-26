@@ -16,21 +16,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.workspace.Workspace
+import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.KeyHint
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
@@ -41,6 +45,7 @@ import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
+import io.github.ranjandas.kimono.data.apps.forWorkspace
 
 /** Layout sizes, in dp on the 960 × 540 canvas. They scale the mockup by the same 1.4 × as the type scale. */
 private object HomeDimens {
@@ -62,13 +67,16 @@ private object HomeDimens {
 fun HomeScreen(
     apps: List<InstalledApp>,
     onLaunchApp: (InstalledApp) -> LaunchResult,
+    workspaces: WorkspaceState,
+    onSelectWorkspace: (Workspace) -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var workspace by rememberSaveable { mutableIntStateOf(0) }
+    val workspace = workspaces.current
+    val workspaceApps = remember(apps, workspace, workspaces) { apps.forWorkspace(workspace, workspaces) }
     val appsFocus = remember { FocusRequester() }
-    val hasApps = apps.isNotEmpty()
+    val hasApps = workspaceApps.isNotEmpty()
     // Start on the apps list: it's the one tile with something to do until continue watching lands (M3).
     LaunchedEffect(hasApps) {
         if (hasApps) appsFocus.requestFocusWhenLaidOut()
@@ -79,12 +87,13 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
+            .onPreviewKeyEvent { event -> event.selectsWorkspace(workspace, onSelectWorkspace) }
             .padding(horizontal = HomeDimens.ScreenPaddingH, vertical = HomeDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
     ) {
         TopBar(
             workspace = workspace,
-            onSelectWorkspace = { workspace = it },
+            onSelectWorkspace = onSelectWorkspace,
             theme = theme,
             onCycleTheme = onCycleTheme,
             modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
@@ -105,7 +114,13 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
                 SystemInfoTile(Modifier.fillMaxWidth())
-                AppsTile(apps, onLaunchApp, Modifier.fillMaxWidth().weight(1f), listFocusRequester = appsFocus)
+                AppsTile(
+                    apps = workspaceApps,
+                    onLaunchApp = onLaunchApp,
+                    workspace = workspace,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    listFocusRequester = appsFocus,
+                )
             }
         }
         HintBar(Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
@@ -186,8 +201,30 @@ private fun HintBar(modifier: Modifier = Modifier) {
     ) {
         KeyHint("◀ ▶ ▲ ▼", "move focus")
         KeyHint("ok", "launch")
+        KeyHint("1…5", "workspace")
         KeyHint("hold ok", "app options")
     }
+}
+
+/**
+ * Jumps to a workspace on the number keys 1 to 5, and to the next or previous one on channel up and down,
+ * wherever focus is. Returns true when the key was a workspace shortcut, so the focused tile never also sees it.
+ */
+private fun KeyEvent.selectsWorkspace(current: Workspace, onSelectWorkspace: (Workspace) -> Unit): Boolean {
+    val target = if (type == KeyEventType.KeyDown) workspaceShortcut(current) else null
+    target?.let(onSelectWorkspace)
+    return target != null
+}
+
+private fun KeyEvent.workspaceShortcut(current: Workspace): Workspace? = when (key) {
+    Key.One, Key.NumPad1 -> Workspace.Home
+    Key.Two, Key.NumPad2 -> Workspace.Media
+    Key.Three, Key.NumPad3 -> Workspace.Games
+    Key.Four, Key.NumPad4 -> Workspace.Apps
+    Key.Five, Key.NumPad5 -> Workspace.System
+    Key.ChannelUp -> current.next()
+    Key.ChannelDown -> current.previous()
+    else -> null
 }
 
 /** Requests focus, retrying for a few frames while a lazy list composes its first rows. */
@@ -211,6 +248,8 @@ private fun HomeScreenPreview() {
                 InstalledApp("pkg.$it", "pkg.$it.Main", it, AppCategory.Video, isTvApp = true)
             },
             onLaunchApp = { LaunchResult.Launched },
+            workspaces = WorkspaceState(),
+            onSelectWorkspace = {},
             theme = ThemeId.Default,
             onCycleTheme = {},
         )
