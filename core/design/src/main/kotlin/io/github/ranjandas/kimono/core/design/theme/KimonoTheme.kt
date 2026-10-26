@@ -28,6 +28,10 @@ data class KimonoColors(
     val textMuted: Color,
     val border: Color,
     val borderFocused: Color,
+    /**
+     * Focus and primary highlights: the palette accent, nudged where needed to keep 3:1 against [surface] and
+     * 4.5:1 under [onAccent] text.
+     */
     val accent: Color,
     val accentSecondary: Color,
     /** Text and icons drawn on an [accent] fill. */
@@ -37,22 +41,25 @@ data class KimonoColors(
     val success: Color,
 ) {
     companion object {
-        fun from(palette: Palette): KimonoColors = KimonoColors(
-            isLight = palette.isLight,
-            background = palette.background.toColor(),
-            surface = palette.surface.toColor(),
-            surfaceVariant = palette.surfaceVariant.toColor(),
-            text = palette.foreground.toColor(),
-            textMuted = quietestLegible(palette.foreground, palette.surface).toColor(),
-            border = palette.line.toColor(),
-            borderFocused = palette.accent.toColor(),
-            accent = palette.accent.toColor(),
-            accentSecondary = palette.accent2.toColor(),
-            onAccent = palette.background.toColor(),
-            error = palette.red.toColor(),
-            warning = palette.yellow.toColor(),
-            success = palette.green.toColor(),
-        )
+        fun from(palette: Palette): KimonoColors {
+            val accent = legibleAccent(palette).toColor()
+            return KimonoColors(
+                isLight = palette.isLight,
+                background = palette.background.toColor(),
+                surface = palette.surface.toColor(),
+                surfaceVariant = palette.surfaceVariant.toColor(),
+                text = palette.foreground.toColor(),
+                textMuted = quietestLegible(palette.foreground, palette.surface).toColor(),
+                border = palette.line.toColor(),
+                borderFocused = accent,
+                accent = accent,
+                accentSecondary = palette.accent2.toColor(),
+                onAccent = palette.background.toColor(),
+                error = palette.red.toColor(),
+                warning = palette.yellow.toColor(),
+                success = palette.green.toColor(),
+            )
+        }
     }
 }
 
@@ -61,6 +68,9 @@ data class KimonoColors(
 data class KimonoShapes(val cornerStyle: CornerStyle) {
     /** Tiles, panels and their focus borders. */
     val tile: Shape = RoundedCornerShape(cornerStyle.radiusDp.dp)
+
+    /** Small chips such as key hints, at half the tile radius. */
+    val small: Shape = RoundedCornerShape((cornerStyle.radiusDp / 2).dp)
 
     /** An element inset [paddingDp] inside a [tile], with its radius reduced so the curves stay parallel. */
     fun nested(paddingDp: Int): Shape = RoundedCornerShape(cornerStyle.nestedRadiusDp(paddingDp).dp)

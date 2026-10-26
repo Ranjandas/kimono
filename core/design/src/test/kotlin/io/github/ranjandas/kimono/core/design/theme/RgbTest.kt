@@ -44,4 +44,11 @@ class RgbTest {
         assertEquals(true, ratio >= MIN_TEXT_CONTRAST)
         assertEquals(true, ratio < MIN_TEXT_CONTRAST + 0.5)
     }
+
+    @Test
+    fun `nudgedTowards stops at the first colour that passes`() {
+        assertEquals(Rgb.of("#808080"), black.nudgedTowards(white) { it.red >= 0x80 })
+        assertEquals(black, black.nudgedTowards(white) { true })
+        assertEquals(white, black.nudgedTowards(white) { false })
+    }
 }

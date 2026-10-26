@@ -32,6 +32,22 @@ class PaletteTest {
         assertTrue(contrastRatio(muted, p.surface) < contrastRatio(p.foreground, p.surface))
     }
 
+    @ParameterizedTest
+    @EnumSource(ThemeId::class)
+    fun `accent shows as a focus border and carries text as a fill`(theme: ThemeId) {
+        val p = theme.palette
+        val accent = legibleAccent(p)
+        assertContrast(accent, p.surface, MIN_UI_CONTRAST, "accent border on surface")
+        assertContrast(accent, p.background, MIN_UI_CONTRAST, "accent border on background")
+        assertContrast(p.background, accent, MIN_TEXT_CONTRAST, "text on accent fill")
+    }
+
+    @Test
+    fun `accent is only nudged where the palette needs it`() {
+        assertEquals(ThemeId.TokyoNight.palette.accent, legibleAccent(ThemeId.TokyoNight.palette))
+        assertTrue(ThemeId.RosePine.palette.accent != legibleAccent(ThemeId.RosePine.palette))
+    }
+
     @Test
     fun `ships the seven Omarchy palettes with Tokyo Night as default`() {
         assertEquals(
@@ -41,8 +57,11 @@ class PaletteTest {
         assertEquals(ThemeId.TokyoNight, ThemeId.Default)
     }
 
-    private fun assertLegible(text: Rgb, background: Rgb, what: String) {
-        val ratio = contrastRatio(text, background)
-        assertTrue(ratio >= MIN_TEXT_CONTRAST, "$what: $text on $background is %.2f:1".format(ratio))
+    private fun assertLegible(text: Rgb, background: Rgb, what: String) =
+        assertContrast(text, background, MIN_TEXT_CONTRAST, what)
+
+    private fun assertContrast(a: Rgb, b: Rgb, min: Double, what: String) {
+        val ratio = contrastRatio(a, b)
+        assertTrue(ratio >= min, "$what: $a on $b is %.2f:1".format(ratio))
     }
 }
