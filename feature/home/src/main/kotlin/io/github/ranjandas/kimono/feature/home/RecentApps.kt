@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
@@ -49,7 +51,7 @@ internal fun RecentsRow(
             val app = apps.getOrNull(slot)
             when {
                 recents is RecentApps.NeedsAccess && slot == 0 ->
-                    RecentTile(KimonoIcon.Recent, "allow access", "to show recent apps", onRequestAccess, tileModifier)
+                    RecentTile(KimonoIcon.Recent, "allow access", "press ok", onRequestAccess, tileModifier)
 
                 app != null -> RecentTile(app.icon, app.label, "recent", { onLaunchApp(app) }, tileModifier)
 
@@ -58,6 +60,9 @@ internal fun RecentsRow(
         }
     }
 }
+
+private val TileTitleStyle: TextStyle
+    @Composable get() = KimonoTheme.typography.body.copy(fontWeight = FontWeight.Bold)
 
 @Composable
 private fun RecentTile(
@@ -70,7 +75,8 @@ private fun RecentTile(
     Tile(modifier = modifier, onClick = onClick) {
         Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.headline)
         Spacer(Modifier.weight(1f))
-        Text(title, style = KimonoTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        // Body size over two lines: a quarter-width tile only fits about nine characters a line.
+        Text(title, style = TileTitleStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(
             detail,
             style = KimonoTheme.typography.label,
