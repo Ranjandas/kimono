@@ -57,6 +57,13 @@ class PaletteTest {
         assertEquals(ThemeId.TokyoNight, ThemeId.Default)
     }
 
+    @Test
+    fun `reads a stored theme name, falling back to the default`() {
+        assertEquals(ThemeId.Nord, ThemeId.fromName("Nord"))
+        assertEquals(ThemeId.Default, ThemeId.fromName(null))
+        assertEquals(ThemeId.Default, ThemeId.fromName("Retired"))
+    }
+
     private fun assertLegible(text: Rgb, background: Rgb, what: String) =
         assertContrast(text, background, MIN_TEXT_CONTRAST, what)
 

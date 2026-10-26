@@ -21,4 +21,11 @@ class CornerStyleTest {
         assertEquals(0, CornerStyle.Soft.nestedRadiusDp(10))
         assertEquals(0, CornerStyle.Square.nestedRadiusDp(4))
     }
+
+    @Test
+    fun `reads a stored name, falling back to the default`() {
+        assertEquals(CornerStyle.Round, CornerStyle.fromName("Round"))
+        assertEquals(CornerStyle.Default, CornerStyle.fromName(null))
+        assertEquals(CornerStyle.Default, CornerStyle.fromName("Retired"))
+    }
 }

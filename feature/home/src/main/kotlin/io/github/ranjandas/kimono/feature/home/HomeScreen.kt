@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
@@ -75,6 +76,8 @@ fun HomeScreen(
     onUninstallApp: (InstalledApp) -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
+    clockFormat: ClockFormat,
     modifier: Modifier = Modifier,
 ) {
     val workspace = workspaces.current
@@ -101,6 +104,8 @@ fun HomeScreen(
             onOpenDrawer = onOpenDrawer,
             theme = theme,
             onCycleTheme = onCycleTheme,
+            onOpenSettings = onOpenSettings,
+            clockFormat = clockFormat,
             appsFocus = appsFocus,
         )
         options?.let { app ->
@@ -128,6 +133,8 @@ private fun HomeGrid(
     onOpenDrawer: () -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
+    clockFormat: ClockFormat,
     appsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
@@ -147,6 +154,8 @@ private fun HomeGrid(
             onSelectWorkspace = onSelectWorkspace,
             theme = theme,
             onCycleTheme = onCycleTheme,
+            onOpenSettings = onOpenSettings,
+            clockFormat = clockFormat,
             modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
         )
         Row(
@@ -288,6 +297,8 @@ private fun HomeScreenPreview() {
             onUninstallApp = {},
             theme = ThemeId.Default,
             onCycleTheme = {},
+            onOpenSettings = {},
+            clockFormat = ClockFormat.System,
         )
     }
 }

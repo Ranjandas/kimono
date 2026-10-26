@@ -15,5 +15,8 @@ enum class CornerStyle(val radiusDp: Int) {
 
     companion object {
         val Default = Square
+
+        /** The entry stored as [name], or [Default] when nothing is stored or the name no longer exists. */
+        fun fromName(name: String?): CornerStyle = entries.find { it.name == name } ?: Default
     }
 }

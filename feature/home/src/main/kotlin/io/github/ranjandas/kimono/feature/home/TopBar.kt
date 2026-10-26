@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.TileDefaults
 import io.github.ranjandas.kimono.core.design.icon.Icon
@@ -43,6 +44,8 @@ internal fun TopBar(
     onSelectWorkspace: (Workspace) -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
+    clockFormat: ClockFormat,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -65,7 +68,7 @@ internal fun TopBar(
                 color = KimonoTheme.colors.textMuted,
             )
         }
-        Clock(Modifier.align(Alignment.Center))
+        Clock(clockFormat, Modifier.align(Alignment.Center))
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),
             horizontalArrangement = Arrangement.spacedBy(18.dp),
@@ -73,7 +76,18 @@ internal fun TopBar(
         ) {
             NetworkIndicator()
             VolumeIndicator()
-            ThemeButton(theme, onCycleTheme)
+            TopBarButton(
+                icon = KimonoIcon.Palette,
+                label = theme.displayName.lowercase(),
+                description = "Theme ${theme.displayName}, press to switch",
+                onClick = onCycleTheme,
+            )
+            TopBarButton(
+                icon = KimonoIcon.Settings,
+                label = "settings",
+                description = "Settings",
+                onClick = onOpenSettings,
+            )
         }
     }
 }
@@ -111,9 +125,14 @@ private fun WorkspaceButton(
 }
 
 @Composable
-private fun Clock(modifier: Modifier = Modifier) {
+private fun Clock(format: ClockFormat, modifier: Modifier = Modifier) {
     val now by rememberClock()
-    val time = DateTimeFormatter.ofPattern(if (is24HourClock()) "HH:mm" else "h:mm a")
+    val twentyFourHour = when (format) {
+        ClockFormat.System -> is24HourClock()
+        ClockFormat.TwelveHour -> false
+        ClockFormat.TwentyFourHour -> true
+    }
+    val time = DateTimeFormatter.ofPattern(if (twentyFourHour) "HH:mm" else "h:mm a")
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -155,7 +174,13 @@ private fun StatusItem(icon: KimonoIcon, label: String, modifier: Modifier = Mod
 }
 
 @Composable
-private fun ThemeButton(theme: ThemeId, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun TopBarButton(
+    icon: KimonoIcon,
+    label: String,
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     val colors = KimonoTheme.colors
@@ -163,7 +188,7 @@ private fun ThemeButton(theme: ThemeId, onClick: () -> Unit, modifier: Modifier 
     Row(
         modifier = modifier
             .fillMaxHeight()
-            .semantics { contentDescription = "Theme ${theme.displayName}, press to switch" }
+            .semantics { contentDescription = description }
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
             .background(if (focused) colors.accent else colors.background, shape)
             .border(TileDefaults.BorderWidth, if (focused) colors.accent else colors.border, shape)
@@ -172,8 +197,8 @@ private fun ThemeButton(theme: ThemeId, onClick: () -> Unit, modifier: Modifier 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val content = if (focused) colors.onAccent else colors.accent
-        Icon(KimonoIcon.Palette, color = content, style = KimonoTheme.typography.label)
-        Text(theme.displayName.lowercase(), style = KimonoTheme.typography.label, color = content)
+        Icon(icon, color = content, style = KimonoTheme.typography.label)
+        Text(label, style = KimonoTheme.typography.label, color = content)
     }
 }
 

@@ -1,31 +1,14 @@
 package io.github.ranjandas.kimono.core.data.workspace
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import io.github.ranjandas.kimono.core.data.InMemoryDataStore
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class DataStoreWorkspaceStoreTest {
-    /** Stands in for a Preferences DataStore file, which needs a device. */
-    private class InMemoryDataStore : DataStore<Preferences> {
-        private val preferences = MutableStateFlow(emptyPreferences())
-
-        override val data: Flow<Preferences> = preferences
-
-        override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
-            val updated = transform(preferences.value)
-            preferences.value = updated
-            return updated
-        }
-    }
-
     private val dataStore = InMemoryDataStore()
     private val store = DataStoreWorkspaceStore(dataStore)
 

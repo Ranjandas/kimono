@@ -1,6 +1,7 @@
 package io.github.ranjandas.kimono.core.data.workspace
 
 import android.content.Context
+import io.github.ranjandas.kimono.core.data.kimonoPreferences
 import kotlinx.coroutines.flow.Flow
 
 /** Keeps the selected workspace and the per-workspace pins across restarts. */

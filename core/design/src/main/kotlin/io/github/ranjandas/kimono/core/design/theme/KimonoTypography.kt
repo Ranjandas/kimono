@@ -32,6 +32,19 @@ data class KimonoTypography(
     /** Top bar, tile headers, key hints and metadata next to body text. */
     val label: TextStyle,
 ) {
+    /** Every style at [factor] times its size, for the text size setting. Weights and fonts stay the same. */
+    fun scaled(factor: Float): KimonoTypography = if (factor == 1f) {
+        this
+    } else {
+        KimonoTypography(
+            display = display.scaled(factor),
+            headline = headline.scaled(factor),
+            title = title.scaled(factor),
+            body = body.scaled(factor),
+            label = label.scaled(factor),
+        )
+    }
+
     companion object {
         val Default = KimonoTypography(
             display = style(sizeSp = 72, lineHeightSp = 76, weight = FontWeight.Bold),
@@ -40,6 +53,9 @@ data class KimonoTypography(
             body = style(sizeSp = 14, lineHeightSp = 20),
             label = style(sizeSp = 12, lineHeightSp = 16),
         )
+
+        private fun TextStyle.scaled(factor: Float) =
+            copy(fontSize = fontSize * factor, lineHeight = lineHeight * factor)
 
         private fun style(sizeSp: Int, lineHeightSp: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
             fontFamily = KimonoFontFamily,

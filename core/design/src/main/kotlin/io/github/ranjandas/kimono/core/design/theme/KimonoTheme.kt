@@ -81,23 +81,25 @@ private val LocalKimonoShapes = staticCompositionLocalOf { KimonoShapes(CornerSt
 private val LocalKimonoTypography = staticCompositionLocalOf { KimonoTypography.Default }
 
 /**
- * Applies a palette, corner style and the type scale to [content].
+ * Applies a palette, corner style and the type scale, at [textScale] times its size, to [content].
  * Read the tokens through [KimonoTheme.colors], [KimonoTheme.shapes] and [KimonoTheme.typography].
  */
 @Composable
 fun KimonoTheme(
     theme: ThemeId = ThemeId.Default,
     cornerStyle: CornerStyle = CornerStyle.Default,
+    textScale: Float = 1f,
     content: @Composable () -> Unit,
 ) {
     val colors = remember(theme) { KimonoColors.from(theme.palette) }
     val shapes = remember(cornerStyle) { KimonoShapes(cornerStyle) }
+    val typography = remember(textScale) { KimonoTypography.Default.scaled(textScale) }
     val colorScheme = remember(colors) { colors.toTvColorScheme() }
     MaterialTheme(colorScheme = colorScheme, typography = TvTypography) {
         CompositionLocalProvider(
             LocalKimonoColors provides colors,
             LocalKimonoShapes provides shapes,
-            LocalKimonoTypography provides KimonoTypography.Default,
+            LocalKimonoTypography provides typography,
             LocalContentColor provides colors.text,
             content = content,
         )
