@@ -17,7 +17,7 @@ Homebrew's), put its full path in `~/.gradle/gradle.properties` as `kimono.pyfts
 
 ```sh
 ./gradlew assembleDebug      # app/build/outputs/apk/debug/app-debug.apk
-./gradlew check              # unit tests, Android Lint, ktlint (Spotless) and Detekt, as CI runs them
+./gradlew check              # unit tests, Android Lint, ktlint (Spotless) and Detekt (CI adds screenshots)
 ./gradlew spotlessApply      # fix formatting before committing
 ```
 
@@ -37,6 +37,27 @@ gh run download <run-id> -n kimono-debug-apk -D /tmp/kimono
 
 Debug builds from CI and from every machine are signed with the same committed key (`app/debug.keystore`),
 so they install over each other. It is a debug key only and never signs a release.
+
+## Screenshot tests
+
+Roborazzi renders the home screen and the drawer under Robolectric in every theme × corner style, and compares
+them with the PNGs committed under `feature/*/src/test/screenshots/`. CI fails when a screen changes.
+
+```sh
+./gradlew verifyRoborazziDebug   # compare with the committed screenshots, as CI does
+./gradlew compareRoborazziDebug  # write before/after comparisons to feature/*/build/outputs/roborazzi/
+./gradlew recordRoborazziDebug   # overwrite the committed screenshots with the current rendering
+```
+
+When a change is meant to alter a screen, update the screenshots in the same PR. Fonts render slightly
+differently on macOS, so record on CI's Linux instead of locally: when screenshot verification fails, the CI
+run uploads a `screenshots` artifact with freshly recorded images. Check them, then copy them in and commit:
+
+```sh
+gh run download <run-id> -n screenshots -D /tmp/kimono-screenshots
+cp -R /tmp/kimono-screenshots/. feature/
+git add feature/*/src/test/screenshots && git commit -m "Update screenshots"
+```
 
 ## Set up the Streamer
 
