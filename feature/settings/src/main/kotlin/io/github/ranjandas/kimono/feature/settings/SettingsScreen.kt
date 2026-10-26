@@ -49,8 +49,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val firstRow = remember { FocusRequester() }
-    // Retried, because a settings screen restored after process death can draw before it can take focus; with
-    // nothing focused, the first Back press was lost.
+    // Retried like home and the drawer, in case the screen draws before it can take focus.
     LaunchedEffect(Unit) { firstRow.requestFocusWhenLaidOut() }
     BackHandler(onBack = onClose)
     Column(

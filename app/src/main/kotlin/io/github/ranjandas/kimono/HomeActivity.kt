@@ -32,10 +32,14 @@ class HomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Android keeps home activities in their own task, so the first Home press after Kimono was opened some
+        // other way (from the apps row, or adb) starts a second instance rather than reaching this one. Treat that
+        // start as a Home press too. A restore after process death keeps its state instead.
+        if (savedInstanceState == null && intent.hasCategory(Intent.CATEGORY_HOME)) homePresses++
         setContent { KimonoApp(dependencies, homePresses) }
     }
 
-    // singleTask: Home, or opening Kimono from the apps row, comes back here instead of starting a new activity.
+    // singleTask: once running, Home or opening Kimono from the apps row comes back here as a new intent.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == Intent.ACTION_MAIN) homePresses++
