@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRestorer
@@ -204,7 +205,7 @@ private fun HomeGrid(
 private fun ContinueTile(modifier: Modifier = Modifier) {
     // Focusable now so D-pad moves stay the same once it gets resume and details buttons in M3.
     Tile(modifier = modifier, onClick = {}) {
-        SectionHeader("~/continue")
+        SectionHeader("~/continue", icon = KimonoIcon.Continue)
         Spacer(Modifier.weight(1f))
         Text("nothing to continue yet", style = KimonoTheme.typography.headline)
         Text(
@@ -224,7 +225,7 @@ private fun RecentsRow(modifier: Modifier = Modifier) {
         repeat(RECENT_SLOTS) {
             Tile(modifier = Modifier.weight(1f).fillMaxHeight(), onClick = {}) {
                 Icon(
-                    KimonoIcon.AppFallback,
+                    KimonoIcon.Recent,
                     color = KimonoTheme.colors.textMuted,
                     style = KimonoTheme.typography.headline,
                 )
@@ -245,17 +246,22 @@ private fun RecentsRow(modifier: Modifier = Modifier) {
 @Composable
 private fun SystemInfoTile(modifier: Modifier = Modifier) {
     Tile(modifier = modifier) {
-        SectionHeader("~/system")
-        InfoLine("device", Build.MODEL)
-        InfoLine("os", "Android ${Build.VERSION.RELEASE}")
-        InfoLine("launcher", "kimono")
-        InfoLine("font", "JetBrains Mono")
+        SectionHeader("~/system", icon = KimonoIcon.Info)
+        InfoLine(KimonoIcon.Device, "device", Build.MODEL)
+        InfoLine(KimonoIcon.Os, "os", "Android ${Build.VERSION.RELEASE}")
+        InfoLine(KimonoIcon.Launcher, "launcher", "kimono")
+        InfoLine(KimonoIcon.Font, "font", "JetBrains Mono")
     }
 }
 
 @Composable
-private fun InfoLine(key: String, value: String) {
-    Row(modifier = Modifier.padding(top = 4.dp)) {
+private fun InfoLine(icon: KimonoIcon, key: String, value: String) {
+    Row(
+        modifier = Modifier.padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, color = KimonoTheme.colors.textMuted)
         Text(
             key.padEnd(INFO_KEY_WIDTH),
             style = KimonoTheme.typography.body,

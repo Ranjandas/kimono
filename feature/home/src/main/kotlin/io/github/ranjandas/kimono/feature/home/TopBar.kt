@@ -68,9 +68,14 @@ internal fun TopBar(
                     onClick = { onSelectWorkspace(candidate) },
                 )
             }
+            Icon(
+                workspace.icon,
+                modifier = Modifier.padding(start = 10.dp),
+                color = KimonoTheme.colors.textMuted,
+                style = KimonoTheme.typography.label,
+            )
             Text(
                 workspace.label,
-                modifier = Modifier.padding(start = 10.dp),
                 style = KimonoTheme.typography.label,
                 color = KimonoTheme.colors.textMuted,
             )

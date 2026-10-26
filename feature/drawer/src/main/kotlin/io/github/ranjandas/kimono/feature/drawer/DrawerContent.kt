@@ -1,14 +1,19 @@
 package io.github.ranjandas.kimono.feature.drawer
 
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.icon.appIcon
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 
-/** The drawer's groups, in the order they are listed (PLAN §5). */
-enum class DrawerGroup(val label: String) {
-    Watch("watch"),
-    Listen("listen"),
-    Play("play"),
-    System("system"),
+/**
+ * The drawer's groups, in the order they are listed (PLAN §5), with the [icon] on their heading and the
+ * [appFallback] icon for an app in the group that has no brand icon.
+ */
+enum class DrawerGroup(val label: String, val icon: KimonoIcon, val appFallback: KimonoIcon) {
+    Watch("watch", KimonoIcon.Media, KimonoIcon.Media),
+    Listen("listen", KimonoIcon.Music, KimonoIcon.Music),
+    Play("play", KimonoIcon.Games, KimonoIcon.Games),
+    System("system", KimonoIcon.System, KimonoIcon.AppFallback),
     ;
 
     companion object {
@@ -36,6 +41,10 @@ fun drawerSections(apps: List<InstalledApp>, query: String = ""): List<DrawerSec
             ?.let { DrawerSection(group, it) }
     }
 }
+
+/** The app's brand icon, or one for its group; a phone app says so instead. */
+internal fun InstalledApp.icon(group: DrawerGroup): KimonoIcon =
+    appIcon(packageName, fallback = if (isTvApp) group.appFallback else KimonoIcon.PhoneApp)
 
 /**
  * Matches the way a search box on a remote has to: a letter typed is a letter anywhere in the name,

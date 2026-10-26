@@ -197,6 +197,7 @@ private fun DrawerList(
                 SectionHeader(
                     "~/${section.group.label}",
                     modifier = Modifier.padding(top = DrawerDimens.Gap, bottom = 4.dp),
+                    icon = section.group.icon,
                     trailing = "${section.apps.size}",
                 )
             }
@@ -204,6 +205,7 @@ private fun DrawerList(
                 ListRow(
                     text = app.label,
                     onClick = { onClickApp(app) },
+                    icon = app.icon(section.group),
                     trailing = when {
                         app.packageName in pinned -> "pinned"
                         !app.isTvApp -> "phone app"
