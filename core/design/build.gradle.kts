@@ -1,3 +1,5 @@
+// Theme model, palettes, typography and base components (Tile, Kbd, TopBar).
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -19,6 +21,14 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        warningsAsErrors = true
+        abortOnError = true
+        // Version-freshness checks change with every upstream release, so they'd break CI on unrelated PRs.
+        disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion", "OldTargetApi")
     }
 }
 

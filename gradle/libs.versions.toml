@@ -9,6 +9,12 @@ activityCompose = "1.10.1"
 lifecycle = "2.9.0"
 composeBom = "2025.09.00"
 tvMaterial = "1.0.1"
+spotless = "8.10.4"
+ktlint = "1.8.0"
+detekt = "1.23.8"
+# Detekt 1.23.x runs on this Kotlin version, independent of the project's Kotlin version.
+detektKotlin = "2.0.21"
+composeRules = "0.6.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -21,6 +27,8 @@ androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
+composeRules-detekt = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "composeRules" }
+composeRules-ktlint = { group = "io.nlopez.compose.rules", name = "ktlint", version.ref = "composeRules" }
 
 [bundles]
 compose = ["androidx-compose-foundation", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-tv-material"]
@@ -30,3 +38,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
