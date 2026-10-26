@@ -160,13 +160,7 @@ private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Mod
 @Composable
 private fun NetworkIndicator(modifier: Modifier = Modifier) {
     val status by rememberNetworkStatus()
-    val (icon, label) = when (status) {
-        NetworkStatus.Wifi -> KimonoIcon.Wifi to "wifi"
-        NetworkStatus.Ethernet -> KimonoIcon.Ethernet to "ethernet"
-        NetworkStatus.Other -> KimonoIcon.Wifi to "online"
-        NetworkStatus.Offline -> KimonoIcon.WifiOff to "offline"
-    }
-    StatusItem(icon, label, modifier)
+    StatusItem(status.icon, status.label, modifier)
 }
 
 @Composable

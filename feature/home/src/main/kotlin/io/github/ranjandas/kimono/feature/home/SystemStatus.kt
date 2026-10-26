@@ -15,6 +15,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
@@ -97,4 +98,9 @@ private fun readVolume(context: Context): Int? {
 
 private const val PERCENT = 100
 
-internal enum class NetworkStatus { Wifi, Ethernet, Other, Offline }
+internal enum class NetworkStatus(val icon: KimonoIcon, val label: String) {
+    Wifi(KimonoIcon.Wifi, "wifi"),
+    Ethernet(KimonoIcon.Ethernet, "ethernet"),
+    Other(KimonoIcon.Wifi, "online"),
+    Offline(KimonoIcon.WifiOff, "offline"),
+}
