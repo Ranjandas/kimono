@@ -17,6 +17,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+    }
+
     lint {
         baseline = file("lint-baseline.xml")
         warningsAsErrors = true
@@ -29,4 +33,11 @@ android {
 dependencies {
     implementation(project(":core:data"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.android)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
