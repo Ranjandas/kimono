@@ -1,0 +1,31 @@
+name: Spike
+description: A time-boxed investigation that answers a question before we build on it.
+labels: ["type:spike"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: The one question this spike must answer.
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Approach
+      description: What to try, on which device.
+  - type: input
+    id: timebox
+    attributes:
+      label: Time box
+      placeholder: 1 day
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Expected outcome
+      description: What gets written down, e.g. an ADR in docs/adr/ or a comment on this issue.
+      value: |
+        - [ ] Findings recorded
+        - [ ] Decision written as an ADR if it has lasting consequences
