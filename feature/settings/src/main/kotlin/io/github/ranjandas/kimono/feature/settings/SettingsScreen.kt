@@ -25,6 +25,7 @@ import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
+import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
@@ -48,7 +49,9 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val firstRow = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { firstRow.requestFocus() } }
+    // Retried, because a settings screen restored after process death can draw before it can take focus; with
+    // nothing focused, the first Back press was lost.
+    LaunchedEffect(Unit) { firstRow.requestFocusWhenLaidOut() }
     BackHandler(onBack = onClose)
     Column(
         modifier = modifier

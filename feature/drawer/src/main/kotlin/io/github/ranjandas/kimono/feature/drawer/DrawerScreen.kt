@@ -19,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,6 +41,7 @@ import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
+import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.AppCategory
@@ -283,15 +283,6 @@ private fun KeyEvent.editQuery(query: String): String? {
     }
 }
 
-/** Requests focus, retrying for a few frames while the lazy list composes its first rows. */
-private suspend fun FocusRequester.requestFocusWhenLaidOut() {
-    repeat(FOCUS_ATTEMPTS) {
-        if (runCatching { requestFocus() }.getOrDefault(false)) return
-        withFrameNanos { }
-    }
-}
-
-private const val FOCUS_ATTEMPTS = 10
 private const val STATUS_MILLIS = 4_000L
 
 @Preview(device = Devices.TV_1080p)
