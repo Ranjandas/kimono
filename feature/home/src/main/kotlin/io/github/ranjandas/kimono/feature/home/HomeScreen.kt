@@ -26,6 +26,9 @@ import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
+import io.github.ranjandas.kimono.data.apps.AppCategory
+import io.github.ranjandas.kimono.data.apps.InstalledApp
+import io.github.ranjandas.kimono.data.apps.LaunchResult
 
 /** Layout sizes, in dp on the 960 × 540 canvas. They scale the mockup by the same 1.4 × as the type scale. */
 private object HomeDimens {
@@ -41,10 +44,10 @@ private object HomeDimens {
 /**
  * The home screen grid from the mockup: continue watching and recent apps on the left, system info and the apps
  * list on the right, the top bar above and key hints below. Tiles hold placeholders until their data lands
- * (continue watching in M3, recents in M2, apps list in M1-7, top bar in M1-9).
+ * (continue watching in M3, recents in M2, top bar in M1-9).
  */
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResult, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -69,7 +72,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
                 SystemInfoTile(Modifier.fillMaxWidth())
-                AppsTile(Modifier.fillMaxWidth().weight(1f))
+                AppsTile(apps, onLaunchApp, Modifier.fillMaxWidth().weight(1f))
             }
         }
         HintBar(Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
@@ -147,19 +150,6 @@ private fun InfoLine(key: String, value: String) {
 }
 
 @Composable
-private fun AppsTile(modifier: Modifier = Modifier) {
-    Tile(modifier = modifier) {
-        SectionHeader("~/apps", trailing = "all apps")
-        Text(
-            "your apps list here",
-            modifier = Modifier.padding(top = 8.dp),
-            style = KimonoTheme.typography.body,
-            color = KimonoTheme.colors.textMuted,
-        )
-    }
-}
-
-@Composable
 private fun HintBar(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
@@ -179,6 +169,11 @@ private const val INFO_KEY_WIDTH = 10
 @Composable
 private fun HomeScreenPreview() {
     KimonoTheme {
-        HomeScreen()
+        HomeScreen(
+            apps = listOf("Jellyfin", "Kodi", "Plex", "YouTube").map {
+                InstalledApp("pkg.$it", "pkg.$it.Main", it, AppCategory.Video, isTvApp = true)
+            },
+            onLaunchApp = { LaunchResult.Launched },
+        )
     }
 }
