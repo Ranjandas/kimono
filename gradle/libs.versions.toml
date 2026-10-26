@@ -1,14 +1,14 @@
 [versions]
-agp = "8.13.0"
-kotlin = "2.2.20"
-compileSdk = "36"
-targetSdk = "36"
+agp = "9.4.1"
+kotlin = "2.4.21"
+compileSdk = "37"
+targetSdk = "37"
 minSdk = "31"
-coreKtx = "1.16.0"
-activityCompose = "1.10.1"
-lifecycle = "2.9.0"
-composeBom = "2025.09.00"
-tvMaterial = "1.0.1"
+coreKtx = "1.19.1"
+activityCompose = "1.13.0"
+lifecycle = "2.11.0"
+composeBom = "2026.09.00"
+tvMaterial = "1.1.0"
 spotless = "8.10.4"
 ktlint = "1.8.0"
 detekt = "1.23.8"
@@ -36,7 +36,6 @@ compose = ["androidx-compose-foundation", "androidx-compose-ui", "androidx-compo
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
