@@ -1,3 +1,5 @@
+// Home screen, tiles, workspaces and idle mode.
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -19,6 +21,12 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        warningsAsErrors = true
+        abortOnError = true
     }
 }
 

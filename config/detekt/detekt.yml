@@ -1,0 +1,26 @@
+# Overrides on top of Detekt's default config (buildUponDefaultConfig = true).
+
+naming:
+  FunctionNaming:
+    # Composables are PascalCase.
+    ignoreAnnotated: ['Composable']
+
+style:
+  MagicNumber:
+    # Colours, dp values and sizes in Compose code are clearer inline.
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    excludes: ['**/test/**', '**/androidTest/**']
+    ignoreAnnotated: ['Composable', 'Preview']
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+
+complexity:
+  LongParameterList:
+    # Composables take many optional parameters by design.
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+
+Compose:
+  ModifierMissing:
+    active: true

@@ -12,6 +12,12 @@ max_line_length = 120
 [*.{kt,kts}]
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
+# ktlint (kept in sync with ktlintSettings in build.gradle.kts): Android Studio style,
+# Compose functions are PascalCase.
+ktlint_code_style = android_studio
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Keeps short chains like libs.versions.minSdk.get().toInt() on one line.
+ktlint_standard_chain-method-continuation = disabled
 
 [*.{xml,json,yml,yaml,toml}]
 indent_size = 2

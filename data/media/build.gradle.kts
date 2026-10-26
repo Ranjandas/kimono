@@ -1,3 +1,5 @@
+// The MediaSource interface and its providers (Trakt, TMDB, later Plex/Jellyfin), with a Room cache.
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -14,6 +16,12 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        warningsAsErrors = true
+        abortOnError = true
     }
 }
 
