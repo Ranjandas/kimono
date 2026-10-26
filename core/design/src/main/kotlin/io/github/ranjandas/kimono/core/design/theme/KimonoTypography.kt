@@ -16,28 +16,29 @@ val KimonoFontFamily = FontFamily(
 
 /**
  * Type scale for a TV seen from across the room. Sizes are for the 960 × 540 dp canvas a 1080p TV
- * reports, so body text at 20 sp is 40 px tall and about 80 monospace columns fit across the screen.
+ * reports, so 1 sp is 2 px at 1080p. Body text at 14 sp is 28 px: in line with tv-material's own body
+ * styles, and 1.4 × the mockup's 20 px, which is too small from the sofa.
  */
 @Immutable
 data class KimonoTypography(
-    /** Large clock and empty-state headlines. */
+    /** The title in the continue-watching tile. */
     val display: TextStyle,
-    /** Screen titles. */
+    /** Screen titles and the episode line under [display]. */
     val headline: TextStyle,
-    /** Tile and section headers. */
+    /** App names on tiles, and buttons. */
     val title: TextStyle,
-    /** App names, list rows and most other text. The 10-foot minimum for reading (PLAN §4). */
+    /** List rows and most other text. The 10-foot minimum for reading (PLAN §4). */
     val body: TextStyle,
-    /** Key hints, status values and metadata next to body text. */
+    /** Top bar, tile headers, key hints and metadata next to body text. */
     val label: TextStyle,
 ) {
     companion object {
         val Default = KimonoTypography(
-            display = style(sizeSp = 40, lineHeightSp = 52, weight = FontWeight.Bold),
-            headline = style(sizeSp = 28, lineHeightSp = 36, weight = FontWeight.Bold),
-            title = style(sizeSp = 24, lineHeightSp = 32, weight = FontWeight.Bold),
-            body = style(sizeSp = 20, lineHeightSp = 28),
-            label = style(sizeSp = 18, lineHeightSp = 24),
+            display = style(sizeSp = 72, lineHeightSp = 76, weight = FontWeight.Bold),
+            headline = style(sizeSp = 20, lineHeightSp = 26),
+            title = style(sizeSp = 16, lineHeightSp = 22, weight = FontWeight.Bold),
+            body = style(sizeSp = 14, lineHeightSp = 20),
+            label = style(sizeSp = 12, lineHeightSp = 16),
         )
 
         private fun style(sizeSp: Int, lineHeightSp: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(

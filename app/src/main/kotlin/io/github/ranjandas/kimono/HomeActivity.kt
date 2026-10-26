@@ -27,7 +27,7 @@ class HomeActivity : ComponentActivity() {
                     Text("${KimonoIcon.Home.text} kimono", style = KimonoTheme.typography.display)
                     Text(
                         listOf(KimonoIcon.Wifi, KimonoIcon.Volume, KimonoIcon.Clock, KimonoIcon.Settings)
-                            .joinToString(separator = "  ", prefix = "body 20 sp  ") { it.text },
+                            .joinToString(separator = "  ", prefix = "body 14 sp  ") { it.text },
                         style = KimonoTheme.typography.body,
                         color = KimonoTheme.colors.textMuted,
                     )

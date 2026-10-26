@@ -9,7 +9,15 @@ class KimonoTypographyTest {
 
     @Test
     fun `body text meets the 10-foot minimum`() {
-        assertTrue(type.body.fontSize.value >= 20f, "body is ${type.body.fontSize}")
+        assertTrue(type.body.fontSize.value >= 14f, "body is ${type.body.fontSize}")
+    }
+
+    @Test
+    fun `nothing is smaller than 12 sp, 24 px at 1080p`() {
+        val smallest = listOf(type.display, type.headline, type.title, type.body, type.label).minOf {
+            it.fontSize.value
+        }
+        assertTrue(smallest >= 12f, "smallest is $smallest sp")
     }
 
     @Test
