@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Typography
 import androidx.tv.material3.darkColorScheme
 import androidx.tv.material3.lightColorScheme
 
@@ -67,10 +68,11 @@ data class KimonoShapes(val cornerStyle: CornerStyle) {
 
 private val LocalKimonoColors = staticCompositionLocalOf { KimonoColors.from(ThemeId.Default.palette) }
 private val LocalKimonoShapes = staticCompositionLocalOf { KimonoShapes(CornerStyle.Default) }
+private val LocalKimonoTypography = staticCompositionLocalOf { KimonoTypography.Default }
 
 /**
- * Applies a palette and corner style to [content].
- * Read the tokens through [KimonoTheme.colors] and [KimonoTheme.shapes].
+ * Applies a palette, corner style and the type scale to [content].
+ * Read the tokens through [KimonoTheme.colors], [KimonoTheme.shapes] and [KimonoTheme.typography].
  */
 @Composable
 fun KimonoTheme(
@@ -81,10 +83,11 @@ fun KimonoTheme(
     val colors = remember(theme) { KimonoColors.from(theme.palette) }
     val shapes = remember(cornerStyle) { KimonoShapes(cornerStyle) }
     val colorScheme = remember(colors) { colors.toTvColorScheme() }
-    MaterialTheme(colorScheme = colorScheme) {
+    MaterialTheme(colorScheme = colorScheme, typography = TvTypography) {
         CompositionLocalProvider(
             LocalKimonoColors provides colors,
             LocalKimonoShapes provides shapes,
+            LocalKimonoTypography provides KimonoTypography.Default,
             LocalContentColor provides colors.text,
             content = content,
         )
@@ -99,6 +102,10 @@ object KimonoTheme {
     val shapes: KimonoShapes
         @Composable @ReadOnlyComposable
         get() = LocalKimonoShapes.current
+
+    val typography: KimonoTypography
+        @Composable @ReadOnlyComposable
+        get() = LocalKimonoTypography.current
 }
 
 private const val OPAQUE = 0xFF000000
@@ -133,5 +140,27 @@ private fun KimonoColors.toTvColorScheme() = if (isLight) {
         onSurfaceVariant = textMuted,
         border = border,
         error = error,
+    )
+}
+
+// Stock tv-material components keep their own sizes but switch to the monospace font. Plain Text
+// picks up bodyLarge, which is Kimono's body style.
+private val TvTypography = Typography().run {
+    Typography(
+        displayLarge = displayLarge.copy(fontFamily = KimonoFontFamily),
+        displayMedium = displayMedium.copy(fontFamily = KimonoFontFamily),
+        displaySmall = displaySmall.copy(fontFamily = KimonoFontFamily),
+        headlineLarge = headlineLarge.copy(fontFamily = KimonoFontFamily),
+        headlineMedium = headlineMedium.copy(fontFamily = KimonoFontFamily),
+        headlineSmall = headlineSmall.copy(fontFamily = KimonoFontFamily),
+        titleLarge = titleLarge.copy(fontFamily = KimonoFontFamily),
+        titleMedium = titleMedium.copy(fontFamily = KimonoFontFamily),
+        titleSmall = titleSmall.copy(fontFamily = KimonoFontFamily),
+        bodyLarge = KimonoTypography.Default.body,
+        bodyMedium = bodyMedium.copy(fontFamily = KimonoFontFamily),
+        bodySmall = bodySmall.copy(fontFamily = KimonoFontFamily),
+        labelLarge = labelLarge.copy(fontFamily = KimonoFontFamily),
+        labelMedium = labelMedium.copy(fontFamily = KimonoFontFamily),
+        labelSmall = labelSmall.copy(fontFamily = KimonoFontFamily),
     )
 }

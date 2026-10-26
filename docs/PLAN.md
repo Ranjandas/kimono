@@ -80,7 +80,7 @@ Taken from the mockups; these settle arguments during implementation.
    and take the accent colour with focus. One icon family per context.
 5. **Themes are data.** A theme is a palette plus a few semantic tokens; no screen hard-codes a colour or a radius.
 6. **D-pad first.** Every screen works with ◀ ▶ ▲ ▼, OK, Back, Home. Focus is always visible and never lost.
-7. **10-foot legibility.** Body text ≥ 20 sp at 1080p, contrast ≥ 4.5:1 in every theme.
+7. **10-foot legibility.** Body text ≥ 14 sp (28 px at 1080p), contrast ≥ 4.5:1 in every theme.
 8. **Calm, not bland.** No auto-playing trailers, ads or unearned recommendations — but icons, the second
    accent colour, subtle focus motion, wallpaper and idle pixel art keep it alive.
 

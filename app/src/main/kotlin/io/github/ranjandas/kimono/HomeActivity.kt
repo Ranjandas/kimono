@@ -4,26 +4,34 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.tv.material3.Text
-
-// Placeholder colours (Tokyo Night) until the theme system lands in M1-1.
-private val PlaceholderBackground = Color(0xFF1A1B26)
-private val PlaceholderText = Color(0xFFC0CAF5)
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Box(
-                modifier = Modifier.fillMaxSize().background(PlaceholderBackground),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("kimono", color = PlaceholderText)
+            KimonoTheme {
+                // Placeholder until the home layout lands in M1-6.
+                Column(
+                    modifier = Modifier.fillMaxSize().background(KimonoTheme.colors.background),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text("${KimonoIcon.Home.text} kimono", style = KimonoTheme.typography.display)
+                    Text(
+                        listOf(KimonoIcon.Wifi, KimonoIcon.Volume, KimonoIcon.Clock, KimonoIcon.Settings)
+                            .joinToString(separator = "  ", prefix = "body 14 sp  ") { it.text },
+                        style = KimonoTheme.typography.body,
+                        color = KimonoTheme.colors.textMuted,
+                    )
+                }
             }
         }
     }
