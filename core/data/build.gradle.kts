@@ -12,6 +12,10 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
     }
 
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -28,4 +32,12 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    api(libs.androidx.datastore.preferences)
+    api(libs.kotlinx.coroutines.android)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.TileDefaults
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
@@ -32,17 +33,14 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import java.time.format.DateTimeFormatter
 
-/** Workspace names from the mockup, until workspaces become a user-editable model in M1-10. */
-internal val WorkspaceNames = listOf("home", "media", "games", "apps", "system")
-
 /**
  * Workspaces on the left, date and time in the middle, network, volume and the theme switcher on the right.
  * Status values update live.
  */
 @Composable
 internal fun TopBar(
-    workspace: Int,
-    onSelectWorkspace: (Int) -> Unit,
+    workspace: Workspace,
+    onSelectWorkspace: (Workspace) -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
     modifier: Modifier = Modifier,
@@ -53,16 +51,15 @@ internal fun TopBar(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            WorkspaceNames.forEachIndexed { index, name ->
+            Workspace.entries.forEach { candidate ->
                 WorkspaceButton(
-                    number = index + 1,
-                    name = name,
-                    selected = index == workspace,
-                    onClick = { onSelectWorkspace(index) },
+                    workspace = candidate,
+                    selected = candidate == workspace,
+                    onClick = { onSelectWorkspace(candidate) },
                 )
             }
             Text(
-                WorkspaceNames[workspace],
+                workspace.label,
                 modifier = Modifier.padding(start = 10.dp),
                 style = KimonoTheme.typography.label,
                 color = KimonoTheme.colors.textMuted,
@@ -83,8 +80,7 @@ internal fun TopBar(
 
 @Composable
 private fun WorkspaceButton(
-    number: Int,
-    name: String,
+    workspace: Workspace,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -97,7 +93,7 @@ private fun WorkspaceButton(
         modifier = modifier
             .size(30.dp)
             .semantics {
-                contentDescription = "Workspace $number, $name"
+                contentDescription = "Workspace ${workspace.number}, ${workspace.label}"
                 this.selected = selected
             }
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Tab, onClick = onClick)
@@ -106,7 +102,7 @@ private fun WorkspaceButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            number.toString(),
+            workspace.number.toString(),
             style = KimonoTheme.typography.label,
             color = if (selected) colors.onAccent else colors.textMuted,
             fontWeight = FontWeight.Bold,
