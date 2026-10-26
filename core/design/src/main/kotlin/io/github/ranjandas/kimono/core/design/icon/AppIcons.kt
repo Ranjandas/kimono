@@ -13,6 +13,10 @@ private val BrandIcons = mapOf(
     "com.google.android.youtube.tvkids" to KimonoIcon.YouTube,
     "com.google.android.youtube.tvmusic" to KimonoIcon.YouTube,
     "com.google.android.youtube" to KimonoIcon.YouTube,
+    // SmartTube, a YouTube client popular on TV boxes.
+    "org.smarttube.stable" to KimonoIcon.YouTube,
+    "org.smarttube.beta" to KimonoIcon.YouTube,
+    "com.teamsmart.videomanager.tv" to KimonoIcon.YouTube,
     "com.netflix.ninja" to KimonoIcon.Netflix,
     "com.netflix.mediaclient" to KimonoIcon.Netflix,
     "com.spotify.tv.android" to KimonoIcon.Spotify,
@@ -29,4 +33,6 @@ private val BrandIcons = mapOf(
     "org.mozilla.firefox" to KimonoIcon.Firefox,
     "org.mozilla.tv.firefox" to KimonoIcon.Firefox,
     "com.android.tv.settings" to KimonoIcon.Settings,
+    // No brand glyph in the font, and the app doesn't declare a video category, so name it here.
+    "com.amazon.amazonvideo.livingroom" to KimonoIcon.Media,
 )
