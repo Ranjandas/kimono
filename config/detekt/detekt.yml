@@ -34,3 +34,4 @@ Compose:
     allowedCompositionLocals:
       - LocalKimonoColors
       - LocalKimonoShapes
+      - LocalKimonoTypography

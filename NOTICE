@@ -9,7 +9,19 @@ its own licence. Entries are added as the work is bundled.
 Fonts
 -----
 
-(none yet; JetBrains Mono Nerd Font is added in M1-2)
+The app bundles JetBrains Mono Nerd Font 3.5.1 (core/design/fonts), subset at
+build time to the glyphs Kimono uses.
+
+- JetBrains Mono: https://github.com/JetBrains/JetBrainsMono
+  SIL Open Font License 1.1 (core/design/fonts/OFL.txt),
+  Copyright 2020 The JetBrains Mono Project Authors
+- Nerd Fonts: https://github.com/ryanoasis/nerd-fonts
+  Patched fonts under the SIL Open Font License 1.1, the Nerd Fonts project
+  under the MIT License, Copyright (c) 2014 Ryan L McIntyre
+- Material Design Icons (the icons Kimono uses so far), by Pictogrammers:
+  https://github.com/Templarian/MaterialDesign-Font, Apache License 2.0
+- Font Awesome Free icons, included in the source font:
+  https://fontawesome.com, CC BY 4.0, by Fonticons, Inc.
 
 Colour palettes
 ---------------

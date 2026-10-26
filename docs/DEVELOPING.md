@@ -4,13 +4,26 @@ How to build Kimono, put it on a Google TV Streamer and get the TV back if somet
 
 ## Build
 
-You need JDK 17 or newer and the Android SDK (Android Studio brings both). The Gradle wrapper fetches everything else.
+You need JDK 17 or newer and the Android SDK (Android Studio brings both), plus fonttools, which the build
+uses to subset the bundled font to the glyphs Kimono uses. The Gradle wrapper fetches everything else.
+
+```sh
+brew install fonttools       # macOS; elsewhere: pipx install fonttools
+pyftsubset --help >/dev/null # should print nothing
+```
+
+If `pyftsubset` isn't on the PATH Gradle sees (Android Studio launched from the Dock may not see
+Homebrew's), put its full path in `~/.gradle/gradle.properties` as `kimono.pyftsubset=/opt/homebrew/bin/pyftsubset`.
 
 ```sh
 ./gradlew assembleDebug      # app/build/outputs/apk/debug/app-debug.apk
 ./gradlew check              # unit tests, Android Lint, ktlint (Spotless) and Detekt, as CI runs them
 ./gradlew spotlessApply      # fix formatting before committing
 ```
+
+Icons are glyphs in that font. To add one, find its name on the Nerd Fonts cheat sheet
+(https://www.nerdfonts.com/cheat-sheet, Material Design `nf-md-*` icons) and add an entry with its code point
+to `KimonoIcon`; the subsetting task picks it up from there.
 
 Lint treats warnings as errors. If a warning is intentional, fix the cause or explain it in the PR; only
 regenerate a module's `lint-baseline.xml` (`./gradlew updateLintBaseline`) when the PR says why.
