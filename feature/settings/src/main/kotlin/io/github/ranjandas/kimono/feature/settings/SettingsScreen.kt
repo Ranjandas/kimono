@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -75,6 +76,8 @@ fun SettingsScreen(
                 SettingRow("clock", clockFormat.label, onClick = { onClockFormatChange(clockFormat.next()) })
             }
         }
+        // Pinned to the bottom, where home and the drawer keep theirs.
+        Spacer(Modifier.weight(1f))
         HintBar(listOf(Hint("▲ ▼", "choose"), Hint("ok", "next value"), Hint("back", "home")))
     }
 }

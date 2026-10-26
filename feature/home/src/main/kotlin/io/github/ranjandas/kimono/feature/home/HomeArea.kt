@@ -7,7 +7,7 @@ internal enum class HomeArea { Workspaces, ThemeButton, SettingsButton, Tiles, A
 
 /** The hints for the focused [area], then the shortcuts that work anywhere on home. */
 internal fun homeHints(area: HomeArea): List<Hint> = when (area) {
-    HomeArea.Workspaces -> listOf(Hint("◀ ▶", "choose"), Hint("ok", "switch workspace"))
+    HomeArea.Workspaces -> listOf(Hint("◀ ▶ ▼", "move focus"), Hint("ok", "switch workspace"))
 
     HomeArea.ThemeButton -> listOf(Hint("◀ ▶ ▼", "move focus"), Hint("ok", "next theme"))
 

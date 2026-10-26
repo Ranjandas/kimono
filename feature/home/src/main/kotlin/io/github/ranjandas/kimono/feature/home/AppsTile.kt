@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,8 @@ fun AppsTile(
                     },
                     leading = "%02d".format(index + 1),
                     onLongClick = { onShowOptions(app) },
+                    // The list is the right edge of the screen, so Right stays put instead of jumping to the top bar.
+                    modifier = Modifier.focusProperties { right = FocusRequester.Cancel },
                     trailing = if ((status as? LaunchStatus.Opening)?.app == app) "opening…" else null,
                 )
             }
