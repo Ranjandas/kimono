@@ -22,12 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,6 +64,7 @@ fun HomeScreen(
     onLaunchApp: (InstalledApp) -> LaunchResult,
     workspaces: WorkspaceState,
     onSelectWorkspace: (Workspace) -> Unit,
+    onOpenDrawer: () -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
     modifier: Modifier = Modifier,
@@ -87,7 +83,10 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
-            .onPreviewKeyEvent { event -> event.selectsWorkspace(workspace, onSelectWorkspace) }
+            .onPreviewKeyEvent { event ->
+                event.opensDrawer(onOpenDrawer) ||
+                    event.selectsWorkspace(workspace, onSelectWorkspace)
+            }
             .padding(horizontal = HomeDimens.ScreenPaddingH, vertical = HomeDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
     ) {
@@ -202,29 +201,9 @@ private fun HintBar(modifier: Modifier = Modifier) {
         KeyHint("◀ ▶ ▲ ▼", "move focus")
         KeyHint("ok", "launch")
         KeyHint("1…5", "workspace")
+        KeyHint("menu", "all apps")
         KeyHint("hold ok", "app options")
     }
-}
-
-/**
- * Jumps to a workspace on the number keys 1 to 5, and to the next or previous one on channel up and down,
- * wherever focus is. Returns true when the key was a workspace shortcut, so the focused tile never also sees it.
- */
-private fun KeyEvent.selectsWorkspace(current: Workspace, onSelectWorkspace: (Workspace) -> Unit): Boolean {
-    val target = if (type == KeyEventType.KeyDown) workspaceShortcut(current) else null
-    target?.let(onSelectWorkspace)
-    return target != null
-}
-
-private fun KeyEvent.workspaceShortcut(current: Workspace): Workspace? = when (key) {
-    Key.One, Key.NumPad1 -> Workspace.Home
-    Key.Two, Key.NumPad2 -> Workspace.Media
-    Key.Three, Key.NumPad3 -> Workspace.Games
-    Key.Four, Key.NumPad4 -> Workspace.Apps
-    Key.Five, Key.NumPad5 -> Workspace.System
-    Key.ChannelUp -> current.next()
-    Key.ChannelDown -> current.previous()
-    else -> null
 }
 
 /** Requests focus, retrying for a few frames while a lazy list composes its first rows. */
@@ -250,6 +229,7 @@ private fun HomeScreenPreview() {
             onLaunchApp = { LaunchResult.Launched },
             workspaces = WorkspaceState(),
             onSelectWorkspace = {},
+            onOpenDrawer = {},
             theme = ThemeId.Default,
             onCycleTheme = {},
         )
