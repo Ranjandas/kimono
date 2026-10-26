@@ -110,9 +110,9 @@ private fun RecentsRow(modifier: Modifier = Modifier) {
                     style = KimonoTheme.typography.headline,
                 )
                 Spacer(Modifier.weight(1f))
-                Text("recent app", style = KimonoTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("recent", style = KimonoTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    "not tracked yet",
+                    "none yet",
                     style = KimonoTheme.typography.label,
                     color = KimonoTheme.colors.textMuted,
                     maxLines = 1,
