@@ -61,3 +61,28 @@ fun quietestLegible(foreground: Rgb, background: Rgb, minContrast: Double = MIN_
         .firstOrNull { contrastRatio(it, background) >= minContrast }
         ?: foreground
 }
+
+/** Minimum contrast for focus indicators and other UI that has to be seen (WCAG 1.4.11). */
+const val MIN_UI_CONTRAST = 3.0
+
+/**
+ * The first colour on the way from this one to [target] that [passes], or [target] if none does. Used to nudge a
+ * palette colour just far enough to pass a contrast check while keeping its hue.
+ */
+fun Rgb.nudgedTowards(target: Rgb, passes: (Rgb) -> Boolean): Rgb {
+    val steps = 100
+    return (0..steps)
+        .asSequence()
+        .map { mix(target, it / steps.toDouble()) }
+        .firstOrNull(passes)
+        ?: target
+}
+
+/**
+ * The palette's accent, nudged towards its foreground where needed so that it works as a focus border on tiles
+ * and the screen ([MIN_UI_CONTRAST]) and as a fill under [Palette.background]-coloured text ([MIN_TEXT_CONTRAST]).
+ */
+fun legibleAccent(palette: Palette): Rgb = palette.accent.nudgedTowards(palette.foreground) {
+    contrastRatio(it, palette.surface) >= MIN_UI_CONTRAST &&
+        contrastRatio(it, palette.background) >= MIN_TEXT_CONTRAST
+}
