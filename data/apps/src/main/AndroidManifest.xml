@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Lets app options open the system uninstall confirmation; the user still confirms there. -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
     <!-- Package visibility for the app list, without QUERY_ALL_PACKAGES (PLAN 6.3). -->
     <queries>
         <intent>

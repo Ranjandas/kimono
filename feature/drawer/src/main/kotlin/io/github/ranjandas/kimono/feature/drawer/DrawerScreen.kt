@@ -2,7 +2,9 @@ package io.github.ranjandas.kimono.feature.drawer
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,9 +36,12 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
+import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.KeyHint
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
+import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
@@ -58,16 +63,31 @@ private object DrawerDimens {
 fun DrawerScreen(
     apps: List<InstalledApp>,
     onLaunchApp: (InstalledApp) -> LaunchResult,
+    workspaces: WorkspaceState,
+    onTogglePin: (InstalledApp) -> Unit,
+    onOpenAppInfo: (InstalledApp) -> Unit,
+    onUninstallApp: (InstalledApp) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
+    var options by remember { mutableStateOf<InstalledApp?>(null) }
     val sections = remember(apps, query) { drawerSections(apps, query) }
     val listFocus = remember { FocusRequester() }
+    val rootFocus = remember { FocusRequester() }
     val hasResults = sections.isNotEmpty()
-    LaunchedEffect(hasResults) {
-        if (hasResults) listFocus.requestFocusWhenLaidOut()
+    val panelOpen = options != null
+    // The screen itself takes focus on its first frame, so letters typed straight after opening reach the
+    // search before the list has laid out its rows; the list takes over as soon as it can.
+    LaunchedEffect(Unit) { runCatching { rootFocus.requestFocus() } }
+    // With nothing listed the screen keeps focus itself, so typing and Back still reach it.
+    LaunchedEffect(hasResults, panelOpen) {
+        when {
+            panelOpen -> Unit
+            hasResults -> listFocus.requestFocusWhenLaidOut()
+            else -> runCatching { rootFocus.requestFocus() }
+        }
     }
     LaunchedEffect(unavailable) {
         if (unavailable != null) {
@@ -75,29 +95,78 @@ fun DrawerScreen(
             unavailable = null
         }
     }
-    // Back clears the search first, so a mistyped query doesn't cost the whole screen.
-    BackHandler {
-        if (query.isEmpty()) onClose() else query = ""
+    // Back clears the search first, so a mistyped query doesn't cost the whole screen. The screen's key handler
+    // takes Back while it has focus; the back handler is for when nothing does.
+    val goBack: () -> Unit = { if (query.isEmpty()) onClose() else query = "" }
+    BackHandler(onBack = goBack)
+    Box(modifier = modifier.fillMaxSize()) {
+        DrawerContent(
+            sections = sections,
+            pinned = workspaces.pinsOf(workspaces.current).toSet(),
+            query = query,
+            onEditQuery = { query = it },
+            onBack = goBack,
+            onClickApp = { app ->
+                if (onLaunchApp(app) is LaunchResult.Unavailable) unavailable = app
+            },
+            onShowOptions = { options = it },
+            unavailable = unavailable,
+            listFocus = listFocus,
+            rootFocus = rootFocus,
+        )
+        options?.let { app ->
+            AppOptionsPanel(
+                appLabel = app.label,
+                workspaceLabel = workspaces.current.label,
+                pinned = app.packageName in workspaces.pinsOf(workspaces.current),
+                onTogglePin = { onTogglePin(app) },
+                onOpenAppInfo = { onOpenAppInfo(app) },
+                onUninstall = { onUninstallApp(app) },
+                onDismiss = { options = null },
+            )
+        }
     }
+}
+
+/** The search line, the grouped list and the hints: everything the options panel sits over. */
+@Composable
+private fun DrawerContent(
+    sections: List<DrawerSection>,
+    pinned: Set<String>,
+    query: String,
+    onEditQuery: (String) -> Unit,
+    onBack: () -> Unit,
+    onClickApp: (InstalledApp) -> Unit,
+    onShowOptions: (InstalledApp) -> Unit,
+    unavailable: InstalledApp?,
+    listFocus: FocusRequester,
+    rootFocus: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
             .onPreviewKeyEvent { event ->
                 val edited = event.editQuery(query)
-                if (edited != null) query = edited
-                edited != null
+                if (edited != null) onEditQuery(edited)
+                // Back acts on release, as the system's back does.
+                if (event.key == Key.Back && event.type == KeyEventType.KeyUp) onBack()
+                edited != null || event.key == Key.Back
             }
+            // After the key handler, so the handler sees keys while the screen itself holds focus.
+            .focusRequester(rootFocus)
+            .focusable()
             .padding(horizontal = DrawerDimens.ScreenPaddingH, vertical = DrawerDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(DrawerDimens.Gap),
     ) {
         SearchLine(query, matches = sections.sumOf { it.apps.size })
         DrawerList(
             sections = sections,
+            pinned = pinned,
             query = query,
-            onClickApp = { app ->
-                if (onLaunchApp(app) is LaunchResult.Unavailable) unavailable = app
-            },
+            onClickApp = onClickApp,
+            onShowOptions = onShowOptions,
             modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(listFocus).focusRestorer(),
         )
         unavailable?.let {
@@ -115,8 +184,10 @@ fun DrawerScreen(
 @Composable
 private fun DrawerList(
     sections: List<DrawerSection>,
+    pinned: Set<String>,
     query: String,
     onClickApp: (InstalledApp) -> Unit,
+    onShowOptions: (InstalledApp) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -132,7 +203,12 @@ private fun DrawerList(
                 ListRow(
                     text = app.label,
                     onClick = { onClickApp(app) },
-                    trailing = if (app.isTvApp) null else "phone app",
+                    trailing = when {
+                        app.packageName in pinned -> "pinned"
+                        !app.isTvApp -> "phone app"
+                        else -> null
+                    },
+                    onLongClick = { onShowOptions(app) },
                     shape = KimonoTheme.shapes.small,
                 )
             }
@@ -152,6 +228,7 @@ private fun HintBar(query: String, modifier: Modifier = Modifier) {
     ) {
         KeyHint("a…z", "search")
         KeyHint("ok", "launch")
+        KeyHint("hold ok", "options")
         KeyHint("back", if (query.isEmpty()) "home" else "clear search")
     }
 }
@@ -173,7 +250,7 @@ private fun SearchLine(query: String, matches: Int, modifier: Modifier = Modifie
             Text("▌", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
         }
         Text(
-            "$matches apps",
+            count(matches, "app"),
             style = KimonoTheme.typography.label,
             color = KimonoTheme.colors.textMuted,
         )
@@ -226,6 +303,14 @@ private fun DrawerScreenPreview() {
         "Files" to AppCategory.Other,
     ).map { (label, category) -> InstalledApp("pkg.$label", "pkg.$label.Main", label, category, isTvApp = true) }
     KimonoTheme {
-        DrawerScreen(apps = apps, onLaunchApp = { LaunchResult.Launched }, onClose = {})
+        DrawerScreen(
+            apps = apps,
+            onLaunchApp = { LaunchResult.Launched },
+            workspaces = WorkspaceState(),
+            onTogglePin = {},
+            onOpenAppInfo = {},
+            onUninstallApp = {},
+            onClose = {},
+        )
     }
 }
