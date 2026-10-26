@@ -38,6 +38,17 @@ gh run download <run-id> -n kimono-debug-apk -D /tmp/kimono
 Debug builds from CI and from every machine are signed with the same committed key (`app/debug.keystore`),
 so they install over each other. It is a debug key only and never signs a release.
 
+## Recent apps
+
+The recents row on home reads usage stats, which needs usage access. Google TV hides that screen in Settings,
+so grant it over adb (and revoke it the same way with `deny`):
+
+```sh
+adb shell appops set io.github.ranjandas.kimono GET_USAGE_STATS allow
+```
+
+Kimono reads recents again each time it comes back to the front.
+
 ## Screenshot tests
 
 Roborazzi renders the home screen and the drawer under Robolectric in every theme × corner style, and compares

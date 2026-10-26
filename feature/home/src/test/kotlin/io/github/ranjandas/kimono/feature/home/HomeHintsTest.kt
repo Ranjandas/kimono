@@ -21,8 +21,13 @@ class HomeHintsTest {
     }
 
     @Test
-    fun `placeholder tiles offer no ok action`() {
-        assertEquals(null, okAction(HomeArea.Tiles))
+    fun `continue watching offers no ok action until it has content`() {
+        assertEquals(null, okAction(HomeArea.Continue))
+    }
+
+    @Test
+    fun `ok opens a recent app`() {
+        assertEquals("open", okAction(HomeArea.Recents))
     }
 
     @Test
