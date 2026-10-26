@@ -17,6 +17,11 @@ A text-first, tiling Android TV launcher inspired by [Omarchy](https://omarchy.o
 
 First target device: Google TV Streamer (sideloaded).
 
+## Developing
+
+Building, installing on a Google TV Streamer over wireless adb, logs and recovery steps:
+[`docs/DEVELOPING.md`](docs/DEVELOPING.md).
+
 ## License
 
 [MIT](LICENSE)
