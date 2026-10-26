@@ -32,6 +32,7 @@ import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
+import java.time.Clock
 import java.time.format.DateTimeFormatter
 
 /**
@@ -47,6 +48,7 @@ internal fun TopBar(
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     onFocusArea: (HomeArea) -> Unit,
+    clock: Clock,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -73,7 +75,7 @@ internal fun TopBar(
                 color = KimonoTheme.colors.textMuted,
             )
         }
-        Clock(clockFormat, Modifier.align(Alignment.Center))
+        DateTime(clockFormat, clock, Modifier.align(Alignment.Center))
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),
             horizontalArrangement = Arrangement.spacedBy(18.dp),
@@ -132,8 +134,8 @@ private fun WorkspaceButton(
 }
 
 @Composable
-private fun Clock(format: ClockFormat, modifier: Modifier = Modifier) {
-    val now by rememberClock()
+private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Modifier) {
+    val now by rememberClock(clock)
     val twentyFourHour = when (format) {
         ClockFormat.System -> is24HourClock()
         ClockFormat.TwelveHour -> false

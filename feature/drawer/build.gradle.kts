@@ -3,6 +3,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -19,7 +20,11 @@ android {
     }
 
     testOptions {
-        unitTests.all { it.useJUnitPlatform() }
+        unitTests {
+            // Screenshot tests render real resources, the theme fonts among them.
+            isIncludeAndroidResources = true
+            all { it.useJUnitPlatform() }
+        }
     }
 
     buildFeatures {
@@ -47,5 +52,8 @@ dependencies {
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.bundles.screenshot.tests)
+    // Robolectric runs on JUnit 4, so its tests run through the vintage engine.
+    testRuntimeOnly(libs.junit.vintage.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

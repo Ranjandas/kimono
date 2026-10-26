@@ -47,6 +47,7 @@ import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
 import io.github.ranjandas.kimono.data.apps.forWorkspace
+import java.time.Clock
 
 /** Layout sizes, in dp on the 960 × 540 canvas. They scale the mockup by the same 1.4 × as the type scale. */
 private object HomeDimens {
@@ -62,7 +63,8 @@ private object HomeDimens {
 /**
  * The home screen grid from the mockup: continue watching and recent apps on the left, system info and the apps
  * list on the right, the top bar above and key hints below. Tiles hold placeholders until their data lands
- * (continue watching in M3, recents in M2). [apps] is null while the app list is still loading.
+ * (continue watching in M3, recents in M2). [apps] is null while the app list is still loading. The top bar
+ * reads the time from [clock], which tests fix.
  */
 @Composable
 fun HomeScreen(
@@ -79,6 +81,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     modifier: Modifier = Modifier,
+    clock: Clock = Clock.systemDefaultZone(),
 ) {
     val workspace = workspaces.current
     val workspaceApps = remember(apps, workspace, workspaces) { apps?.forWorkspace(workspace, workspaces) }
@@ -110,6 +113,7 @@ fun HomeScreen(
             appsFocus = appsFocus,
             focusArea = focusArea,
             onFocusArea = { focusArea = it },
+            clock = clock,
         )
         options?.let { app ->
             AppOptionsPanel(
@@ -141,6 +145,7 @@ private fun HomeGrid(
     appsFocus: FocusRequester,
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
+    clock: Clock,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -162,6 +167,7 @@ private fun HomeGrid(
             onOpenSettings = onOpenSettings,
             clockFormat = clockFormat,
             onFocusArea = onFocusArea,
+            clock = clock,
             modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
         )
         Row(

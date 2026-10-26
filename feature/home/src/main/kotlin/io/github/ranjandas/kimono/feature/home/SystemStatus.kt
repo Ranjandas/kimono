@@ -15,16 +15,17 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.delay
 
-/** The current time, updated on each minute boundary. */
+/** The current time from [clock], updated on each minute boundary. */
 @Composable
-internal fun rememberClock(): State<LocalDateTime> = produceState(LocalDateTime.now()) {
+internal fun rememberClock(clock: Clock): State<LocalDateTime> = produceState(LocalDateTime.now(clock), clock) {
     while (true) {
-        val now = LocalDateTime.now()
+        val now = LocalDateTime.now(clock)
         value = now
         delay(Duration.between(now, now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1)).toMillis())
     }
