@@ -104,7 +104,11 @@ private fun RecentsRow(modifier: Modifier = Modifier) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
         repeat(RECENT_SLOTS) {
             Tile(modifier = Modifier.weight(1f).fillMaxHeight(), onClick = {}) {
-                Icon(KimonoIcon.AppFallback, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.headline)
+                Icon(
+                    KimonoIcon.AppFallback,
+                    color = KimonoTheme.colors.textMuted,
+                    style = KimonoTheme.typography.headline,
+                )
                 Spacer(Modifier.weight(1f))
                 Text("recent app", style = KimonoTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
