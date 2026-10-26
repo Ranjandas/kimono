@@ -1,6 +1,5 @@
 package io.github.ranjandas.kimono.feature.home
 
-import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
@@ -22,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRestorer
@@ -186,7 +184,7 @@ private fun HomeGrid(
                 modifier = Modifier.width(HomeDimens.SideColumnWidth).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
-                SystemInfoTile(Modifier.fillMaxWidth())
+                SystemInfoTile(theme, Modifier.fillMaxWidth())
                 AppsTile(
                     apps = apps,
                     onLaunchApp = onLaunchApp,
@@ -243,34 +241,6 @@ private fun RecentsRow(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun SystemInfoTile(modifier: Modifier = Modifier) {
-    Tile(modifier = modifier) {
-        SectionHeader("~/system", icon = KimonoIcon.Info)
-        InfoLine(KimonoIcon.Device, "device", Build.MODEL)
-        InfoLine(KimonoIcon.Os, "os", "Android ${Build.VERSION.RELEASE}")
-        InfoLine(KimonoIcon.Launcher, "launcher", "kimono")
-        InfoLine(KimonoIcon.Font, "font", "JetBrains Mono")
-    }
-}
-
-@Composable
-private fun InfoLine(icon: KimonoIcon, key: String, value: String) {
-    Row(
-        modifier = Modifier.padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, color = KimonoTheme.colors.textMuted)
-        Text(
-            key.padEnd(INFO_KEY_WIDTH),
-            style = KimonoTheme.typography.body,
-            color = KimonoTheme.colors.accentSecondary,
-        )
-        Text(value, style = KimonoTheme.typography.body, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
 /** Requests focus, retrying for a few frames while a lazy list composes its first rows. */
 private suspend fun FocusRequester.requestFocusWhenLaidOut() {
     repeat(FOCUS_ATTEMPTS) {
@@ -281,7 +251,6 @@ private suspend fun FocusRequester.requestFocusWhenLaidOut() {
 
 private const val FOCUS_ATTEMPTS = 10
 private const val RECENT_SLOTS = 4
-private const val INFO_KEY_WIDTH = 10
 
 @Preview(device = Devices.TV_1080p)
 @Composable
