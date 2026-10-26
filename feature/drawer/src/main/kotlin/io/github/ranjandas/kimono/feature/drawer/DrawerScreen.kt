@@ -38,7 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
-import io.github.ranjandas.kimono.core.design.component.KeyHint
+import io.github.ranjandas.kimono.core.design.component.Hint
+import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.text.count
@@ -176,7 +177,7 @@ private fun DrawerContent(
                 color = KimonoTheme.colors.error,
             )
         }
-        HintBar(query)
+        DrawerHints(query)
     }
 }
 
@@ -220,17 +221,16 @@ private fun DrawerList(
 }
 
 @Composable
-private fun HintBar(query: String, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(28.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KeyHint("a…z", "search")
-        KeyHint("ok", "launch")
-        KeyHint("hold ok", "options")
-        KeyHint("back", if (query.isEmpty()) "home" else "clear search")
-    }
+private fun DrawerHints(query: String, modifier: Modifier = Modifier) {
+    HintBar(
+        listOf(
+            Hint("a…z", "search"),
+            Hint("ok", "launch"),
+            Hint("hold ok", "options"),
+            Hint("back", if (query.isEmpty()) "home" else "clear search"),
+        ),
+        modifier,
+    )
 }
 
 @Composable

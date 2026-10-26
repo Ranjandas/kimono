@@ -22,10 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
@@ -36,7 +36,7 @@ import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
-import io.github.ranjandas.kimono.core.design.component.KeyHint
+import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
@@ -84,6 +84,7 @@ fun HomeScreen(
     val workspaceApps = remember(apps, workspace, workspaces) { apps?.forWorkspace(workspace, workspaces) }
     val appsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
+    var focusArea by remember { mutableStateOf(HomeArea.Apps) }
     val hasApps = !workspaceApps.isNullOrEmpty()
     // Start on the apps list: it's the one tile with something to do until continue watching lands (M3). Come
     // back to it when its contents change (a workspace switch) and when the options panel closes, so focus is
@@ -107,6 +108,8 @@ fun HomeScreen(
             onOpenSettings = onOpenSettings,
             clockFormat = clockFormat,
             appsFocus = appsFocus,
+            focusArea = focusArea,
+            onFocusArea = { focusArea = it },
         )
         options?.let { app ->
             AppOptionsPanel(
@@ -136,6 +139,8 @@ private fun HomeGrid(
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     appsFocus: FocusRequester,
+    focusArea: HomeArea,
+    onFocusArea: (HomeArea) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -156,6 +161,7 @@ private fun HomeGrid(
             onCycleTheme = onCycleTheme,
             onOpenSettings = onOpenSettings,
             clockFormat = clockFormat,
+            onFocusArea = onFocusArea,
             modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
         )
         Row(
@@ -163,7 +169,7 @@ private fun HomeGrid(
             horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
         ) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight().tracksFocus(HomeArea.Tiles, onFocusArea),
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
                 ContinueTile(Modifier.fillMaxWidth().weight(1f))
@@ -179,12 +185,12 @@ private fun HomeGrid(
                     onLaunchApp = onLaunchApp,
                     onShowOptions = onShowOptions,
                     workspace = workspace,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
                     listFocusRequester = appsFocus,
                 )
             }
         }
-        HintBar(Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
+        HintBar(homeHints(focusArea), Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
     }
 }
 
@@ -253,21 +259,6 @@ private fun InfoLine(key: String, value: String) {
     }
 }
 
-@Composable
-private fun HintBar(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(28.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KeyHint("◀ ▶ ▲ ▼", "move focus")
-        KeyHint("ok", "launch")
-        KeyHint("1…5", "workspace")
-        KeyHint("menu", "all apps")
-        KeyHint("hold ok", "app options")
-    }
-}
-
 /** Requests focus, retrying for a few frames while a lazy list composes its first rows. */
 private suspend fun FocusRequester.requestFocusWhenLaidOut() {
     repeat(FOCUS_ATTEMPTS) {
@@ -302,3 +293,7 @@ private fun HomeScreenPreview() {
         )
     }
 }
+
+/** Tells the hint bar when focus moves into [area], or anywhere inside it. */
+internal fun Modifier.tracksFocus(area: HomeArea, onFocusArea: (HomeArea) -> Unit): Modifier =
+    onFocusChanged { if (it.hasFocus) onFocusArea(area) }
