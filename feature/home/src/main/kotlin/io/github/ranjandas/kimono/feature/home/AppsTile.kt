@@ -1,15 +1,6 @@
 package io.github.ranjandas.kimono.feature.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -18,20 +9,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
+import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
-import io.github.ranjandas.kimono.core.design.component.TileDefaults
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
@@ -69,16 +56,16 @@ fun AppsTile(
                 .focusRestorer(),
         ) {
             itemsIndexed(apps.take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
-                AppRow(
-                    number = index + 1,
-                    app = app,
-                    opening = (status as? LaunchStatus.Opening)?.app == app,
+                ListRow(
+                    text = app.label,
                     onClick = {
                         status = when (onLaunchApp(app)) {
                             LaunchResult.Launched -> LaunchStatus.Opening(app)
                             is LaunchResult.Unavailable -> LaunchStatus.Unavailable(app)
                         }
                     },
+                    leading = "%02d".format(index + 1),
+                    trailing = if ((status as? LaunchStatus.Opening)?.app == app) "opening…" else null,
                 )
             }
         }
@@ -97,50 +84,6 @@ fun AppsTile(
                 style = KimonoTheme.typography.label,
                 color = KimonoTheme.colors.error,
             )
-        }
-    }
-}
-
-@Composable
-private fun AppRow(
-    number: Int,
-    app: InstalledApp,
-    opening: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
-    val colors = KimonoTheme.colors
-    val shape = KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(30.dp)
-            .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
-            .background(if (focused) colors.surfaceVariant else colors.surface, shape)
-            .padding(horizontal = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text("%02d".format(number), style = KimonoTheme.typography.label, color = colors.textMuted)
-        Text(
-            if (focused) "›" else " ",
-            modifier = Modifier.width(10.dp),
-            style = KimonoTheme.typography.body,
-            color = colors.accent,
-        )
-        Text(
-            app.label,
-            modifier = Modifier.weight(1f),
-            style = KimonoTheme.typography.body,
-            color = if (focused) colors.accent else colors.text,
-            fontWeight = if (focused) FontWeight.Bold else FontWeight.Normal,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (opening) {
-            Text("opening…", style = KimonoTheme.typography.label, color = colors.textMuted)
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -15,6 +16,7 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppLauncher
 import io.github.ranjandas.kimono.data.apps.AppsRepository
+import io.github.ranjandas.kimono.feature.drawer.DrawerScreen
 import io.github.ranjandas.kimono.feature.home.HomeScreen
 import kotlinx.coroutines.launch
 
@@ -31,16 +33,26 @@ class HomeActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             // Survives config changes and process death only; the settings screen (M1-13) persists it.
             var themeIndex by rememberSaveable { mutableIntStateOf(ThemeId.Default.ordinal) }
+            var drawerOpen by rememberSaveable { mutableStateOf(false) }
             val theme = ThemeId.entries[themeIndex]
             KimonoTheme(theme = theme) {
-                HomeScreen(
-                    apps = apps,
-                    onLaunchApp = appLauncher::launch,
-                    workspaces = workspaces,
-                    onSelectWorkspace = { workspace -> scope.launch { workspaceStore.select(workspace) } },
-                    theme = theme,
-                    onCycleTheme = { themeIndex = (themeIndex + 1) % ThemeId.entries.size },
-                )
+                if (drawerOpen) {
+                    DrawerScreen(
+                        apps = apps,
+                        onLaunchApp = appLauncher::launch,
+                        onClose = { drawerOpen = false },
+                    )
+                } else {
+                    HomeScreen(
+                        apps = apps,
+                        onLaunchApp = appLauncher::launch,
+                        workspaces = workspaces,
+                        onSelectWorkspace = { workspace -> scope.launch { workspaceStore.select(workspace) } },
+                        onOpenDrawer = { drawerOpen = true },
+                        theme = theme,
+                        onCycleTheme = { themeIndex = (themeIndex + 1) % ThemeId.entries.size },
+                    )
+                }
             }
         }
     }

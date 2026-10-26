@@ -50,6 +50,14 @@ fun ComponentSampler(theme: ThemeId, cornerStyle: CornerStyle, modifier: Modifie
                     TextButton("details", onClick = {})
                 }
             }
+            Tile(modifier = Modifier.width(560.dp)) {
+                SectionHeader("~/apps", trailing = "3 apps")
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    listOf("Jellyfin", "Plex", "YouTube").forEachIndexed { index, label ->
+                        ListRow(text = label, onClick = {}, leading = "%02d".format(index + 1))
+                    }
+                }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
                 KeyHint("◀ ▶ ▲ ▼", "move focus")
                 KeyHint("ok", "launch")
