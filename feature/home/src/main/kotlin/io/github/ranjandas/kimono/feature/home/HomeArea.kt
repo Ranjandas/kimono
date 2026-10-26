@@ -3,7 +3,7 @@ package io.github.ranjandas.kimono.feature.home
 import io.github.ranjandas.kimono.core.design.component.Hint
 
 /** The parts of the home screen where the remote keys do different things. */
-internal enum class HomeArea { Workspaces, ThemeButton, SettingsButton, Tiles, Apps }
+internal enum class HomeArea { Workspaces, ThemeButton, SettingsButton, Continue, Recents, Apps }
 
 /** The hints for the focused [area], then the shortcuts that work anywhere on home. */
 internal fun homeHints(area: HomeArea): List<Hint> = when (area) {
@@ -13,8 +13,10 @@ internal fun homeHints(area: HomeArea): List<Hint> = when (area) {
 
     HomeArea.SettingsButton -> listOf(Hint("◀ ▼", "move focus"), Hint("ok", "open settings"))
 
-    // Continue watching and recents are placeholders until M2 and M3, so there's nothing to press yet.
-    HomeArea.Tiles -> listOf(Hint("◀ ▶ ▲ ▼", "move focus"))
+    // Continue watching is a placeholder until M3, so there's nothing to press yet.
+    HomeArea.Continue -> listOf(Hint("◀ ▶ ▲ ▼", "move focus"))
+
+    HomeArea.Recents -> listOf(Hint("◀ ▶ ▲ ▼", "move focus"), Hint("ok", "open"))
 
     HomeArea.Apps -> listOf(Hint("◀ ▶ ▲ ▼", "move focus"), Hint("ok", "launch"), Hint("hold ok", "app options"))
 } + HomeShortcutHints

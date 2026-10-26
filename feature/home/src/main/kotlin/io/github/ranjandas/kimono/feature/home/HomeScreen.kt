@@ -2,7 +2,6 @@ package io.github.ranjandas.kimono.feature.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,10 +22,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,7 +35,6 @@ import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
-import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
@@ -79,6 +75,8 @@ fun HomeScreen(
     onCycleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
+    recents: RecentApps,
+    onRequestUsageAccess: () -> Unit,
     modifier: Modifier = Modifier,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
@@ -113,6 +111,8 @@ fun HomeScreen(
             focusArea = focusArea,
             onFocusArea = { focusArea = it },
             clock = clock,
+            recents = recents,
+            onRequestUsageAccess = onRequestUsageAccess,
         )
         options?.let { app ->
             AppOptionsPanel(
@@ -145,6 +145,8 @@ private fun HomeGrid(
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
     clock: Clock,
+    recents: RecentApps,
+    onRequestUsageAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -174,11 +176,17 @@ private fun HomeGrid(
             horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
         ) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxHeight().tracksFocus(HomeArea.Tiles, onFocusArea),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
-                ContinueTile(Modifier.fillMaxWidth().weight(1f))
-                RecentsRow(Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight))
+                ContinueTile(Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Continue, onFocusArea))
+                RecentsRow(
+                    recents = recents,
+                    onLaunchApp = { onLaunchApp(it) },
+                    onRequestAccess = onRequestUsageAccess,
+                    modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight)
+                        .tracksFocus(HomeArea.Recents, onFocusArea),
+                )
             }
             Column(
                 modifier = Modifier.width(HomeDimens.SideColumnWidth).fillMaxHeight(),
@@ -214,33 +222,6 @@ private fun ContinueTile(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun RecentsRow(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.focusRestorer().focusGroup(),
-        horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
-    ) {
-        repeat(RECENT_SLOTS) {
-            Tile(modifier = Modifier.weight(1f).fillMaxHeight(), onClick = {}) {
-                Icon(
-                    KimonoIcon.Recent,
-                    color = KimonoTheme.colors.textMuted,
-                    style = KimonoTheme.typography.headline,
-                )
-                Spacer(Modifier.weight(1f))
-                Text("recent", style = KimonoTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    "none yet",
-                    style = KimonoTheme.typography.label,
-                    color = KimonoTheme.colors.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-    }
-}
-
 /** Requests focus, retrying for a few frames while a lazy list composes its first rows. */
 private suspend fun FocusRequester.requestFocusWhenLaidOut() {
     repeat(FOCUS_ATTEMPTS) {
@@ -250,7 +231,6 @@ private suspend fun FocusRequester.requestFocusWhenLaidOut() {
 }
 
 private const val FOCUS_ATTEMPTS = 10
-private const val RECENT_SLOTS = 4
 
 @Preview(device = Devices.TV_1080p)
 @Composable
@@ -271,6 +251,8 @@ private fun HomeScreenPreview() {
             onCycleTheme = {},
             onOpenSettings = {},
             clockFormat = ClockFormat.System,
+            recents = RecentApps.NeedsAccess,
+            onRequestUsageAccess = {},
         )
     }
 }

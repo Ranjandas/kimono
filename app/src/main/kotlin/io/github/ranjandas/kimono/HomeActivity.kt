@@ -8,6 +8,7 @@ import io.github.ranjandas.kimono.core.data.workspace.WorkspaceStore
 import io.github.ranjandas.kimono.data.apps.AppActions
 import io.github.ranjandas.kimono.data.apps.AppLauncher
 import io.github.ranjandas.kimono.data.apps.AppsRepository
+import io.github.ranjandas.kimono.data.apps.UsageHistory
 
 class HomeActivity : ComponentActivity() {
     private val dependencies by lazy {
@@ -17,6 +18,7 @@ class HomeActivity : ComponentActivity() {
             appActions = AppActions.create(this),
             workspaceStore = WorkspaceStore.create(this),
             settingsStore = SettingsStore.create(this),
+            usageHistory = UsageHistory.create(this),
         )
     }
 

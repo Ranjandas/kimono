@@ -19,6 +19,7 @@ import io.github.ranjandas.kimono.data.apps.AppScreen
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.feature.drawer.DrawerScreen
 import io.github.ranjandas.kimono.feature.home.HomeScreen
+import io.github.ranjandas.kimono.feature.home.RecentApps
 import io.github.ranjandas.kimono.feature.settings.SettingsScreen
 import kotlinx.coroutines.launch
 
@@ -34,6 +35,7 @@ internal fun KimonoApp(dependencies: KimonoDependencies) {
     val settings by dependencies.settingsStore.settings.collectAsStateWithLifecycle(initialValue = null)
     val workspaces by dependencies.workspaceStore.state.collectAsStateWithLifecycle(initialValue = null)
     val apps by dependencies.appsRepository.apps.collectAsStateWithLifecycle(initialValue = null)
+    val recents = rememberRecentApps(dependencies.usageHistory, apps)
     val loadedSettings = settings ?: return
     val loadedWorkspaces = workspaces ?: return
     val scope = rememberCoroutineScope()
@@ -45,7 +47,7 @@ internal fun KimonoApp(dependencies: KimonoDependencies) {
         cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName),
         textScale = loadedSettings.textSize.scale,
     ) {
-        Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps)
+        Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents)
     }
 }
 
@@ -56,6 +58,7 @@ private fun Screens(
     updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
     workspaces: WorkspaceState,
     apps: List<InstalledApp>?,
+    recents: RecentApps,
 ) {
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
     val actions = appCallbacks(dependencies, workspaces)
@@ -75,6 +78,8 @@ private fun Screens(
             onCycleTheme = { updateSettings { it.copy(themeName = next(theme).name) } },
             onOpenSettings = { screen = Screen.Settings },
             clockFormat = settings.clockFormat,
+            recents = recents,
+            onRequestUsageAccess = actions.requestUsageAccess,
         )
 
         Screen.Drawer -> DrawerScreen(
@@ -107,6 +112,7 @@ private class AppCallbacks(
     val togglePin: (InstalledApp) -> Unit,
     val openInfo: (InstalledApp) -> Unit,
     val uninstall: (InstalledApp) -> Unit,
+    val requestUsageAccess: () -> Unit,
 )
 
 @Composable
@@ -135,7 +141,16 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
         },
         openInfo = openScreen(AppScreen.Info),
         uninstall = openScreen(AppScreen.Uninstall),
+        requestUsageAccess = {
+            if (!dependencies.usageHistory.openAccessSettings()) {
+                Toast.makeText(context, USAGE_ACCESS_OVER_ADB, Toast.LENGTH_LONG).show()
+            }
+        },
     )
 }
 
 private fun next(theme: ThemeId): ThemeId = ThemeId.entries[(theme.ordinal + 1) % ThemeId.entries.size]
+
+// Google TV hides the usage access screen, so the one way in is adb (docs/DEVELOPING.md).
+private const val USAGE_ACCESS_OVER_ADB =
+    "this TV hides usage access; grant it with: adb shell appops set io.github.ranjandas.kimono GET_USAGE_STATS allow"
