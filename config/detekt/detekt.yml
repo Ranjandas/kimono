@@ -1,5 +1,9 @@
 # Overrides on top of Detekt's default config (buildUponDefaultConfig = true).
 
+config:
+  # The Compose rules plugin doesn't declare its options to Detekt's config validation.
+  excludes: 'Compose>.*'
+
 naming:
   FunctionNaming:
     # Composables are PascalCase.
@@ -10,6 +14,7 @@ style:
     # Colours, dp values and sizes in Compose code are clearer inline.
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
+    ignoreEnums: true
     excludes: ['**/test/**', '**/androidTest/**']
     ignoreAnnotated: ['Composable', 'Preview']
   UnusedPrivateMember:
@@ -24,3 +29,8 @@ complexity:
 Compose:
   ModifierMissing:
     active: true
+  CompositionLocalAllowlist:
+    # The theme's tokens are the only CompositionLocals; everything else is passed as parameters.
+    allowedCompositionLocals:
+      - LocalKimonoColors
+      - LocalKimonoShapes

@@ -22,6 +22,10 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+    }
+
     lint {
         baseline = file("lint-baseline.xml")
         warningsAsErrors = true
@@ -36,4 +40,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }

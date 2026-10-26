@@ -14,7 +14,27 @@ Fonts
 Colour palettes
 ---------------
 
-(none yet; theme palettes are added in M1-1, each with its upstream licence)
+The seven theme palettes in core/design (ThemeId.kt) are taken from the
+colors.toml files of the matching themes in Omarchy
+(https://github.com/basecamp/omarchy), MIT License,
+Copyright (c) David Heinemeier Hansson.
+
+Those themes are in turn based on these colour schemes:
+
+- Tokyo Night: https://github.com/enkia/tokyo-night-vscode-theme
+  MIT License, Copyright (c) 2018-present Enkia
+- Catppuccin (Mocha): https://github.com/catppuccin/catppuccin
+  MIT License, Copyright (c) 2021 Catppuccin
+- Gruvbox (Gruvbox Material colours): https://github.com/sainnhe/gruvbox-material
+  MIT License, Copyright (c) 2020 sainnhe
+- Rosé Pine (Dawn): https://github.com/rose-pine/rose-pine-theme
+  MIT License, Copyright (c) 2023 Rosé Pine
+- Nord: https://github.com/nordtheme/nord
+  MIT License, Copyright (c) 2016-present Sven Greb
+- Kanagawa: https://github.com/rebelot/kanagawa.nvim
+  MIT License, Copyright (c) 2021 Tommaso Laurenzi
+- Everforest: https://github.com/sainnhe/everforest
+  MIT License, Copyright (c) 2019 sainnhe
 
 Images
 ------
