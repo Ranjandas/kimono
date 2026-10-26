@@ -45,7 +45,12 @@ import kotlinx.coroutines.delay
  * (M1-11) lists them all.
  */
 @Composable
-fun AppsTile(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResult, modifier: Modifier = Modifier) {
+fun AppsTile(
+    apps: List<InstalledApp>,
+    onLaunchApp: (InstalledApp) -> LaunchResult,
+    modifier: Modifier = Modifier,
+    listFocusRequester: FocusRequester = remember { FocusRequester() },
+) {
     var status by remember { mutableStateOf<LaunchStatus?>(null) }
     LaunchedEffect(status) {
         if (status != null) {
