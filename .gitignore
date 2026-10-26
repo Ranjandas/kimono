@@ -9,6 +9,8 @@ build/
 # Local configuration
 local.properties
 *.keystore
+# Shared debug key (not secret) so debug builds from any machine or CI update in place.
+!app/debug.keystore
 *.jks
 keystore.properties
 
