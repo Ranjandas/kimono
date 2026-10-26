@@ -25,15 +25,6 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - name: Generate lint baselines (temporary)
-        run: ./gradlew updateLintBaseline --continue --stacktrace
-
-      - name: Upload lint baselines (temporary)
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-baselines
-          path: "**/lint-baseline.xml"
-
       - name: Build, check (unit tests, lint, ktlint, Detekt)
         run: ./gradlew assembleDebug check --stacktrace
 
