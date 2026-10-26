@@ -20,6 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,7 +44,12 @@ import kotlinx.coroutines.delay
  * (M1-11) lists them all.
  */
 @Composable
-fun AppsTile(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResult, modifier: Modifier = Modifier) {
+fun AppsTile(
+    apps: List<InstalledApp>,
+    onLaunchApp: (InstalledApp) -> LaunchResult,
+    modifier: Modifier = Modifier,
+    listFocusRequester: FocusRequester = remember { FocusRequester() },
+) {
     var status by remember { mutableStateOf<LaunchStatus?>(null) }
     LaunchedEffect(status) {
         if (status != null) {
@@ -51,7 +59,14 @@ fun AppsTile(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResu
     }
     Tile(modifier = modifier) {
         SectionHeader("~/apps", trailing = "${apps.size} installed")
-        LazyColumn(modifier = Modifier.weight(1f).padding(top = 8.dp)) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 8.dp)
+                // Coming back to the list lands on the row that was focused last.
+                .focusRequester(listFocusRequester)
+                .focusRestorer(),
+        ) {
             itemsIndexed(apps.take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
                 AppRow(
                     number = index + 1,
