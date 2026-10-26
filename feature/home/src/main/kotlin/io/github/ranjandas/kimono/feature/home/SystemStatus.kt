@@ -13,6 +13,7 @@ import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import java.time.Duration
 import java.time.LocalDateTime
@@ -36,15 +37,15 @@ internal fun is24HourClock(): Boolean = DateFormat.is24HourFormat(LocalContext.c
 @Composable
 internal fun rememberNetworkStatus(): State<NetworkStatus> {
     val context = LocalContext.current
-    return produceState(NetworkStatus.Offline, context) {
-        val connectivity = context.getSystemService(ConnectivityManager::class.java)
+    val connectivity = context.getSystemService(ConnectivityManager::class.java)
+    // Start from the current network, so the bar doesn't show offline until the first callback arrives.
+    val initial = remember(context) {
+        connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.toStatus() ?: NetworkStatus.Offline
+    }
+    return produceState(initial, context) {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                value = when {
-                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkStatus.Ethernet
-                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkStatus.Wifi
-                    else -> NetworkStatus.Other
-                }
+                value = capabilities.toStatus()
             }
 
             override fun onLost(network: Network) {
@@ -54,6 +55,12 @@ internal fun rememberNetworkStatus(): State<NetworkStatus> {
         connectivity.registerDefaultNetworkCallback(callback, Handler(Looper.getMainLooper()))
         awaitDispose { connectivity.unregisterNetworkCallback(callback) }
     }
+}
+
+private fun NetworkCapabilities.toStatus(): NetworkStatus = when {
+    hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkStatus.Ethernet
+    hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkStatus.Wifi
+    else -> NetworkStatus.Other
 }
 
 /**

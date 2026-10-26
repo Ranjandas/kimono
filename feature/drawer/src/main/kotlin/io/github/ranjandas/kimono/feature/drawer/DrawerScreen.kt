@@ -81,8 +81,13 @@ fun DrawerScreen(
     // The screen itself takes focus on its first frame, so letters typed straight after opening reach the
     // search before the list has laid out its rows; the list takes over as soon as it can.
     LaunchedEffect(Unit) { runCatching { rootFocus.requestFocus() } }
+    // With nothing listed the screen keeps focus itself, so typing and Back still reach it.
     LaunchedEffect(hasResults, panelOpen) {
-        if (hasResults && !panelOpen) listFocus.requestFocusWhenLaidOut()
+        when {
+            panelOpen -> Unit
+            hasResults -> listFocus.requestFocusWhenLaidOut()
+            else -> runCatching { rootFocus.requestFocus() }
+        }
     }
     LaunchedEffect(unavailable) {
         if (unavailable != null) {
@@ -90,16 +95,17 @@ fun DrawerScreen(
             unavailable = null
         }
     }
-    // Back clears the search first, so a mistyped query doesn't cost the whole screen.
-    BackHandler {
-        if (query.isEmpty()) onClose() else query = ""
-    }
+    // Back clears the search first, so a mistyped query doesn't cost the whole screen. The screen's key handler
+    // takes Back while it has focus; the back handler is for when nothing does.
+    val goBack: () -> Unit = { if (query.isEmpty()) onClose() else query = "" }
+    BackHandler(onBack = goBack)
     Box(modifier = modifier.fillMaxSize()) {
         DrawerContent(
             sections = sections,
             pinned = workspaces.pinsOf(workspaces.current).toSet(),
             query = query,
             onEditQuery = { query = it },
+            onBack = goBack,
             onClickApp = { app ->
                 if (onLaunchApp(app) is LaunchResult.Unavailable) unavailable = app
             },
@@ -129,6 +135,7 @@ private fun DrawerContent(
     pinned: Set<String>,
     query: String,
     onEditQuery: (String) -> Unit,
+    onBack: () -> Unit,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
     unavailable: InstalledApp?,
@@ -143,7 +150,9 @@ private fun DrawerContent(
             .onPreviewKeyEvent { event ->
                 val edited = event.editQuery(query)
                 if (edited != null) onEditQuery(edited)
-                edited != null
+                // Back acts on release, as the system's back does.
+                if (event.key == Key.Back && event.type == KeyEventType.KeyUp) onBack()
+                edited != null || event.key == Key.Back
             }
             // After the key handler, so the handler sees keys while the screen itself holds focus.
             .focusRequester(rootFocus)
