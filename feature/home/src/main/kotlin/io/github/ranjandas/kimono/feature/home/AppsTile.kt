@@ -25,8 +25,9 @@ import io.github.ranjandas.kimono.data.apps.LaunchResult
 import kotlinx.coroutines.delay
 
 /**
- * The numbered app list on the home screen, holding the current workspace's apps. OK opens the focused app; if
- * it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of crashing.
+ * The numbered app list on the home screen, holding the current workspace's apps. OK opens the focused app and
+ * held OK its options; if it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of
+ * crashing.
  *
  * It shows the first [MAX_APPS] apps; the drawer (M1-11) lists them all.
  */
@@ -34,6 +35,7 @@ import kotlinx.coroutines.delay
 fun AppsTile(
     apps: List<InstalledApp>,
     onLaunchApp: (InstalledApp) -> LaunchResult,
+    onShowOptions: (InstalledApp) -> Unit,
     workspace: Workspace,
     modifier: Modifier = Modifier,
     listFocusRequester: FocusRequester = remember { FocusRequester() },
@@ -65,6 +67,7 @@ fun AppsTile(
                         }
                     },
                     leading = "%02d".format(index + 1),
+                    onLongClick = { onShowOptions(app) },
                     trailing = if ((status as? LaunchStatus.Opening)?.app == app) "opening…" else null,
                 )
             }

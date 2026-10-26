@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
+import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.KeyHint
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
@@ -65,6 +70,9 @@ fun HomeScreen(
     workspaces: WorkspaceState,
     onSelectWorkspace: (Workspace) -> Unit,
     onOpenDrawer: () -> Unit,
+    onTogglePin: (InstalledApp) -> Unit,
+    onOpenAppInfo: (InstalledApp) -> Unit,
+    onUninstallApp: (InstalledApp) -> Unit,
     theme: ThemeId,
     onCycleTheme: () -> Unit,
     modifier: Modifier = Modifier,
@@ -72,6 +80,7 @@ fun HomeScreen(
     val workspace = workspaces.current
     val workspaceApps = remember(apps, workspace, workspaces) { apps.forWorkspace(workspace, workspaces) }
     val appsFocus = remember { FocusRequester() }
+    var options by remember { mutableStateOf<InstalledApp?>(null) }
     val hasApps = workspaceApps.isNotEmpty()
     // Start on the apps list: it's the one tile with something to do until continue watching lands (M3).
     LaunchedEffect(hasApps) {
@@ -79,6 +88,46 @@ fun HomeScreen(
     }
     // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.
     BackHandler { runCatching { appsFocus.requestFocus() } }
+    Box(modifier = modifier.fillMaxSize()) {
+        HomeGrid(
+            apps = workspaceApps,
+            onLaunchApp = onLaunchApp,
+            onShowOptions = { options = it },
+            workspace = workspace,
+            onSelectWorkspace = onSelectWorkspace,
+            onOpenDrawer = onOpenDrawer,
+            theme = theme,
+            onCycleTheme = onCycleTheme,
+            appsFocus = appsFocus,
+        )
+        options?.let { app ->
+            AppOptionsPanel(
+                appLabel = app.label,
+                workspaceLabel = workspace.label,
+                pinned = app.packageName in workspaces.pinsOf(workspace),
+                onTogglePin = { onTogglePin(app) },
+                onOpenAppInfo = { onOpenAppInfo(app) },
+                onUninstall = { onUninstallApp(app) },
+                onDismiss = { options = null },
+            )
+        }
+    }
+}
+
+/** The grid itself: top bar, the four tiles and the hint bar. */
+@Composable
+private fun HomeGrid(
+    apps: List<InstalledApp>,
+    onLaunchApp: (InstalledApp) -> LaunchResult,
+    onShowOptions: (InstalledApp) -> Unit,
+    workspace: Workspace,
+    onSelectWorkspace: (Workspace) -> Unit,
+    onOpenDrawer: () -> Unit,
+    theme: ThemeId,
+    onCycleTheme: () -> Unit,
+    appsFocus: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -114,8 +163,9 @@ fun HomeScreen(
             ) {
                 SystemInfoTile(Modifier.fillMaxWidth())
                 AppsTile(
-                    apps = workspaceApps,
+                    apps = apps,
                     onLaunchApp = onLaunchApp,
+                    onShowOptions = onShowOptions,
                     workspace = workspace,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     listFocusRequester = appsFocus,
@@ -230,6 +280,9 @@ private fun HomeScreenPreview() {
             workspaces = WorkspaceState(),
             onSelectWorkspace = {},
             onOpenDrawer = {},
+            onTogglePin = {},
+            onOpenAppInfo = {},
+            onUninstallApp = {},
             theme = ThemeId.Default,
             onCycleTheme = {},
         )
