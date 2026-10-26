@@ -3,6 +3,7 @@ package io.github.ranjandas.kimono.feature.home
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
+import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
@@ -48,8 +50,12 @@ fun AppsTile(
         }
     }
     Tile(modifier = modifier) {
-        SectionHeader("~/${workspace.label}", trailing = "${apps.size} apps")
+        SectionHeader("~/${workspace.label}", trailing = count(apps.size, "app"))
+        // A different workspace is a different list, so it starts from the top.
+        val listState = rememberLazyListState()
+        LaunchedEffect(workspace) { listState.scrollToItem(0) }
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .weight(1f)
                 .padding(top = 8.dp)

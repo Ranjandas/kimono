@@ -2,6 +2,7 @@ package io.github.ranjandas.kimono.feature.drawer
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.KeyHint
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
+import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
@@ -73,9 +75,14 @@ fun DrawerScreen(
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     val sections = remember(apps, query) { drawerSections(apps, query) }
     val listFocus = remember { FocusRequester() }
+    val rootFocus = remember { FocusRequester() }
     val hasResults = sections.isNotEmpty()
-    LaunchedEffect(hasResults) {
-        if (hasResults) listFocus.requestFocusWhenLaidOut()
+    val panelOpen = options != null
+    // The screen itself takes focus on its first frame, so letters typed straight after opening reach the
+    // search before the list has laid out its rows; the list takes over as soon as it can.
+    LaunchedEffect(Unit) { runCatching { rootFocus.requestFocus() } }
+    LaunchedEffect(hasResults, panelOpen) {
+        if (hasResults && !panelOpen) listFocus.requestFocusWhenLaidOut()
     }
     LaunchedEffect(unavailable) {
         if (unavailable != null) {
@@ -90,6 +97,7 @@ fun DrawerScreen(
     Box(modifier = modifier.fillMaxSize()) {
         DrawerContent(
             sections = sections,
+            pinned = workspaces.pinsOf(workspaces.current).toSet(),
             query = query,
             onEditQuery = { query = it },
             onClickApp = { app ->
@@ -98,6 +106,7 @@ fun DrawerScreen(
             onShowOptions = { options = it },
             unavailable = unavailable,
             listFocus = listFocus,
+            rootFocus = rootFocus,
         )
         options?.let { app ->
             AppOptionsPanel(
@@ -117,12 +126,14 @@ fun DrawerScreen(
 @Composable
 private fun DrawerContent(
     sections: List<DrawerSection>,
+    pinned: Set<String>,
     query: String,
     onEditQuery: (String) -> Unit,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
     unavailable: InstalledApp?,
     listFocus: FocusRequester,
+    rootFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -134,12 +145,16 @@ private fun DrawerContent(
                 if (edited != null) onEditQuery(edited)
                 edited != null
             }
+            // After the key handler, so the handler sees keys while the screen itself holds focus.
+            .focusRequester(rootFocus)
+            .focusable()
             .padding(horizontal = DrawerDimens.ScreenPaddingH, vertical = DrawerDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(DrawerDimens.Gap),
     ) {
         SearchLine(query, matches = sections.sumOf { it.apps.size })
         DrawerList(
             sections = sections,
+            pinned = pinned,
             query = query,
             onClickApp = onClickApp,
             onShowOptions = onShowOptions,
@@ -160,6 +175,7 @@ private fun DrawerContent(
 @Composable
 private fun DrawerList(
     sections: List<DrawerSection>,
+    pinned: Set<String>,
     query: String,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
@@ -178,7 +194,11 @@ private fun DrawerList(
                 ListRow(
                     text = app.label,
                     onClick = { onClickApp(app) },
-                    trailing = if (app.isTvApp) null else "phone app",
+                    trailing = when {
+                        app.packageName in pinned -> "pinned"
+                        !app.isTvApp -> "phone app"
+                        else -> null
+                    },
                     onLongClick = { onShowOptions(app) },
                     shape = KimonoTheme.shapes.small,
                 )
@@ -221,7 +241,7 @@ private fun SearchLine(query: String, matches: Int, modifier: Modifier = Modifie
             Text("▌", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
         }
         Text(
-            "$matches apps",
+            count(matches, "app"),
             style = KimonoTheme.typography.label,
             color = KimonoTheme.colors.textMuted,
         )

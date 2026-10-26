@@ -82,9 +82,12 @@ fun HomeScreen(
     val appsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     val hasApps = workspaceApps.isNotEmpty()
-    // Start on the apps list: it's the one tile with something to do until continue watching lands (M3).
-    LaunchedEffect(hasApps) {
-        if (hasApps) appsFocus.requestFocusWhenLaidOut()
+    // Start on the apps list: it's the one tile with something to do until continue watching lands (M3). Come
+    // back to it when its contents change (a workspace switch) and when the options panel closes, so focus is
+    // never left on whatever the system picks first.
+    val panelOpen = options != null
+    LaunchedEffect(hasApps, workspace, panelOpen) {
+        if (hasApps && !panelOpen) appsFocus.requestFocusWhenLaidOut()
     }
     // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.
     BackHandler { runCatching { appsFocus.requestFocus() } }

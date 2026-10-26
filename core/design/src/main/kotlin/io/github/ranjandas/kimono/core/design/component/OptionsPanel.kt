@@ -1,6 +1,5 @@
 package io.github.ranjandas.kimono.core.design.component
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,18 +17,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
  * A panel of actions over the dimmed screen, for the options of whatever had focus. The first option takes
  * focus, so the D-pad is on it straight away, and Back closes the panel without choosing anything.
+ *
+ * Back is taken as a key here rather than through a back handler: Compose spends the first Back on clearing
+ * focus, which left the panel on screen, unfocused and deaf to the D-pad, until a second press.
  */
 @Composable
 fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val firstOption = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { firstOption.requestFocus() } }
-    BackHandler(onBack = onDismiss)
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -38,7 +44,15 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
             .clickable(interactionSource = null, indication = null, onClick = onDismiss),
         contentAlignment = Alignment.Center,
     ) {
-        Tile(modifier = Modifier.width(PanelWidth)) {
+        Tile(
+            modifier = Modifier
+                .width(PanelWidth)
+                .onPreviewKeyEvent { event ->
+                    // Close on release, so the release doesn't reach whatever is under the panel.
+                    if (event.key == Key.Back && event.type == KeyEventType.KeyUp) onDismiss()
+                    event.key == Key.Back
+                },
+        ) {
             SectionHeader(title)
             Column(
                 modifier = Modifier.padding(top = 8.dp),
