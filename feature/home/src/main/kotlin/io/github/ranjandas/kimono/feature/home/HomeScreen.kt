@@ -16,7 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +37,7 @@ import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
+import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
@@ -51,10 +56,17 @@ private object HomeDimens {
 /**
  * The home screen grid from the mockup: continue watching and recent apps on the left, system info and the apps
  * list on the right, the top bar above and key hints below. Tiles hold placeholders until their data lands
- * (continue watching in M3, recents in M2, top bar in M1-9).
+ * (continue watching in M3, recents in M2).
  */
 @Composable
-fun HomeScreen(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchResult, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    apps: List<InstalledApp>,
+    onLaunchApp: (InstalledApp) -> LaunchResult,
+    theme: ThemeId,
+    onCycleTheme: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var workspace by rememberSaveable { mutableIntStateOf(0) }
     val appsFocus = remember { FocusRequester() }
     val hasApps = apps.isNotEmpty()
     // Start on the apps list: it's the one tile with something to do until continue watching lands (M3).
@@ -70,7 +82,13 @@ fun HomeScreen(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchRe
             .padding(horizontal = HomeDimens.ScreenPaddingH, vertical = HomeDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
     ) {
-        TopBarPlaceholder(Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight))
+        TopBar(
+            workspace = workspace,
+            onSelectWorkspace = { workspace = it },
+            theme = theme,
+            onCycleTheme = onCycleTheme,
+            modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
+        )
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
             horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
@@ -91,15 +109,6 @@ fun HomeScreen(apps: List<InstalledApp>, onLaunchApp: (InstalledApp) -> LaunchRe
             }
         }
         HintBar(Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
-    }
-}
-
-@Composable
-private fun TopBarPlaceholder(modifier: Modifier = Modifier) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text("1  home", style = KimonoTheme.typography.label, color = KimonoTheme.colors.accent)
-        Spacer(Modifier.weight(1f))
-        Text("--:--", style = KimonoTheme.typography.label, color = KimonoTheme.colors.textMuted)
     }
 }
 
@@ -202,6 +211,8 @@ private fun HomeScreenPreview() {
                 InstalledApp("pkg.$it", "pkg.$it.Main", it, AppCategory.Video, isTvApp = true)
             },
             onLaunchApp = { LaunchResult.Launched },
+            theme = ThemeId.Default,
+            onCycleTheme = {},
         )
     }
 }
