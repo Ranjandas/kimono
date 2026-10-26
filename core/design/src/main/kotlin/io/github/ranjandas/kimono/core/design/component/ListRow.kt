@@ -13,13 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.nativeKeyEvent
@@ -52,12 +51,19 @@ fun ListRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
+    val heldOk = remember { HeldOk() }
     val colors = KimonoTheme.colors
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(ListRowDefaults.Height)
-            .heldOk(onLongClick)
+            .then(
+                if (onLongClick == null) {
+                    Modifier
+                } else {
+                    Modifier.onPreviewKeyEvent { heldOk.onKey(it, onLongClick) }
+                },
+            )
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -95,28 +101,26 @@ fun ListRow(
 }
 
 /**
- * Calls [onLongClick] when OK is held. Compose's `clickable` turns the OK key into a click but has no
- * notion of holding it, so the key is handled here: the first repeat (about half a second) is the long
- * press, and the rest of the repeats and the key release are swallowed so no click follows.
+ * Turns a held OK into a long press. Compose's `clickable` turns the OK key into a click but has no notion
+ * of holding it, so the key is handled here: the first repeat (about half a second) is the long press, and
+ * the rest of the repeats and the key release are swallowed so no click follows.
  */
-@Composable
-private fun Modifier.heldOk(onLongClick: (() -> Unit)?): Modifier {
-    if (onLongClick == null) return this
-    var held by remember { mutableStateOf(false) }
-    return onPreviewKeyEvent { event ->
-        when {
-            event.key !in OkKeys -> false
+private class HeldOk {
+    // Plain state: nothing is drawn from it, so changing it needn't recompose.
+    private var held = false
 
-            event.type == KeyEventType.KeyUp -> held.also { held = false }
+    fun onKey(event: KeyEvent, onLongClick: () -> Unit): Boolean = when {
+        event.key !in OkKeys -> false
 
-            event.nativeKeyEvent.repeatCount == 1 -> {
-                held = true
-                onLongClick()
-                true
-            }
+        event.type == KeyEventType.KeyUp -> held.also { held = false }
 
-            else -> held
+        event.nativeKeyEvent.repeatCount == 1 -> {
+            held = true
+            onLongClick()
+            true
         }
+
+        else -> held
     }
 }
 
