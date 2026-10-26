@@ -46,11 +46,16 @@ internal fun TopBar(
     onCycleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
+    onFocusArea: (HomeArea) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         Row(
-            modifier = Modifier.align(Alignment.CenterStart).focusRestorer().focusGroup(),
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .tracksFocus(HomeArea.Workspaces, onFocusArea)
+                .focusRestorer()
+                .focusGroup(),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -81,12 +86,14 @@ internal fun TopBar(
                 label = theme.displayName.lowercase(),
                 description = "Theme ${theme.displayName}, press to switch",
                 onClick = onCycleTheme,
+                modifier = Modifier.tracksFocus(HomeArea.ThemeButton, onFocusArea),
             )
             TopBarButton(
                 icon = KimonoIcon.Settings,
                 label = "settings",
                 description = "Settings",
                 onClick = onOpenSettings,
+                modifier = Modifier.tracksFocus(HomeArea.SettingsButton, onFocusArea),
             )
         }
     }

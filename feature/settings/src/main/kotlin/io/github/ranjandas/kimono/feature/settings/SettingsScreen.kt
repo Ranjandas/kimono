@@ -4,14 +4,13 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -21,7 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.settings.TextSize
-import io.github.ranjandas.kimono.core.design.component.KeyHint
+import io.github.ranjandas.kimono.core.design.component.Hint
+import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
@@ -76,11 +76,9 @@ fun SettingsScreen(
                 SettingRow("clock", clockFormat.label, onClick = { onClockFormatChange(clockFormat.next()) })
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(28.dp), verticalAlignment = Alignment.CenterVertically) {
-            KeyHint("▲ ▼", "choose")
-            KeyHint("ok", "next value")
-            KeyHint("back", "home")
-        }
+        // Pinned to the bottom, where home and the drawer keep theirs.
+        Spacer(Modifier.weight(1f))
+        HintBar(listOf(Hint("▲ ▼", "choose"), Hint("ok", "next value"), Hint("back", "home")))
     }
 }
 
