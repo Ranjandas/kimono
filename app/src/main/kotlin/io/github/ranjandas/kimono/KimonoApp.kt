@@ -2,7 +2,9 @@ package io.github.ranjandas.kimono
 
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,9 +31,11 @@ private enum class Screen { Home, Drawer, Settings }
  * The launcher: home, the drawer and settings, themed from the stored settings. Nothing is drawn until the
  * settings and workspaces have loaded, so a chosen theme never flashes the default one first. The app list is
  * collected from the start too, so it loads alongside them; it's null until the first list arrives.
+ *
+ * [homePresses] goes up on each Home press while Kimono is running; see [Screens].
  */
 @Composable
-internal fun KimonoApp(dependencies: KimonoDependencies) {
+internal fun KimonoApp(dependencies: KimonoDependencies, homePresses: Int = 0) {
     val settings by dependencies.settingsStore.settings.collectAsStateWithLifecycle(initialValue = null)
     val workspaces by dependencies.workspaceStore.state.collectAsStateWithLifecycle(initialValue = null)
     val apps by dependencies.appsRepository.apps.collectAsStateWithLifecycle(initialValue = null)
@@ -47,7 +51,7 @@ internal fun KimonoApp(dependencies: KimonoDependencies) {
         cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName),
         textScale = loadedSettings.textSize.scale,
     ) {
-        Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents)
+        Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
     }
 }
 
@@ -59,28 +63,40 @@ private fun Screens(
     workspaces: WorkspaceState,
     apps: List<InstalledApp>?,
     recents: RecentApps,
+    homePresses: Int,
 ) {
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
     val actions = appCallbacks(dependencies, workspaces)
     val theme = ThemeId.fromName(settings.themeName)
     val cornerStyle = CornerStyle.fromName(settings.cornerStyleName)
+    // A Home press goes back to the start: the home screen on workspace 1. Everything else (the screen, the
+    // workspace) is saved, so it survives the process being killed in the background.
+    LaunchedEffect(homePresses) {
+        if (homePresses > 0) {
+            screen = Screen.Home
+            actions.selectWorkspace(Workspace.Default)
+        }
+    }
     when (screen) {
-        Screen.Home -> HomeScreen(
-            apps = apps,
-            onLaunchApp = dependencies.appLauncher::launch,
-            workspaces = workspaces,
-            onSelectWorkspace = actions.selectWorkspace,
-            onOpenDrawer = { screen = Screen.Drawer },
-            onTogglePin = actions.togglePin,
-            onOpenAppInfo = actions.openInfo,
-            onUninstallApp = actions.uninstall,
-            theme = theme,
-            onCycleTheme = { updateSettings { it.copy(themeName = next(theme).name) } },
-            onOpenSettings = { screen = Screen.Settings },
-            clockFormat = settings.clockFormat,
-            recents = recents,
-            onRequestUsageAccess = actions.requestUsageAccess,
-        )
+        // A fresh home screen per press, so focus starts on the first app and the options panel is closed.
+        Screen.Home -> key(homePresses) {
+            HomeScreen(
+                apps = apps,
+                onLaunchApp = dependencies.appLauncher::launch,
+                workspaces = workspaces,
+                onSelectWorkspace = actions.selectWorkspace,
+                onOpenDrawer = { screen = Screen.Drawer },
+                onTogglePin = actions.togglePin,
+                onOpenAppInfo = actions.openInfo,
+                onUninstallApp = actions.uninstall,
+                theme = theme,
+                onCycleTheme = { updateSettings { it.copy(themeName = next(theme).name) } },
+                onOpenSettings = { screen = Screen.Settings },
+                clockFormat = settings.clockFormat,
+                recents = recents,
+                onRequestUsageAccess = actions.requestUsageAccess,
+            )
+        }
 
         Screen.Drawer -> DrawerScreen(
             apps = apps.orEmpty(),
