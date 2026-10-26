@@ -1,4 +1,4 @@
-package io.github.ranjandas.kimono.core.data.workspace
+package io.github.ranjandas.kimono.core.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
