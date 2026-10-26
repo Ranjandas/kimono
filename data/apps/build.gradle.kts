@@ -33,7 +33,7 @@ android {
 dependencies {
     implementation(project(":core:data"))
     implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.coroutines.android)
+    api(libs.kotlinx.coroutines.android)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
