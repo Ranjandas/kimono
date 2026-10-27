@@ -14,6 +14,8 @@ data class LauncherSettings(
     val clockFormat: ClockFormat = ClockFormat.System,
     val textSize: TextSize = TextSize.Default,
     val idleTimeout: IdleTimeout = IdleTimeout.Default,
+    /** While idle, nudge the whole screen a few pixels now and then, so no pixel shows the same thing all day. */
+    val pixelShift: Boolean = true,
 )
 
 /** How the top bar shows the time. */

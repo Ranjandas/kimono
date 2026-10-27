@@ -23,6 +23,7 @@ class DataStoreSettingsStoreTest {
             clockFormat = ClockFormat.TwentyFourHour,
             textSize = TextSize.Large,
             idleTimeout = IdleTimeout.TwoMinutes,
+            pixelShift = false,
         )
         store.update { changed }
         DataStoreSettingsStore(dataStore).settings.test { assertEquals(changed, awaitItem()) }
