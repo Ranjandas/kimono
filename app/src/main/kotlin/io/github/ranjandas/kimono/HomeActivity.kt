@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
@@ -63,6 +64,9 @@ class HomeActivity : ComponentActivity() {
         super.onStop()
     }
 
+    // Activity.dispatchKeyEvent is public API; lint only objects because androidx.core's ComponentActivity
+    // re-declares it as restricted.
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean =
         idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN) || super.dispatchKeyEvent(event)
 }
