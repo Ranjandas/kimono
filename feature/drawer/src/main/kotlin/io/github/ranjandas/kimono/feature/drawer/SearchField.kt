@@ -1,6 +1,7 @@
 package io.github.ranjandas.kimono.feature.drawer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -14,11 +15,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
@@ -32,14 +36,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
  * The search line at the top of all apps, as a real text field so the on-screen keyboard and the Google TV phone
- * app's keyboard can type into it. Moving onto it with the D-pad only highlights it; OK brings up the keyboard,
- * and the keyboard's search key ([onDone]) goes back to the list. [onFocusChange] says when it has focus, and
- * [focusRequester] focuses it.
+ * app's keyboard can type into it. Moving onto it with the D-pad only highlights the line: a text field brings up
+ * the keyboard as soon as it has focus, and the OK that follows would then press a key on it. So the line takes
+ * focus itself, and only OK, on its release, hands focus to the field and brings up the keyboard. The keyboard's
+ * search key ([onDone]) goes back to the list. [onFocusChange] says when the line or the field has focus, and
+ * [focusRequester] focuses the line.
  */
 @Composable
 internal fun SearchField(
@@ -51,53 +58,93 @@ internal fun SearchField(
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
+    val lineSource = remember { MutableInteractionSource() }
+    val fieldSource = remember { MutableInteractionSource() }
+    val lineFocused by lineSource.collectIsFocusedAsState()
+    val fieldFocused by fieldSource.collectIsFocusedAsState()
+    val focused = lineFocused || fieldFocused
+    var typing by remember { mutableStateOf(false) }
+    val fieldFocus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     val colors = KimonoTheme.colors
     val style = KimonoTheme.typography.headline
     val focusChange by rememberUpdatedState(onFocusChange)
     LaunchedEffect(focused) { focusChange(focused) }
+    LaunchedEffect(typing) {
+        if (typing) {
+            fieldFocus.requestFocusWhenLaidOut()
+            keyboard?.show()
+        }
+    }
+    // Once the field lets go of focus (the keyboard's search key, Back), the next OK starts typing again.
+    LaunchedEffect(fieldFocused) { if (!fieldFocused) typing = false }
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .onPreviewKeyEvent { event ->
+                val ok = event.key in OkKeys && !typing
+                if (ok && event.type == KeyEventType.KeyUp) typing = true
+                ok
+            }
+            // After the key handler, so it sees OK while the line itself has focus.
+            .focusRequester(focusRequester)
+            .focusable(interactionSource = lineSource)
             .background(if (focused) colors.surfaceVariant else colors.surface, KimonoTheme.shapes.small)
             .padding(horizontal = 10.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("~/apps ❯", style = style, color = colors.accent)
-        BasicTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier = Modifier
-                .weight(1f)
-                .focusRequester(focusRequester)
-                .semantics { contentDescription = "Search apps" }
-                // OK on a remote brings up the keyboard; the field itself only does that for a touch.
-                .onPreviewKeyEvent { event ->
-                    val ok = event.key == Key.DirectionCenter
-                    if (ok && event.type == KeyEventType.KeyUp) keyboard?.show()
-                    ok
-                },
-            textStyle = style.copy(color = colors.text),
-            singleLine = true,
-            cursorBrush = SolidColor(colors.accent),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = {
+        SearchInput(
+            query = query,
+            onQueryChange = onQueryChange,
+            placeholder = placeholder(lineFocused, typing),
+            onSearch = {
                 keyboard?.hide()
                 onDone()
-            }),
-            interactionSource = interactionSource,
-            decorationBox = { field ->
-                Box {
-                    if (query.isEmpty()) {
-                        Text(if (focused) "press ok to type" else "search", style = style, color = colors.textMuted)
-                    }
-                    field()
-                }
             },
+            interactionSource = fieldSource,
+            modifier = Modifier.weight(1f).focusRequester(fieldFocus).focusProperties { canFocus = typing },
         )
         Text(count(matches, "app"), style = KimonoTheme.typography.label, color = colors.textMuted)
     }
 }
+
+/** The text field itself, with [placeholder] showing while [query] is empty. */
+@Composable
+private fun SearchInput(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    placeholder: String,
+    onSearch: () -> Unit,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier = Modifier,
+) {
+    val style = KimonoTheme.typography.headline
+    BasicTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.semantics { contentDescription = "Search apps" },
+        textStyle = style.copy(color = KimonoTheme.colors.text),
+        singleLine = true,
+        cursorBrush = SolidColor(KimonoTheme.colors.accent),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+        interactionSource = interactionSource,
+        decorationBox = { field ->
+            Box {
+                if (query.isEmpty()) Text(placeholder, style = style, color = KimonoTheme.colors.textMuted)
+                field()
+            }
+        },
+    )
+}
+
+private fun placeholder(lineFocused: Boolean, typing: Boolean): String = when {
+    typing -> "type an app name"
+    lineFocused -> "press ok to type"
+    else -> "search"
+}
+
+// The keys a remote or keyboard sends for OK.
+private val OkKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)

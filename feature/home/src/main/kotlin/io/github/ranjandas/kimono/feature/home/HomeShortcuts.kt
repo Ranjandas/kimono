@@ -10,7 +10,7 @@ import io.github.ranjandas.kimono.core.data.workspace.Workspace
 /**
  * Jumps to a workspace on the number keys 1 to 4, to the next or previous one on channel up and down, and to all
  * apps on the menu or search key, wherever focus is. Returns true when the key was a workspace shortcut, so the
- * focused tile never also sees it. On all apps the number keys are left to the search, which may want digits.
+ * focused tile never also sees it, and that includes all apps' search: a remote's number keys are for switching.
  * Few remotes have these keys; the screen edges (see [WorkspaceSwitcher]) are the way every remote has.
  */
 internal fun KeyEvent.selectsWorkspace(current: Workspace, onSelectWorkspace: (Workspace) -> Unit): Boolean {
@@ -23,7 +23,7 @@ private fun KeyEvent.workspaceShortcut(current: Workspace): Workspace? = when (k
     Key.ChannelUp -> current.next()
     Key.ChannelDown -> current.previous()
     Key.Menu, Key.Search -> Workspace.AllApps
-    else -> if (current == Workspace.AllApps) null else NumberKeys[key]
+    else -> NumberKeys[key]
 }
 
 private val NumberKeys = mapOf(

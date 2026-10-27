@@ -89,9 +89,21 @@ fun DrawerScreen(
         }
     }
     ClearAfterDelay(unavailable) { unavailable = null }
-    // Back clears the search first, so a mistyped query doesn't cost the whole screen. The screen's key handler
-    // takes Back while it has focus; the back handler is for when nothing does.
-    val goBack: () -> Unit = { if (query.isEmpty()) onClose() else query = "" }
+    // Back clears the search first, so a mistyped query doesn't cost the whole screen, and leaves the search line
+    // for the list so focus is somewhere visible. The screen's key handler takes Back while it has focus; the back
+    // handler is for when nothing does.
+    val goBack: () -> Unit = {
+        when {
+            focus.searching -> {
+                query = ""
+                runCatching { focus.list.requestFocus() }
+            }
+
+            query.isEmpty() -> onClose()
+
+            else -> query = ""
+        }
+    }
     BackHandler(onBack = goBack)
     Box(modifier = modifier.fillMaxSize()) {
         DrawerContent(
