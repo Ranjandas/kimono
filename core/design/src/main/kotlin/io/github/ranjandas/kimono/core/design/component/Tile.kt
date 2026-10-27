@@ -12,7 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -75,25 +76,30 @@ private fun Modifier.frosted(backdrop: Backdrop, position: GlassPosition, color:
         position.origin = coordinates.positionInRoot()
         position.window = coordinates.findRootCoordinates().size.toSize()
     }
-    .drawBehind {
-        val window = position.window
-        if (window == Size.Zero) return@drawBehind
-        val visibility = backdrop.visibility()
-        val outline = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawBehind)) }
-        clipPath(outline) {
+    .drawWithCache {
+        val outline = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
+        val dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt())
+        onDrawBehind {
+            val window = position.window
+            if (window == Size.Zero) return@onDrawBehind
+            val visibility = backdrop.visibility()
             val image = backdrop.blurred
             val (srcOffset, srcSize) = backdropCrop(IntSize(image.width, image.height), window, position.origin, size)
-            drawImage(
-                image,
-                srcOffset,
-                srcSize,
-                dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()),
-                alpha = visibility,
-                filterQuality = FilterQuality.Low,
-            )
-            drawRect(backdrop.tint, alpha = visibility)
-            // Solid while the wallpaper fades in, reaching the glass opacity once it's fully there.
-            drawRect(color, alpha = 1f - visibility * (1f - backdrop.opacity))
+            // The tint and the tile colour in one fill, which matters on the Streamer's GPU. The tile colour is
+            // solid while the wallpaper fades in and reaches the glass opacity once it's fully there.
+            val tint = backdrop.tint.copy(alpha = backdrop.tint.alpha * visibility)
+            val overlay = color.copy(alpha = 1f - visibility * (1f - backdrop.opacity)).compositeOver(tint)
+            clipPath(outline) {
+                drawImage(
+                    image,
+                    srcOffset,
+                    srcSize,
+                    dstSize = dstSize,
+                    alpha = visibility,
+                    filterQuality = FilterQuality.Low,
+                )
+                drawRect(overlay)
+            }
         }
     }
 

@@ -55,8 +55,8 @@ enum class TextSize(val label: String, val scale: Float) {
 
 /** How much of the wallpaper shows through tiles: [opacity] is the tile colour's share over a blurred copy. */
 enum class Panels(val label: String, val opacity: Float) {
-    Clear("clear", 0.6f),
-    Frosted("frosted", 0.8f),
+    Clear("clear", 0.5f),
+    Frosted("frosted", 0.65f),
 
     /** Plain tiles, for a wallpaper too busy to read over. */
     Solid("solid", 1f),
