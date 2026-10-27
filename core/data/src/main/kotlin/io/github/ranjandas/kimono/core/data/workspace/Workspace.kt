@@ -33,8 +33,7 @@ enum class Workspace(val label: String) {
          * The workspace a stored name means, including the five-workspace names from before #104: media is now
          * watch, games is play, and apps and system fold into home. Null for a name that was never a workspace.
          */
-        fun ofStoredName(name: String?): Workspace? =
-            entries.find { it.name == name } ?: LegacyNames[name]
+        fun ofStoredName(name: String?): Workspace? = entries.find { it.name == name } ?: LegacyNames[name]
 
         /** The names a workspace was stored under, its own first. */
         internal fun storedNames(workspace: Workspace): List<String> =
