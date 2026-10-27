@@ -1,6 +1,6 @@
 # ADR 0002: Where "continue watching" comes from
 
-- **Status:** Proposed. Needs Ranjan's answer on which source he actually uses (see Open question).
+- **Status:** Accepted, 2026-10-27: no media source for now. Recently used apps stay the answer.
 - **Date:** 2026-10-27
 - **Issue:** #30 (M3-1), decides PLAN open question O1. See [PLAN §6.8](../PLAN.md#68-continue-watching-media-sources).
 
@@ -60,16 +60,16 @@ Jellyfin is installed on the Streamer, so B may give the best result for Ranjan'
 Build `MediaSource` (M3-2) so that both can plug in, then do the first source based on Ranjan's answer below.
 If he's undecided, Trakt + TMDB stays the default, as in the plan.
 
-## Open question
+## Decision
 
-Which does Ranjan watch through, and does anything report it to Trakt? Specifically:
+Asked which source to build first (Jellyfin, Trakt + TMDB, or neither), Ranjan chose **neither yet**.
 
-- A Jellyfin server, which would point to B.
-- Trakt with a scrobbling player, which would point to A.
-- Mostly streaming apps with nothing reporting, where neither helps much and the recent-apps row is the honest
-  answer.
+- `MediaSource`, its cache and the background refresh (M3-2, #84) stay in place, so either option can be added
+  later without reworking anything.
+- The Trakt login and provider (M3-3, M3-4) and TMDB artwork (M3-5) are parked until a source is wanted.
+- The recently used apps row (#72) is how Kimono gets back to what was being watched.
 
-## Consequences
+## Consequences if a source is added later
 
 - Secrets: the Trakt client ID (and secret, if still required) and the TMDB key can't be committed. They go in
   `local.properties` locally and in repository secrets for CI, and are read through `BuildConfig`.
