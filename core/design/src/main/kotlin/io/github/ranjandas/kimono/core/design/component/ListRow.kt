@@ -129,7 +129,8 @@ private class HeldOk {
     }
 }
 
-private val OkKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)
+// The keys a remote or keyboard sends for OK; also used by OptionsPanel.
+internal val OkKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)
 
 object ListRowDefaults {
     /** Row height, the same in every list so the apps tile and the drawer scroll at the same rhythm. */

@@ -18,6 +18,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -31,10 +32,16 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
  *
  * Back is taken as a key here rather than through a back handler: Compose spends the first Back on clearing
  * focus, which left the panel on screen, unfocused and deaf to the D-pad, until a second press.
+ *
+ * The panel usually opens from a held OK, and that key is still down when the first option takes focus. Its
+ * remaining repeats and release are ignored, so they can't pick the first option; OK works again from the
+ * next fresh press.
  */
 @Composable
 fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val firstOption = remember { FocusRequester() }
+    // Plain state: nothing is drawn from it, so changing it needn't recompose.
+    val okGate = remember { OkGate() }
     LaunchedEffect(Unit) { runCatching { firstOption.requestFocus() } }
     Box(
         modifier = modifier
@@ -50,7 +57,7 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
                 .onPreviewKeyEvent { event ->
                     // Close on release, so the release doesn't reach whatever is under the panel.
                     if (event.key == Key.Back && event.type == KeyEventType.KeyUp) onDismiss()
-                    event.key == Key.Back
+                    event.key == Key.Back || okGate.swallows(event)
                 },
         ) {
             SectionHeader(title)
@@ -68,6 +75,17 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
                 }
             }
         }
+    }
+}
+
+/** Swallows OK until a fresh press: the repeats and release of the held OK that opened the panel. */
+private class OkGate {
+    private var armed = false
+
+    fun swallows(event: KeyEvent): Boolean {
+        if (event.key !in OkKeys) return false
+        if (event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount == 0) armed = true
+        return !armed
     }
 }
 
