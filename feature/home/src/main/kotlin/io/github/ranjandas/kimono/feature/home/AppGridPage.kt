@@ -66,6 +66,7 @@ internal fun AppGridPage(
             SectionHeader("~/${workspace.label}", icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
             when {
                 !loaded -> Note("loading apps…")
+
                 hasApps -> AppGrid(
                     apps = apps.orEmpty(),
                     onClickApp = { app ->
@@ -75,7 +76,7 @@ internal fun AppGridPage(
                     modifier = Modifier.weight(1f).focusRequester(gridFocus),
                 )
 
-                else -> EmptyWorkspace(workspace, actions::onOpenAllApps, Modifier.focusRequester(emptyFocus))
+                else -> EmptyWorkspace(workspace, actions::onOpenAllApps, emptyFocus)
             }
             unavailable?.let {
                 Text(
@@ -116,11 +117,22 @@ private fun AppGrid(
 }
 
 @Composable
-private fun EmptyWorkspace(workspace: Workspace, onOpenAllApps: () -> Unit, modifier: Modifier = Modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+private fun EmptyWorkspace(
+    workspace: Workspace,
+    onOpenAllApps: () -> Unit,
+    focusRequester: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Spacer(Modifier.height(8.dp))
         Note("nothing in ${workspace.label} yet")
-        TextButton("all apps", onClick = onOpenAllApps, modifier = modifier, icon = KimonoIcon.Apps, primary = true)
+        TextButton(
+            "all apps",
+            onClick = onOpenAllApps,
+            modifier = Modifier.focusRequester(focusRequester),
+            icon = KimonoIcon.Apps,
+            primary = true,
+        )
     }
 }
 

@@ -29,9 +29,10 @@ import kotlinx.coroutines.launch
 private enum class Screen { Home, Settings }
 
 /**
- * The launcher: the workspaces (all apps, the drawer, among them) and settings, themed from the stored settings. Nothing is drawn until the
- * settings and workspaces have loaded, so a chosen theme never flashes the default one first. The app list is
- * collected from the start too, so it loads alongside them; it's null until the first list arrives.
+ * The launcher: the workspaces (the drawer is the last, all apps) and settings, themed from the stored settings.
+ * Nothing is drawn until the settings and workspaces have loaded, so a chosen theme never flashes the default one
+ * first. The app list is collected from the start too, so it loads alongside them; it's null until the first list
+ * arrives.
  *
  * [homePresses] goes up on each Home press while Kimono is running; see [Screens]. While [idle], everything
  * dims and slowly shifts by a few pixels, and the wallpaper turns to pixel art (see [Ambient]).

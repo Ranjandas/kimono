@@ -61,12 +61,8 @@ internal class WorkspaceSwitcher(current: Workspace, private val onSelect: (Work
      * only a fresh press switches, so holding Left along a row never flies through the workspaces.
      */
     fun onPageKey(event: KeyEvent, focusManager: FocusManager): Boolean {
-        val direction = when (event.key) {
-            Key.DirectionLeft -> FocusDirection.Left
-            Key.DirectionRight -> FocusDirection.Right
-            else -> return false
-        }
-        if (event.type != KeyEventType.KeyDown) return false
+        val direction = SidewaysKeys[event.key]
+        if (direction == null || event.type != KeyEventType.KeyDown) return false
         if (!focusManager.moveFocus(direction) && event.nativeKeyEvent.repeatCount == 0) {
             if (direction == FocusDirection.Left) previous() else next()
         }
@@ -114,7 +110,9 @@ internal fun WorkspacePages(
     }
 }
 
-private val Sideways = setOf(FocusDirection.Left, FocusDirection.Right)
+private val SidewaysKeys = mapOf(Key.DirectionLeft to FocusDirection.Left, Key.DirectionRight to FocusDirection.Right)
+
+private val Sideways = SidewaysKeys.values.toSet()
 
 private const val SLIDE_MILLIS = 220
 
