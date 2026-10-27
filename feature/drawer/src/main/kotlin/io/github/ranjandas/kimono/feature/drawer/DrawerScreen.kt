@@ -105,7 +105,9 @@ fun DrawerScreen(
             sections = sections,
             pinned = workspaces.pinsOf(workspaces.current).toSet(),
             query = query,
-            onEditQuery = { query = it },
+            // Reads the query state at the time of the key, not the value from the last frame: keys typed
+            // faster than the screen recomposes would otherwise each edit the same old query and drop letters.
+            onTypeKey = { event -> event.editQuery(query)?.also { query = it } != null },
             onBack = goBack,
             onClickApp = { app ->
                 if (onLaunchApp(app) is LaunchResult.Unavailable) unavailable = app
@@ -135,7 +137,7 @@ private fun DrawerContent(
     sections: List<DrawerSection>,
     pinned: Set<String>,
     query: String,
-    onEditQuery: (String) -> Unit,
+    onTypeKey: (KeyEvent) -> Boolean,
     onBack: () -> Unit,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
@@ -149,11 +151,10 @@ private fun DrawerContent(
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
             .onPreviewKeyEvent { event ->
-                val edited = event.editQuery(query)
-                if (edited != null) onEditQuery(edited)
+                val edited = onTypeKey(event)
                 // Back acts on release, as the system's back does.
                 if (event.key == Key.Back && event.type == KeyEventType.KeyUp) onBack()
-                edited != null || event.key == Key.Back
+                edited || event.key == Key.Back
             }
             // After the key handler, so the handler sees keys while the screen itself holds focus.
             .focusRequester(rootFocus)
