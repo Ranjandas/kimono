@@ -50,6 +50,7 @@ enum class KimonoIcon(val codePoint: Int) {
     Palette(0xF03D8), // nf-md-palette
     Corners(0xF0607), // nf-md-rounded_corner
     TextSize(0xF027F), // nf-md-format_size
+    Wallpaper(0xF02E9), // nf-md-image
 
     // Apps: brands first, then the fallbacks
     YouTube(0xF05C3), // nf-md-youtube

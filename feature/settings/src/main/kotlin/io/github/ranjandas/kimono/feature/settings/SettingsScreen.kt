@@ -50,6 +50,8 @@ fun SettingsScreen(
     onIdleTimeoutChange: (IdleTimeout) -> Unit,
     pixelShift: Boolean,
     onPixelShiftChange: (Boolean) -> Unit,
+    wallpaper: WallpaperChoice,
+    onWallpaperToggle: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -93,6 +95,7 @@ fun SettingsScreen(
                 SettingRow(KimonoIcon.Device, "shift pixels", if (pixelShift) "on" else "off", onClick = {
                     onPixelShiftChange(!pixelShift)
                 })
+                SettingRow(KimonoIcon.Wallpaper, "wallpaper", wallpaper.label, onClick = onWallpaperToggle)
             }
         }
         // Pinned to the bottom, where home and the drawer keep theirs.
@@ -118,6 +121,9 @@ private inline fun <reified T : Enum<T>> T.next(): T {
     return values[(ordinal + 1) % values.size]
 }
 
+/** What the wallpaper row shows: the theme's image, one set over adb, or none. */
+enum class WallpaperChoice(val label: String) { Theme("theme"), Custom("custom"), Off("off") }
+
 private val SettingsWidth = 480.dp
 
 @Preview(device = Devices.TV_1080p)
@@ -137,6 +143,8 @@ private fun SettingsScreenPreview() {
             onIdleTimeoutChange = {},
             pixelShift = true,
             onPixelShiftChange = {},
+            wallpaper = WallpaperChoice.Theme,
+            onWallpaperToggle = {},
             onClose = {},
         )
     }

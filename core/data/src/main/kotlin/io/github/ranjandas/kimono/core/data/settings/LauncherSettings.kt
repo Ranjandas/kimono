@@ -16,6 +16,10 @@ data class LauncherSettings(
     val idleTimeout: IdleTimeout = IdleTimeout.Default,
     /** While idle, nudge the whole screen a few pixels now and then, so no pixel shows the same thing all day. */
     val pixelShift: Boolean = true,
+    /** Off shows the plain theme background. */
+    val wallpaper: Boolean = true,
+    /** An image of the user's own, set over adb; null uses the theme's wallpaper. */
+    val wallpaperUrl: String? = null,
 )
 
 /** How the top bar shows the time. */

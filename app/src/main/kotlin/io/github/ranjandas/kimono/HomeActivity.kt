@@ -13,11 +13,13 @@ import androidx.lifecycle.lifecycleScope
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.SettingsStore
+import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceStore
 import io.github.ranjandas.kimono.data.apps.AppActions
 import io.github.ranjandas.kimono.data.apps.AppLauncher
 import io.github.ranjandas.kimono.data.apps.AppsRepository
 import io.github.ranjandas.kimono.data.apps.UsageHistory
+import kotlinx.coroutines.launch
 
 class HomeActivity : ComponentActivity() {
     private val dependencies by lazy {
@@ -28,6 +30,7 @@ class HomeActivity : ComponentActivity() {
             workspaceStore = WorkspaceStore.create(this),
             settingsStore = SettingsStore.create(this),
             usageHistory = UsageHistory.create(this),
+            wallpapers = WallpaperCache.create(this),
         )
     }
 
@@ -44,6 +47,7 @@ class HomeActivity : ComponentActivity() {
         // other way (from the apps row, or adb) starts a second instance rather than reaching this one. Treat that
         // start as a Home press too. A restore after process death keeps its state instead.
         if (savedInstanceState == null && intent.hasCategory(Intent.CATEGORY_HOME)) homePresses++
+        applyWallpaperExtra(intent)
         setContent { KimonoApp(dependencies, idle, homePresses) }
     }
 
@@ -51,6 +55,7 @@ class HomeActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == Intent.ACTION_MAIN) homePresses++
+        applyWallpaperExtra(intent)
         idle.resume()
     }
 
@@ -69,4 +74,18 @@ class HomeActivity : ComponentActivity() {
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean =
         idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN) || super.dispatchKeyEvent(event)
+
+    // Sets a wallpaper of the user's own, since typing a URL with a remote is painful (docs/DEVELOPING.md). An
+    // empty value goes back to the theme's. Only https links are taken.
+    private fun applyWallpaperExtra(intent: Intent) {
+        val url = intent.getStringExtra(WALLPAPER_EXTRA) ?: return
+        if (url.isNotEmpty() && !url.startsWith("https://")) return
+        lifecycleScope.launch {
+            dependencies.settingsStore.update { it.copy(wallpaperUrl = url.ifEmpty { null }, wallpaper = true) }
+        }
+    }
+
+    private companion object {
+        const val WALLPAPER_EXTRA = "kimono.wallpaper"
+    }
 }
