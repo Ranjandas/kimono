@@ -4,10 +4,12 @@ import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
@@ -32,7 +34,7 @@ internal fun SystemInfoTile(theme: ThemeId, modifier: Modifier = Modifier) {
         InfoLine(KimonoIcon.Storage, "storage", storage?.let(::formatStorage) ?: "…")
         InfoLine(network.icon, "network", network.label)
         InfoLine(KimonoIcon.Palette, "theme", theme.displayName.lowercase())
-        InfoLine(KimonoIcon.Font, "font", "JetBrains Mono")
+        InfoLine(KimonoIcon.Font, "font", "Noto Sans")
     }
 }
 
@@ -44,13 +46,17 @@ private fun InfoLine(icon: KimonoIcon, key: String, value: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, color = KimonoTheme.colors.textMuted)
+        val style = KimonoTheme.typography.body
+        // A column wide enough for the longest key, in ems so it grows with the text size setting.
         Text(
-            key.padEnd(INFO_KEY_WIDTH),
-            style = KimonoTheme.typography.body,
+            key,
+            modifier = Modifier.width(with(LocalDensity.current) { style.fontSize.toDp() } * INFO_KEY_EMS),
+            style = style,
             color = KimonoTheme.colors.accentSecondary,
+            maxLines = 1,
         )
         Text(value, style = KimonoTheme.typography.body, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
-private const val INFO_KEY_WIDTH = 8
+private const val INFO_KEY_EMS = 4.8f

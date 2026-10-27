@@ -9,10 +9,10 @@ plugins {
 }
 
 /**
- * Subsets the bundled Nerd Font to the text glyphs plus the icons Kimono uses (PLAN D8), so the APK
- * carries a few hundred KB instead of 2.5 MB per weight. Icons are the private-use code points
- * written as `0x…` literals in [glyphSources]. Needs `pyftsubset` from fonttools on the PATH, or its
- * path in the `kimono.pyftsubset` Gradle property.
+ * Turns the bundled fonts into font resources. The text fonts keep every glyph, since app names can be in
+ * any language; the icon fonts keep only the icons Kimono uses (PLAN D8), so the APK carries a few KB
+ * instead of 2.5 MB. Icons are the private-use code points written as `0x…` literals in [glyphSources].
+ * Needs `pyftsubset` from fonttools on the PATH, or its path in the `kimono.pyftsubset` Gradle property.
  */
 abstract class SubsetFontsTask : DefaultTask() {
     @get:InputDirectory
@@ -22,6 +22,10 @@ abstract class SubsetFontsTask : DefaultTask() {
     /** Source TTF file names in [sourceDir], mapped to the font resource name each one becomes. */
     @get:Input
     abstract val fonts: MapProperty<String, String>
+
+    /** The source files in [fonts] that are icon fonts, cut down to the icons Kimono uses. */
+    @get:Input
+    abstract val iconFonts: SetProperty<String>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -42,7 +46,7 @@ abstract class SubsetFontsTask : DefaultTask() {
             .flatMap { ICON_LITERAL.findAll(it.readText()).map { match -> match.groupValues[1].toInt(16) } }
             .filter { it.isPrivateUse() }
             .toSortedSet()
-        val unicodes = (TEXT_RANGES + icons.map { "U+%X".format(it) }).joinToString(",")
+        val iconUnicodes = icons.joinToString(",") { "U+%X".format(it) }
 
         val fontDir = outputDir.get().dir("font").asFile
         fontDir.deleteRecursively()
@@ -53,7 +57,7 @@ abstract class SubsetFontsTask : DefaultTask() {
                     commandLine(
                         pyftsubset.get(),
                         sourceDir.file(source).get().asFile.path,
-                        "--unicodes=$unicodes",
+                        "--unicodes=${if (source in iconFonts.get()) iconUnicodes else "*"}",
                         "--layout-features=*",
                         "--name-IDs=*",
                         "--no-hinting",
@@ -75,9 +79,6 @@ abstract class SubsetFontsTask : DefaultTask() {
 
     private companion object {
         val ICON_LITERAL = Regex("""\b0x([0-9A-Fa-f]{4,6})\b""")
-
-        // Everything outside the private-use areas, i.e. all of JetBrains Mono's own glyphs.
-        val TEXT_RANGES = listOf("U+0000-DFFF", "U+F900-EFFFF")
     }
 }
 
@@ -89,10 +90,12 @@ androidComponents {
             sourceDir.set(layout.projectDirectory.dir("fonts"))
             fonts.set(
                 mapOf(
-                    "JetBrainsMonoNerdFont-Regular.ttf" to "kimono_mono_regular",
-                    "JetBrainsMonoNerdFont-Bold.ttf" to "kimono_mono_bold",
+                    "NotoSans-Regular.ttf" to "kimono_sans_regular",
+                    "NotoSans-Bold.ttf" to "kimono_sans_bold",
+                    "SymbolsNerdFont-Regular.ttf" to "kimono_icons",
                 ),
             )
+            iconFonts.set(setOf("SymbolsNerdFont-Regular.ttf"))
             glyphSources.from("src/main/kotlin/io/github/ranjandas/kimono/core/design/icon/KimonoIcon.kt")
             pyftsubset.set(providers.gradleProperty("kimono.pyftsubset").orElse("pyftsubset"))
         }

@@ -54,7 +54,8 @@ with that in mind from day one.
 | D5 | License | MIT | Third-party palettes and fonts credited in `NOTICE`. |
 | D6 | Stack | Kotlin, Jetpack Compose for TV (`androidx.tv:tv-material`), single activity | See §6. |
 | D7 | Repo / codename | `kimono` | The "omatv" name in early mockups is retired. |
-| D8 | Icons | Glyphs from **JetBrains Mono Nerd Font** (includes Font Awesome Free, Material Design Icons and more), subset at build time | Icons are text in the same font, so they sit on the monospace grid and take theme colours automatically. Nerd Fonts is MIT, JetBrains Mono is OFL, Font Awesome Free icons are CC BY 4.0, all credited in `NOTICE`. |
+| D8 | Icons | Glyphs from **Symbols Nerd Font** (includes Font Awesome Free, Material Design Icons and more), subset at build time | Icons are text, so they line up with labels and take theme colours automatically. Nerd Fonts is MIT/OFL, Font Awesome Free icons are CC BY 4.0, all credited in `NOTICE`. |
+| D10 | Text font | **Noto Sans** everywhere (decided 2026-10-27, replacing JetBrains Mono) | Monospace read as too "dev" for everyday viewers and is harder to read from the sofa. Noto covers most scripts app names use. OFL. |
 | D9 | Corner style | User setting, independent of colour theme: **square** (default) · **soft** (~6 dp) · **round** (~12 dp) | One shape token drives every component. |
 
 ### Decisions still open
@@ -75,7 +76,7 @@ Taken from the mockups; these settle arguments during implementation.
 1. **Text first.** App names over logos. Artwork only where it carries information (media).
 2. **Tiles with gaps.** One 2 px border per tile: accent colour when focused, line colour otherwise.
    Corners are square by default and configurable (square / soft / round) through one shape setting.
-3. **Monospace everywhere.** JetBrains Mono Nerd Font, bundled.
+3. **One plain typeface.** Noto Sans, bundled (D10); the Omarchy feel comes from the tiles, colours and `~/` labels.
 4. **Icons accompany text, never replace it.** Every icon sits next to a label; icons are muted by default
    and take the accent colour with focus. One icon family per context.
 5. **Themes are data.** A theme is a palette plus a few semantic tokens; no screen hard-codes a colour or a radius.
@@ -135,7 +136,7 @@ Taken from the mockups; these settle arguments during implementation.
 | Cache | Room |
 | Networking | OkHttp + Retrofit + kotlinx.serialization |
 | Images | Coil 3 with custom transformations |
-| Font and icons | JetBrains Mono Nerd Font, subset at build time to the glyphs Kimono uses (fonttools in a Gradle task) |
+| Font and icons | Noto Sans for text; Symbols Nerd Font for icons, subset at build time to the glyphs Kimono uses (fonttools in a Gradle task) |
 | Background refresh | WorkManager |
 | Tests | JUnit 5, Turbine, Robolectric, Roborazzi (screenshot tests per theme) |
 | Quality | Spotless (ktlint), Android Lint, Detekt |
