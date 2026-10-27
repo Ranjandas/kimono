@@ -144,6 +144,18 @@ Settings' wallpaper row turns it off and on again. Its panels row sets how much 
 through the tiles (clear, frosted or solid); the glass is a blurred copy made once per wallpaper, so it costs
 nothing per frame.
 
+### Screensaver
+
+Kimono also offers its idle pixel art as the system screensaver (`KimonoDream`), made from the same cached
+wallpaper in the theme's colours, cycling so no pixel stays lit for long. Google TV's settings only list its own
+ambient mode, so pick it over adb, and note what was set before so you can put it back:
+
+```sh
+adb shell settings get secure screensaver_components   # note this, to restore it later
+adb shell settings put secure screensaver_components io.github.ranjandas.kimono/.KimonoDream
+adb shell am start -n com.android.systemui/.Somnambulator   # show it now
+```
+
 ### Logs
 
 ```sh

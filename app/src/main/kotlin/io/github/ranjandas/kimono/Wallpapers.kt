@@ -37,8 +37,15 @@ private val ThemeWallpapers = mapOf(
 /** The wallpaper to show for these settings, or null for none. */
 internal fun wallpaperUrl(settings: LauncherSettings, theme: ThemeId): String? = when {
     !settings.wallpaper -> null
-    else -> settings.wallpaperUrl ?: ThemeWallpapers[theme]
+    else -> artworkUrl(settings, theme)
 }
+
+/**
+ * The image the pixel art is made from: the wallpaper, even with it switched off on home, since choosing Kimono
+ * as the screensaver is asking for the art. Null if the theme has none and no image of the user's is set.
+ */
+internal fun artworkUrl(settings: LauncherSettings, theme: ThemeId): String? =
+    settings.wallpaperUrl ?: ThemeWallpapers[theme]
 
 internal fun wallpaperChoice(settings: LauncherSettings): WallpaperChoice = when {
     !settings.wallpaper -> WallpaperChoice.Off
