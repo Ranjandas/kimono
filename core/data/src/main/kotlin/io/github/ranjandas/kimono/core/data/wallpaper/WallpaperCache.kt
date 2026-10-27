@@ -3,6 +3,7 @@ package io.github.ranjandas.kimono.core.data.wallpaper
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.core.graphics.scale
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -66,7 +67,7 @@ private fun decodeForScreen(bytes: ByteArray): Bitmap? {
     val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options) ?: return null
     val crop = centerCrop(decoded.width, decoded.height, width, height)
     val cropped = Bitmap.createBitmap(decoded, crop.x, crop.y, crop.width, crop.height)
-    return Bitmap.createScaledBitmap(cropped, width, height, true)
+    return cropped.scale(width, height)
 }
 
 private fun httpGet(url: URL): ByteArray {
