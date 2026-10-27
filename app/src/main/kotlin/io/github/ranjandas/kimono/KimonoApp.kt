@@ -20,6 +20,7 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppScreen
 import io.github.ranjandas.kimono.data.apps.InstalledApp
+import io.github.ranjandas.kimono.data.apps.LaunchResult
 import io.github.ranjandas.kimono.feature.drawer.DrawerScreen
 import io.github.ranjandas.kimono.feature.home.HomeScreen
 import io.github.ranjandas.kimono.feature.home.RecentApps
@@ -42,7 +43,7 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     val settings by dependencies.settingsStore.settings.collectAsStateWithLifecycle(initialValue = null)
     val workspaces by dependencies.workspaceStore.state.collectAsStateWithLifecycle(initialValue = null)
     val apps by dependencies.appsRepository.apps.collectAsStateWithLifecycle(initialValue = null)
-    val recents = rememberRecentApps(dependencies.usageHistory, apps)
+    val recents = rememberRecentApps(dependencies.usageHistory, dependencies.launchHistory, apps)
     val isIdle by idle.idle.collectAsStateWithLifecycle()
     val loadedSettings = settings ?: return
     val loadedWorkspaces = workspaces ?: return
@@ -90,7 +91,7 @@ private fun Screens(
         Screen.Home -> key(homePresses) {
             HomeScreen(
                 apps = apps,
-                onLaunchApp = dependencies.appLauncher::launch,
+                onLaunchApp = actions.launch,
                 workspaces = workspaces,
                 onSelectWorkspace = actions.selectWorkspace,
                 onTogglePin = actions.togglePin,
@@ -105,7 +106,7 @@ private fun Screens(
             ) {
                 DrawerScreen(
                     apps = apps.orEmpty(),
-                    onLaunchApp = dependencies.appLauncher::launch,
+                    onLaunchApp = actions.launch,
                     workspaces = workspaces,
                     onTogglePin = actions.togglePin,
                     onOpenAppInfo = actions.openInfo,
@@ -146,8 +147,9 @@ private fun Settings(
     )
 }
 
-/** What the home list and the drawer do to an app, beyond opening it. */
+/** What the home screen and the drawer do to an app. */
 private class AppCallbacks(
+    val launch: (InstalledApp) -> LaunchResult,
     val selectWorkspace: (Workspace) -> Unit,
     val togglePin: (InstalledApp) -> Unit,
     val openInfo: (InstalledApp) -> Unit,
@@ -168,6 +170,12 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
         }
     }
     return AppCallbacks(
+        // Kept so recents work without usage access, which Google TV only grants over adb.
+        launch = { app ->
+            dependencies.appLauncher.launch(app).also { result ->
+                if (result == LaunchResult.Launched) scope.launch { dependencies.launchHistory.record(app.packageName) }
+            }
+        },
         selectWorkspace = { workspace -> scope.launch { store.select(workspace) } },
         togglePin = { app ->
             // All apps lists everything, so pins made there go to home.

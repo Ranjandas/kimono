@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
+import io.github.ranjandas.kimono.core.data.history.LaunchHistory
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.SettingsStore
@@ -30,6 +31,7 @@ class HomeActivity : ComponentActivity() {
             workspaceStore = WorkspaceStore.create(this),
             settingsStore = SettingsStore.create(this),
             usageHistory = UsageHistory.create(this),
+            launchHistory = LaunchHistory.create(this),
             wallpapers = WallpaperCache.create(this),
         )
     }

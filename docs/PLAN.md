@@ -90,7 +90,7 @@ Taken from the mockups; these settle arguments during implementation.
 | Area | What the user sees | Milestone |
 |---|---|---|
 | Top bar | Workspaces 1–4, current workspace name, clock/date, network, volume, theme switcher | M1 |
-| Home tiles | Continue watching, recent apps, system info ("fetch" tile), numbered app list | M1–M3 |
+| Home tiles | Last used app, recent apps as monograms, system info ("fetch" tile), numbered app list (#105, #108) | M1–M3 |
 | App drawer | Full-screen text list grouped by category (watch / listen / play / system) with type-to-filter | M1 |
 | App options | Long-press OK: pin to workspace, app info, uninstall | M1 |
 | Themes | Tokyo Night (default), Catppuccin, Gruvbox, Rosé Pine, Nord, Kanagawa, Everforest | M1 |

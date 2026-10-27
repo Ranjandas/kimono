@@ -40,7 +40,7 @@ class HomeScreenshotTest(private val theme: ThemeId, private val cornerStyle: Co
                     onCycleTheme = {},
                     onOpenSettings = {},
                     clockFormat = ClockFormat.TwentyFourHour,
-                    recents = RecentApps.Apps(SampleApps.take(2)),
+                    recents = RecentApps.Apps(SampleApps.take(4)),
                     onRequestUsageAccess = {},
                     clock = FixedClock,
                     allApps = {},
