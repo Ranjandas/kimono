@@ -25,6 +25,7 @@ import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
+import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
@@ -56,11 +57,11 @@ fun HomeScreen(
     onLaunchApp: (InstalledApp) -> LaunchResult,
     workspaces: WorkspaceState,
     onSelectWorkspace: (Workspace) -> Unit,
-    onTogglePin: (InstalledApp) -> Unit,
+    onTogglePin: (InstalledApp, Workspace) -> Unit,
+    onMovePin: (InstalledApp, Workspace, Int) -> Unit,
     onOpenAppInfo: (InstalledApp) -> Unit,
     onUninstallApp: (InstalledApp) -> Unit,
     theme: ThemeId,
-    onCycleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     recents: RecentApps,
@@ -80,8 +81,6 @@ fun HomeScreen(
             TopBar(
                 workspace = workspace,
                 onSelectWorkspace = switcher::select,
-                theme = theme,
-                onCycleTheme = onCycleTheme,
                 onOpenSettings = onOpenSettings,
                 clockFormat = clockFormat,
                 onFocusArea = { focusArea = it },
@@ -109,7 +108,15 @@ fun HomeScreen(
             }
         }
         options?.let {
-            WorkspaceOptions(it, workspaces, onTogglePin, onOpenAppInfo, onUninstallApp, onDismiss = { options = null })
+            WorkspaceOptions(
+                app = it,
+                workspaces = workspaces,
+                onTogglePin = onTogglePin,
+                onMovePin = onMovePin,
+                onOpenAppInfo = onOpenAppInfo,
+                onUninstallApp = onUninstallApp,
+                onDismiss = { options = null },
+            )
         }
     }
 }
@@ -139,25 +146,33 @@ private fun HomeLayout(
     }
 }
 
-/** The options for [app] on the current workspace; pins from all apps go to home. */
+/**
+ * The options for [app]: pin it to any workspace, and move its pin along the current page's pins, which come first
+ * on the page in pin order. All apps lists everything alphabetically, so pins don't move there.
+ */
 @Composable
 private fun WorkspaceOptions(
     app: InstalledApp,
     workspaces: WorkspaceState,
-    onTogglePin: (InstalledApp) -> Unit,
+    onTogglePin: (InstalledApp, Workspace) -> Unit,
+    onMovePin: (InstalledApp, Workspace, Int) -> Unit,
     onOpenAppInfo: (InstalledApp) -> Unit,
     onUninstallApp: (InstalledApp) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val target = workspaces.current.pinTarget
+    val page = workspaces.current
+    val choices = workspaces.pinChoices(app.packageName)
+    val pagePins = if (page == Workspace.AllApps) emptyList() else workspaces.pinsOf(page)
+    val index = pagePins.indexOf(app.packageName)
     AppOptionsPanel(
         appLabel = app.label,
-        workspaceLabel = target.label,
-        pinned = app.packageName in workspaces.pinsOf(target),
-        onTogglePin = { onTogglePin(app) },
+        pins = choices.map { (workspace, pinned) -> PinChoice(workspace.label, pinned) },
+        onTogglePin = { onTogglePin(app, choices[it].first) },
         onOpenAppInfo = { onOpenAppInfo(app) },
         onUninstall = { onUninstallApp(app) },
         onDismiss = onDismiss,
+        onMoveUp = if (index > 0) ({ onMovePin(app, page, -1) }) else null,
+        onMoveDown = if (index >= 0 && index < pagePins.lastIndex) ({ onMovePin(app, page, 1) }) else null,
     )
 }
 
@@ -187,11 +202,11 @@ private fun HomeScreenPreview() {
             onLaunchApp = { LaunchResult.Launched },
             workspaces = WorkspaceState(),
             onSelectWorkspace = {},
-            onTogglePin = {},
+            onTogglePin = { _, _ -> },
+            onMovePin = { _, _, _ -> },
             onOpenAppInfo = {},
             onUninstallApp = {},
             theme = ThemeId.Default,
-            onCycleTheme = {},
             onOpenSettings = {},
             clockFormat = ClockFormat.System,
             recents = RecentApps.NeedsAccess,

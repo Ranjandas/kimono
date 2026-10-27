@@ -35,12 +35,14 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.LocalBackdrop
+import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
@@ -64,7 +66,7 @@ fun DrawerScreen(
     apps: List<InstalledApp>,
     onLaunchApp: (InstalledApp) -> LaunchResult,
     workspaces: WorkspaceState,
-    onTogglePin: (InstalledApp) -> Unit,
+    onTogglePin: (InstalledApp, Workspace) -> Unit,
     onOpenAppInfo: (InstalledApp) -> Unit,
     onUninstallApp: (InstalledApp) -> Unit,
     onClose: () -> Unit,
@@ -78,7 +80,7 @@ fun DrawerScreen(
     val scope = rememberCoroutineScope()
     val hasResults = sections.isNotEmpty()
     val panelOpen = options != null
-    // Pins made here go where the options panel says: all apps lists everything, so home.
+    // The pin marks show home's pins: all apps is opened from home. The options panel pins to any workspace.
     val pinTarget = workspaces.current.pinTarget
     // The screen itself takes focus on its first frame, so letters typed straight after opening reach the
     // search before the list has laid out its rows; the list takes over as soon as it can.
@@ -128,11 +130,11 @@ fun DrawerScreen(
             focus = focus,
         )
         options?.let { app ->
+            val choices = workspaces.pinChoices(app.packageName)
             AppOptionsPanel(
                 appLabel = app.label,
-                workspaceLabel = pinTarget.label,
-                pinned = app.packageName in workspaces.pinsOf(pinTarget),
-                onTogglePin = { onTogglePin(app) },
+                pins = choices.map { (workspace, pinned) -> PinChoice(workspace.label, pinned) },
+                onTogglePin = { onTogglePin(app, choices[it].first) },
                 onOpenAppInfo = { onOpenAppInfo(app) },
                 onUninstall = { onUninstallApp(app) },
                 onDismiss = { options = null },
@@ -319,7 +321,7 @@ private fun DrawerScreenPreview() {
             apps = apps,
             onLaunchApp = { LaunchResult.Launched },
             workspaces = WorkspaceState(),
-            onTogglePin = {},
+            onTogglePin = { _, _ -> },
             onOpenAppInfo = {},
             onUninstallApp = {},
             onClose = {},

@@ -41,7 +41,7 @@ class DrawerScreenshotTest(private val theme: ThemeId, private val cornerStyle: 
                         apps = SampleApps,
                         onLaunchApp = { LaunchResult.Launched },
                         workspaces = WorkspaceState(pins = mapOf(Workspace.Home to listOf("pkg.Jellyfin"))),
-                        onTogglePin = {},
+                        onTogglePin = { _, _ -> },
                         onOpenAppInfo = {},
                         onUninstallApp = {},
                         onClose = {},

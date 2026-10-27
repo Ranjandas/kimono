@@ -25,6 +25,9 @@ internal class DataStoreWorkspaceStore(private val dataStore: DataStore<Preferen
 
     override suspend fun unpin(workspace: Workspace, packageName: String) = update { it.unpin(workspace, packageName) }
 
+    override suspend fun move(workspace: Workspace, packageName: String, by: Int) =
+        update { it.move(workspace, packageName, by) }
+
     private suspend fun update(transform: (WorkspaceState) -> WorkspaceState) {
         dataStore.edit { prefs ->
             val updated = transform(prefs.toWorkspaceState())
