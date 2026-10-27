@@ -48,6 +48,14 @@ class DataStoreWorkspaceStoreTest {
     }
 
     @Test
+    fun `moves a pin`() = runTest {
+        store.pin(Workspace.Watch, "pkg.plex")
+        store.pin(Workspace.Watch, "pkg.kodi")
+        store.move(Workspace.Watch, "pkg.kodi", -1)
+        store.state.test { assertEquals(listOf("pkg.kodi", "pkg.plex"), awaitItem().pinsOf(Workspace.Watch)) }
+    }
+
+    @Test
     fun `a reread of the same file sees what was written`() = runTest {
         store.select(Workspace.AllApps)
         store.pin(Workspace.AllApps, "pkg.plex")

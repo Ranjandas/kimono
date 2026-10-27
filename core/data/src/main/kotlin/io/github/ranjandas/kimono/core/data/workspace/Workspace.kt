@@ -26,6 +26,9 @@ enum class Workspace(val label: String) {
     companion object {
         val Default = Home
 
+        /** The workspaces an app can be pinned to: all apps lists everything, so it takes none. */
+        val PinTargets: List<Workspace> = entries.filter { it != AllApps }
+
         /** The workspace numbered [number], or null when there is none. */
         fun ofNumber(number: Int): Workspace? = entries.getOrNull(number - 1)
 

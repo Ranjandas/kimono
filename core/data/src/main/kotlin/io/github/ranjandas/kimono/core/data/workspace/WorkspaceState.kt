@@ -16,4 +16,21 @@ data class WorkspaceState(
 
     fun unpin(workspace: Workspace, packageName: String): WorkspaceState =
         copy(pins = pins + (workspace to pinsOf(workspace) - packageName))
+
+    /**
+     * Moves [packageName] [by] places along [workspace]'s pins (negative is towards the front), stopping at either
+     * end. An app that isn't pinned there changes nothing.
+     */
+    fun move(workspace: Workspace, packageName: String, by: Int): WorkspaceState {
+        val current = pinsOf(workspace)
+        val from = current.indexOf(packageName)
+        if (from < 0) return this
+        val to = (from + by).coerceIn(0, current.lastIndex)
+        val moved = current.toMutableList().apply { add(to, removeAt(from)) }
+        return copy(pins = pins + (workspace to moved))
+    }
+
+    /** Whether [packageName] is pinned to each workspace that takes pins, in workspace order. */
+    fun pinChoices(packageName: String): List<Pair<Workspace, Boolean>> =
+        Workspace.PinTargets.map { it to (packageName in pinsOf(it)) }
 }

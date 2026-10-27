@@ -3,13 +3,11 @@ package io.github.ranjandas.kimono.feature.home
 import io.github.ranjandas.kimono.core.design.component.Hint
 
 /** The parts of the home screen where the remote keys do different things. */
-internal enum class HomeArea { Workspaces, ThemeButton, SettingsButton, LastUsed, Recents, Apps }
+internal enum class HomeArea { Workspaces, SettingsButton, LastUsed, Recents, Apps }
 
 /** The hints for the focused [area], then how to switch workspace. */
 internal fun homeHints(area: HomeArea): List<Hint> = when (area) {
     HomeArea.Workspaces -> listOf(Hint("◀ ▶ ▼", "move focus"), Hint("ok", "switch workspace"))
-
-    HomeArea.ThemeButton -> listOf(Hint("◀ ▶ ▼", "move focus"), Hint("ok", "next theme"))
 
     HomeArea.SettingsButton -> listOf(Hint("◀ ▼", "move focus"), Hint("ok", "open settings"))
 

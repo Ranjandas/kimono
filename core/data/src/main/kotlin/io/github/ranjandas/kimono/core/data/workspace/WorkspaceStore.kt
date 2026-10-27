@@ -14,6 +14,9 @@ interface WorkspaceStore {
 
     suspend fun unpin(workspace: Workspace, packageName: String)
 
+    /** Moves a pin [by] places along [workspace]'s pins; see [WorkspaceState.move]. */
+    suspend fun move(workspace: Workspace, packageName: String, by: Int)
+
     companion object {
         fun create(context: Context): WorkspaceStore = DataStoreWorkspaceStore(context.kimonoPreferences)
     }

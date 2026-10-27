@@ -95,10 +95,10 @@ private fun Screens(
                 workspaces = workspaces,
                 onSelectWorkspace = actions.selectWorkspace,
                 onTogglePin = actions.togglePin,
+                onMovePin = actions.movePin,
                 onOpenAppInfo = actions.openInfo,
                 onUninstallApp = actions.uninstall,
                 theme = theme,
-                onCycleTheme = { updateSettings { it.copy(themeName = next(theme).name) } },
                 onOpenSettings = { screen = Screen.Settings },
                 clockFormat = settings.clockFormat,
                 recents = recents,
@@ -148,10 +148,12 @@ private fun Settings(
 }
 
 /** What the home screen and the drawer do to an app. */
+@Suppress("LongParameterList") // A plain holder, like KimonoDependencies.
 private class AppCallbacks(
     val launch: (InstalledApp) -> LaunchResult,
     val selectWorkspace: (Workspace) -> Unit,
-    val togglePin: (InstalledApp) -> Unit,
+    val togglePin: (InstalledApp, Workspace) -> Unit,
+    val movePin: (InstalledApp, Workspace, Int) -> Unit,
     val openInfo: (InstalledApp) -> Unit,
     val uninstall: (InstalledApp) -> Unit,
     val requestUsageAccess: () -> Unit,
@@ -177,9 +179,7 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
             }
         },
         selectWorkspace = { workspace -> scope.launch { store.select(workspace) } },
-        togglePin = { app ->
-            // All apps lists everything, so pins made there go to home.
-            val workspace = workspaces.current.pinTarget
+        togglePin = { app, workspace ->
             scope.launch {
                 if (app.packageName in workspaces.pinsOf(workspace)) {
                     store.unpin(workspace, app.packageName)
@@ -188,6 +188,7 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
                 }
             }
         },
+        movePin = { app, workspace, by -> scope.launch { store.move(workspace, app.packageName, by) } },
         openInfo = openScreen(AppScreen.Info),
         uninstall = openScreen(AppScreen.Uninstall),
         requestUsageAccess = {
@@ -197,8 +198,6 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
         },
     )
 }
-
-private fun next(theme: ThemeId): ThemeId = ThemeId.entries[(theme.ordinal + 1) % ThemeId.entries.size]
 
 // Google TV hides the usage access screen, so the one way in is adb (docs/DEVELOPING.md).
 private const val USAGE_ACCESS_OVER_ADB =

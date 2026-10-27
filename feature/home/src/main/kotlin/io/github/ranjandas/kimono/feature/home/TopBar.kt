@@ -33,20 +33,18 @@ import io.github.ranjandas.kimono.core.design.component.TileDefaults
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
-import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import java.time.Clock
 import java.time.format.DateTimeFormatter
 
 /**
- * Workspaces on the left, date and time in the middle, network, volume and the theme switcher on the right.
+ * Workspaces on the left, date and time in the middle, network, volume and settings on the right. The theme is
+ * changed in settings (#110).
  * Status values update live. [currentWorkspaceFocus] focuses the current workspace's button.
  */
 @Composable
 internal fun TopBar(
     workspace: Workspace,
     onSelectWorkspace: (Workspace) -> Unit,
-    theme: ThemeId,
-    onCycleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     onFocusArea: (HomeArea) -> Unit,
@@ -92,13 +90,6 @@ internal fun TopBar(
         ) {
             NetworkIndicator()
             VolumeIndicator()
-            TopBarButton(
-                icon = KimonoIcon.Palette,
-                label = theme.displayName.lowercase(),
-                description = "Theme ${theme.displayName}, press to switch",
-                onClick = onCycleTheme,
-                modifier = Modifier.tracksFocus(HomeArea.ThemeButton, onFocusArea),
-            )
             TopBarButton(
                 icon = KimonoIcon.Settings,
                 label = "settings",

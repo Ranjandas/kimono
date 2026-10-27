@@ -14,6 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,8 +39,9 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
 /**
- * Kimono's settings: one row per setting, showing its value. OK moves a setting to its next value, and the
- * change applies at once, so the screen itself is the preview. Back returns home.
+ * Kimono's settings: one row per setting, showing its value. Left and Right step a setting back and forward
+ * (OK steps forward too), and the change applies at once, so the screen itself is the preview. The theme lives
+ * here rather than on home's top bar, where one stray press changed it (#110). Back returns home.
  */
 @Composable
 fun SettingsScreen(
@@ -80,50 +86,74 @@ fun SettingsScreen(
                     KimonoIcon.Palette,
                     "theme",
                     theme.displayName.lowercase(),
-                    onClick = { onThemeChange(theme.next()) },
+                    onStep = { onThemeChange(theme.step(it)) },
                     modifier = Modifier.focusRequester(firstRow),
                 )
-                SettingRow(KimonoIcon.Corners, "corners", cornerStyle.name.lowercase(), onClick = {
-                    onCornerStyleChange(cornerStyle.next())
+                SettingRow(KimonoIcon.Corners, "corners", cornerStyle.name.lowercase(), onStep = {
+                    onCornerStyleChange(cornerStyle.step(it))
                 })
-                SettingRow(KimonoIcon.TextSize, "text size", textSize.label, onClick = {
-                    onTextSizeChange(textSize.next())
+                SettingRow(KimonoIcon.TextSize, "text size", textSize.label, onStep = {
+                    onTextSizeChange(textSize.step(it))
                 })
-                SettingRow(KimonoIcon.Clock, "clock", clockFormat.label, onClick = {
-                    onClockFormatChange(clockFormat.next())
+                SettingRow(KimonoIcon.Clock, "clock", clockFormat.label, onStep = {
+                    onClockFormatChange(clockFormat.step(it))
                 })
-                SettingRow(KimonoIcon.Idle, "dim after", idleTimeout.label, onClick = {
-                    onIdleTimeoutChange(idleTimeout.next())
+                SettingRow(KimonoIcon.Idle, "dim after", idleTimeout.label, onStep = {
+                    onIdleTimeoutChange(idleTimeout.step(it))
                 })
-                SettingRow(KimonoIcon.Device, "shift pixels", if (pixelShift) "on" else "off", onClick = {
+                // Two values each way, so either direction toggles.
+                SettingRow(KimonoIcon.Device, "shift pixels", if (pixelShift) "on" else "off", onStep = {
                     onPixelShiftChange(!pixelShift)
                 })
-                SettingRow(KimonoIcon.Wallpaper, "wallpaper", wallpaper.label, onClick = onWallpaperToggle)
-                SettingRow(KimonoIcon.Glass, "panels", panels.label, onClick = { onPanelsChange(panels.next()) })
+                SettingRow(KimonoIcon.Wallpaper, "wallpaper", wallpaper.label, onStep = { onWallpaperToggle() })
+                SettingRow(KimonoIcon.Glass, "panels", panels.label, onStep = { onPanelsChange(panels.step(it)) })
             }
         }
         // Pinned to the bottom, where home and the drawer keep theirs.
         Spacer(Modifier.weight(1f))
-        HintBar(listOf(Hint("▲ ▼", "choose"), Hint("ok", "next value"), Hint("back", "home")))
+        HintBar(SettingsHints)
     }
 }
 
+/**
+ * A setting and its value between ‹ ›, which is what Left and Right do: [onStep] gets -1 for Left and 1 for Right,
+ * and OK steps forward too.
+ */
 @Composable
 private fun SettingRow(
     icon: KimonoIcon,
     name: String,
     value: String,
-    onClick: () -> Unit,
+    onStep: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ListRow(text = name, onClick = onClick, modifier = modifier, icon = icon, trailing = "‹ $value ›")
+    ListRow(
+        text = name,
+        onClick = { onStep(1) },
+        modifier = modifier.onPreviewKeyEvent { event ->
+            val step = SideSteps[event.key]
+            if (step != null && event.type == KeyEventType.KeyDown) onStep(step)
+            step != null
+        },
+        icon = icon,
+        trailing = "‹ $value ›",
+    )
 }
 
-/** The next entry, wrapping round, so OK steps through every value of a setting. */
-private inline fun <reified T : Enum<T>> T.next(): T {
+private val SideSteps = mapOf(Key.DirectionLeft to -1, Key.DirectionRight to 1)
+
+/** The entry [by] places on, wrapping round, so either direction reaches every value of a setting. */
+private inline fun <reified T : Enum<T>> T.step(by: Int): T {
     val values = enumValues<T>()
-    return values[(ordinal + 1) % values.size]
+    return values[(ordinal + by).mod(values.size)]
 }
+
+private val SettingsHints = listOf(
+    Hint("▲ ▼", "choose"),
+    Hint("◀ ▶", "change"),
+    Hint("ok", "next value"),
+    Hint("back", "home"),
+)
 
 /** What the wallpaper row shows: the theme's image, one set over adb, or none. */
 enum class WallpaperChoice(val label: String) { Theme("theme"), Custom("custom"), Off("off") }
