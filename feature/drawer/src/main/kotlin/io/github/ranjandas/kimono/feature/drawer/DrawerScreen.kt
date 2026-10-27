@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -47,6 +48,7 @@ import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val Gap = 14.dp
 
@@ -73,6 +75,7 @@ fun DrawerScreen(
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     val sections = remember(apps, query) { drawerSections(apps, query) }
     val focus = remember { DrawerFocus() }
+    val scope = rememberCoroutineScope()
     val hasResults = sections.isNotEmpty()
     val panelOpen = options != null
     // Pins made here go where the options panel says: all apps lists everything, so home.
@@ -96,7 +99,8 @@ fun DrawerScreen(
         when {
             focus.searching -> {
                 query = ""
-                runCatching { focus.list.requestFocus() }
+                // The list may have been empty for the query, so focus it once the cleared list has its rows.
+                scope.launch { focus.list.requestFocusWhenLaidOut() }
             }
 
             query.isEmpty() -> onClose()
