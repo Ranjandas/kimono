@@ -16,35 +16,28 @@ class WorkspaceAppsTest {
     private val apps = listOf(plex, spotify, retro, files)
 
     @Test
-    fun `home and apps list every app`() {
+    fun `home and all apps list every app`() {
         assertEquals(apps, apps.forWorkspace(Workspace.Home, WorkspaceState()))
-        assertEquals(apps, apps.forWorkspace(Workspace.Apps, WorkspaceState()))
+        assertEquals(apps, apps.forWorkspace(Workspace.AllApps, WorkspaceState()))
     }
 
     @Test
-    fun `media and games list their categories`() {
-        assertEquals(listOf(plex, spotify), apps.forWorkspace(Workspace.Media, WorkspaceState()))
-        assertEquals(listOf(retro), apps.forWorkspace(Workspace.Games, WorkspaceState()))
-    }
-
-    @Test
-    fun `system lists only what is pinned to it`() {
-        val state = WorkspaceState().pin(Workspace.System, files.packageName)
-        assertEquals(emptyList<InstalledApp>(), apps.forWorkspace(Workspace.System, WorkspaceState()))
-        assertEquals(listOf(files), apps.forWorkspace(Workspace.System, state))
+    fun `watch and play list their categories`() {
+        assertEquals(listOf(plex, spotify), apps.forWorkspace(Workspace.Watch, WorkspaceState()))
+        assertEquals(listOf(retro), apps.forWorkspace(Workspace.Play, WorkspaceState()))
     }
 
     @Test
     fun `pins come first, in pin order, and are not repeated below`() {
         val state = WorkspaceState()
-            .pin(Workspace.Media, spotify.packageName)
-            .pin(Workspace.Media, files.packageName)
-        assertEquals(listOf(spotify, files, plex), apps.forWorkspace(Workspace.Media, state))
+            .pin(Workspace.Watch, spotify.packageName)
+            .pin(Workspace.Watch, files.packageName)
+        assertEquals(listOf(spotify, files, plex), apps.forWorkspace(Workspace.Watch, state))
     }
 
     @Test
     fun `ignores a pin whose app is no longer installed`() {
-        val state = WorkspaceState().pin(Workspace.Games, "pkg.gone")
-        assertEquals(listOf(retro), apps.forWorkspace(Workspace.Games, state))
+        val state = WorkspaceState().pin(Workspace.Play, "pkg.gone")
+        assertEquals(listOf(retro), apps.forWorkspace(Workspace.Play, state))
     }
 }

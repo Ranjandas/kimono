@@ -1,5 +1,11 @@
 package io.github.ranjandas.kimono.feature.drawer
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
@@ -24,15 +30,23 @@ class DrawerScreenshotTest(private val theme: ThemeId, private val cornerStyle: 
     fun drawer() {
         captureRoboImage("src/test/screenshots/drawer/${theme.name}-${cornerStyle.name}.png") {
             KimonoTheme(theme = theme, cornerStyle = cornerStyle) {
-                DrawerScreen(
-                    apps = SampleApps,
-                    onLaunchApp = { LaunchResult.Launched },
-                    workspaces = WorkspaceState(pins = mapOf(Workspace.Home to listOf("pkg.Jellyfin"))),
-                    onTogglePin = {},
-                    onOpenAppInfo = {},
-                    onUninstallApp = {},
-                    onClose = {},
-                )
+                // The launcher draws the background and padding around the all apps page.
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(KimonoTheme.colors.background)
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                ) {
+                    DrawerScreen(
+                        apps = SampleApps,
+                        onLaunchApp = { LaunchResult.Launched },
+                        workspaces = WorkspaceState(pins = mapOf(Workspace.Home to listOf("pkg.Jellyfin"))),
+                        onTogglePin = {},
+                        onOpenAppInfo = {},
+                        onUninstallApp = {},
+                        onClose = {},
+                    )
+                }
             }
         }
     }

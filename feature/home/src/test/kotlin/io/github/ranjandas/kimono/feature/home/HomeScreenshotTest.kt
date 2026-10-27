@@ -33,7 +33,6 @@ class HomeScreenshotTest(private val theme: ThemeId, private val cornerStyle: Co
                     onLaunchApp = { LaunchResult.Launched },
                     workspaces = WorkspaceState(pins = mapOf(Workspace.Home to listOf("pkg.Jellyfin"))),
                     onSelectWorkspace = {},
-                    onOpenDrawer = {},
                     onTogglePin = {},
                     onOpenAppInfo = {},
                     onUninstallApp = {},
@@ -44,6 +43,7 @@ class HomeScreenshotTest(private val theme: ThemeId, private val cornerStyle: Co
                     recents = RecentApps.Apps(SampleApps.take(2)),
                     onRequestUsageAccess = {},
                     clock = FixedClock,
+                    allApps = {},
                 )
             }
         }

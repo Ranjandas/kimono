@@ -7,16 +7,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 
-/** Opens the app drawer on the remote's menu or search key. */
-internal fun KeyEvent.opensDrawer(onOpenDrawer: () -> Unit): Boolean {
-    val opens = type == KeyEventType.KeyDown && (key == Key.Menu || key == Key.Search)
-    if (opens) onOpenDrawer()
-    return opens
-}
-
 /**
- * Jumps to a workspace on the number keys 1 to 5, and to the next or previous one on channel up and down,
- * wherever focus is. Returns true when the key was a workspace shortcut, so the focused tile never also sees it.
+ * Jumps to a workspace on the number keys 1 to 4, to the next or previous one on channel up and down, and to all
+ * apps on the menu or search key, wherever focus is. Returns true when the key was a workspace shortcut, so the
+ * focused tile never also sees it, and that includes all apps' search: a remote's number keys are for switching.
+ * Few remotes have these keys; the screen edges (see [WorkspaceSwitcher]) are the way every remote has.
  */
 internal fun KeyEvent.selectsWorkspace(current: Workspace, onSelectWorkspace: (Workspace) -> Unit): Boolean {
     val target = if (type == KeyEventType.KeyDown) workspaceShortcut(current) else null
@@ -25,12 +20,19 @@ internal fun KeyEvent.selectsWorkspace(current: Workspace, onSelectWorkspace: (W
 }
 
 private fun KeyEvent.workspaceShortcut(current: Workspace): Workspace? = when (key) {
-    Key.One, Key.NumPad1 -> Workspace.Home
-    Key.Two, Key.NumPad2 -> Workspace.Media
-    Key.Three, Key.NumPad3 -> Workspace.Games
-    Key.Four, Key.NumPad4 -> Workspace.Apps
-    Key.Five, Key.NumPad5 -> Workspace.System
     Key.ChannelUp -> current.next()
     Key.ChannelDown -> current.previous()
-    else -> null
+    Key.Menu, Key.Search -> Workspace.AllApps
+    else -> NumberKeys[key]
 }
+
+private val NumberKeys = mapOf(
+    Key.One to Workspace.Home,
+    Key.NumPad1 to Workspace.Home,
+    Key.Two to Workspace.Watch,
+    Key.NumPad2 to Workspace.Watch,
+    Key.Three to Workspace.Play,
+    Key.NumPad3 to Workspace.Play,
+    Key.Four to Workspace.AllApps,
+    Key.NumPad4 to Workspace.AllApps,
+)

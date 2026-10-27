@@ -25,6 +25,7 @@ import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.ListRowDefaults
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
@@ -36,7 +37,7 @@ import kotlinx.coroutines.delay
  * held OK its options; if it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of
  * crashing. [apps] is null while the list is still loading.
  *
- * It shows the first [MAX_APPS] apps; the drawer (M1-11) lists them all.
+ * It shows the first [MAX_APPS] apps, then a last row that opens all apps, which lists them all.
  */
 @Composable
 fun AppsTile(
@@ -44,6 +45,7 @@ fun AppsTile(
     onLaunchApp: (InstalledApp) -> LaunchResult,
     onShowOptions: (InstalledApp) -> Unit,
     workspace: Workspace,
+    onOpenAllApps: () -> Unit,
     modifier: Modifier = Modifier,
     listFocusRequester: FocusRequester = remember { FocusRequester() },
 ) {
@@ -83,11 +85,23 @@ fun AppsTile(
                         leading = "%02d".format(index + 1),
                         icon = app.icon,
                         onLongClick = { onShowOptions(app) },
-                        // The list is the right edge of the screen, so Right stays put instead of jumping to the
-                        // top bar.
+                        // The list is the right edge of the screen, so Right switches workspace (see
+                        // WorkspaceSwitcher) instead of jumping to the top bar.
                         modifier = Modifier.focusProperties { right = FocusRequester.Cancel },
                         trailing = if ((status as? LaunchStatus.Opening)?.app == app) "opening…" else null,
                     )
+                }
+                if (!apps.isNullOrEmpty()) {
+                    item(key = ALL_APPS_KEY) {
+                        ListRow(
+                            text = "all apps",
+                            onClick = onOpenAllApps,
+                            leading = "··",
+                            icon = KimonoIcon.Apps,
+                            modifier = Modifier.focusProperties { right = FocusRequester.Cancel },
+                            trailing = "▶",
+                        )
+                    }
                 }
             }
         }
@@ -150,4 +164,8 @@ private sealed interface LaunchStatus {
 }
 
 private const val MAX_APPS = 20
+
+// Package names have a dot, so this key never clashes with an app's.
+private const val ALL_APPS_KEY = "all-apps"
+
 private const val STATUS_MILLIS = 4_000L
