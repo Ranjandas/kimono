@@ -74,13 +74,8 @@ internal fun LastUsedTile(
                 }
             } else {
                 Monogram(app.label, Modifier.fillMaxHeight())
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        app.label,
-                        style = KimonoTheme.typography.display,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(app.label, style = HeroNameStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("press ok to open", style = KimonoTheme.typography.body, color = KimonoTheme.colors.textMuted)
                 }
             }
@@ -124,19 +119,31 @@ internal fun RecentsRow(
 private val TileTitleStyle: TextStyle
     @Composable get() = KimonoTheme.typography.body.copy(fontWeight = FontWeight.Bold)
 
-/** A recent app: its monogram, big, and its name beside it. */
+// Big enough to lead the tile, small enough that most app names fit beside the monogram on two lines at most.
+private val HeroNameStyle: TextStyle
+    @Composable get() = KimonoTheme.typography.headline.let {
+        it.copy(
+            fontSize = it.fontSize * HERO_SCALE,
+            lineHeight = it.lineHeight * HERO_SCALE,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+
+private const val HERO_SCALE = 1.8f
+
+/** A recent app: its monogram filling the tile, and its name under it, since two letters alone can be ambiguous. */
 @Composable
 private fun RecentTile(app: InstalledApp, onClick: () -> Unit, onLongClick: () -> Unit, modifier: Modifier = Modifier) {
     Tile(modifier = modifier, onClick = onClick, onLongClick = onLongClick) {
-        Row(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Monogram(app.label, Modifier.fillMaxHeight())
-            // Body size over two lines: what's left of a quarter-width tile fits about eight characters a line.
-            Text(app.label, style = TileTitleStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
+        Monogram(app.label, Modifier.weight(1f))
+        // A quarter-width tile fits about nine characters of body text.
+        Text(
+            app.label,
+            modifier = Modifier.padding(top = 4.dp),
+            style = TileTitleStyle,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

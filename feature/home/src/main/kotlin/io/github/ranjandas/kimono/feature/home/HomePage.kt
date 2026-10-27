@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
@@ -37,20 +38,21 @@ internal fun HomePage(
     emptyFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    val appsFocus = remember { FocusRequester() }
+    val focus = remember { HomeFocus() }
     val hasApps = !apps.isNullOrEmpty()
     val loaded = apps != null
-    // Start on the apps list, the one tile that always has something to do. Come back to it when the options panel
-    // closes, so focus is never left on whatever the system picks first.
+    // Start on the apps list, the one tile that always has something to do. When the options panel closes, go back
+    // to the tile it was opened from (the panel sits outside every area, so focusArea still names it), so focus is
+    // never left on whatever the system picks first.
     LaunchedEffect(hasApps, loaded, actions.panelOpen) {
         when {
             actions.panelOpen || !loaded -> Unit
-            hasApps -> appsFocus.requestFocusWhenLaidOut()
+            hasApps -> focus.of(focusArea).requestFocusWhenLaidOut()
             else -> emptyFocus.requestFocusWhenLaidOut()
         }
     }
     // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.
-    BackHandler { runCatching { appsFocus.requestFocus() } }
+    BackHandler { runCatching { focus.apps.requestFocus() } }
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
@@ -64,14 +66,15 @@ internal fun HomePage(
                     app = recents.lastUsed,
                     onLaunchApp = { actions.onLaunchApp(it) },
                     onShowOptions = actions.onShowOptions,
-                    modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.LastUsed, onFocusArea),
+                    modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.lastUsed)
+                        .tracksFocus(HomeArea.LastUsed, onFocusArea),
                 )
                 RecentsRow(
                     recents = recents,
                     onLaunchApp = { actions.onLaunchApp(it) },
                     onShowOptions = actions.onShowOptions,
                     onRequestAccess = onRequestUsageAccess,
-                    modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight)
+                    modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight).focusRequester(focus.recents)
                         .tracksFocus(HomeArea.Recents, onFocusArea),
                 )
             }
@@ -87,10 +90,24 @@ internal fun HomePage(
                     workspace = Workspace.Home,
                     onOpenAllApps = actions::onOpenAllApps,
                     modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
-                    listFocusRequester = appsFocus,
+                    listFocusRequester = focus.apps,
                 )
             }
         }
         HintBar(homeHints(focusArea), Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
+    }
+}
+
+/** The tiles on home that focus is put back on. */
+private class HomeFocus {
+    val apps = FocusRequester()
+    val lastUsed = FocusRequester()
+    val recents = FocusRequester()
+
+    /** The tile in [area], or the apps list for an area that isn't a tile here. */
+    fun of(area: HomeArea): FocusRequester = when (area) {
+        HomeArea.LastUsed -> lastUsed
+        HomeArea.Recents -> recents
+        else -> apps
     }
 }
