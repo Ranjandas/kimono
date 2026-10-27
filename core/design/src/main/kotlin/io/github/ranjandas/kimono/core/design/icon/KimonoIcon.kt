@@ -42,6 +42,7 @@ enum class KimonoIcon(val codePoint: Int) {
     Os(0xF0032), // nf-md-android
     Launcher(0xF14DE), // nf-md-rocket_launch
     Uptime(0xF051B), // nf-md-timer_outline
+    Idle(0xF04B2), // nf-md-sleep
     Storage(0xF02CA), // nf-md-harddisk
     Font(0xF06D6), // nf-md-format_font
 

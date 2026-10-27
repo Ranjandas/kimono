@@ -2,11 +2,15 @@ package io.github.ranjandas.kimono
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
+import io.github.ranjandas.kimono.core.data.idle.IdleController
+import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.SettingsStore
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceStore
 import io.github.ranjandas.kimono.data.apps.AppActions
@@ -30,18 +34,35 @@ class HomeActivity : ComponentActivity() {
     // the launcher back to its start: home, workspace 1, focus on the first app.
     private var homePresses by mutableIntStateOf(0)
 
+    // Sees every key before the UI does, so the press that wakes the screen goes no further.
+    private val idle by lazy { IdleController(lifecycleScope, IdleTimeout.Default.duration) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Android keeps home activities in their own task, so the first Home press after Kimono was opened some
         // other way (from the apps row, or adb) starts a second instance rather than reaching this one. Treat that
         // start as a Home press too. A restore after process death keeps its state instead.
         if (savedInstanceState == null && intent.hasCategory(Intent.CATEGORY_HOME)) homePresses++
-        setContent { KimonoApp(dependencies, homePresses) }
+        setContent { KimonoApp(dependencies, idle, homePresses) }
     }
 
     // singleTask: once running, Home or opening Kimono from the apps row comes back here as a new intent.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == Intent.ACTION_MAIN) homePresses++
+        idle.resume()
     }
+
+    override fun onStart() {
+        super.onStart()
+        idle.resume()
+    }
+
+    override fun onStop() {
+        idle.pause()
+        super.onStop()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN) || super.dispatchKeyEvent(event)
 }

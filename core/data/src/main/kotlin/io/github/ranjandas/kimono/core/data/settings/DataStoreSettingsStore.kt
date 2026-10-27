@@ -22,12 +22,14 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
         val CornerStyleKey = stringPreferencesKey("settings.cornerStyle")
         val ClockFormatKey = stringPreferencesKey("settings.clockFormat")
         val TextSizeKey = stringPreferencesKey("settings.textSize")
+        val IdleTimeoutKey = stringPreferencesKey("settings.idleTimeout")
 
         fun Preferences.toSettings() = LauncherSettings(
             themeName = this[ThemeKey],
             cornerStyleName = this[CornerStyleKey],
             clockFormat = ClockFormat.entries.find { it.name == this[ClockFormatKey] } ?: ClockFormat.System,
             textSize = TextSize.entries.find { it.name == this[TextSizeKey] } ?: TextSize.Default,
+            idleTimeout = IdleTimeout.entries.find { it.name == this[IdleTimeoutKey] } ?: IdleTimeout.Default,
         )
 
         fun MutablePreferences.write(settings: LauncherSettings) {
@@ -35,6 +37,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             setOrRemove(CornerStyleKey, settings.cornerStyleName)
             this[ClockFormatKey] = settings.clockFormat.name
             this[TextSizeKey] = settings.textSize.name
+            this[IdleTimeoutKey] = settings.idleTimeout.name
         }
 
         fun MutablePreferences.setOrRemove(key: Preferences.Key<String>, value: String?) {
