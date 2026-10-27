@@ -2,6 +2,7 @@
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -10,6 +11,10 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+    }
+
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
     }
 
     compileOptions {
@@ -29,4 +34,15 @@ android {
 dependencies {
     implementation(project(":core:data"))
     implementation(libs.androidx.core.ktx)
+    api(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.work.runtime)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
