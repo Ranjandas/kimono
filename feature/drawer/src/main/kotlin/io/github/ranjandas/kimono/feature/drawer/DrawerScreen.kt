@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
+import io.github.ranjandas.kimono.core.design.component.LocalBackdrop
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.text.count
@@ -163,14 +165,17 @@ private fun DrawerContent(
         verticalArrangement = Arrangement.spacedBy(DrawerDimens.Gap),
     ) {
         SearchLine(query, matches = sections.sumOf { it.apps.size })
-        DrawerList(
-            sections = sections,
-            pinned = pinned,
-            query = query,
-            onClickApp = onClickApp,
-            onShowOptions = onShowOptions,
-            modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(listFocus).focusRestorer(),
-        )
+        // The list isn't on a frosted tile, so its rows keep their own fill to stay readable over a wallpaper.
+        CompositionLocalProvider(LocalBackdrop provides null) {
+            DrawerList(
+                sections = sections,
+                pinned = pinned,
+                query = query,
+                onClickApp = onClickApp,
+                onShowOptions = onShowOptions,
+                modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(listFocus).focusRestorer(),
+            )
+        }
         unavailable?.let {
             Text(
                 "${it.label} can't be opened. It may have been uninstalled or disabled.",

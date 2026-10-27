@@ -20,6 +20,7 @@ data class LauncherSettings(
     val wallpaper: Boolean = true,
     /** An image of the user's own, set over adb; null uses the theme's wallpaper. */
     val wallpaperUrl: String? = null,
+    val panels: Panels = Panels.Default,
 )
 
 /** How the top bar shows the time. */
@@ -50,4 +51,18 @@ enum class IdleTimeout(val label: String, val duration: Duration) {
 enum class TextSize(val label: String, val scale: Float) {
     Default("default", 1f),
     Large("large", 1.15f),
+}
+
+/** How much of the wallpaper shows through tiles: [opacity] is the tile colour's share over a blurred copy. */
+enum class Panels(val label: String, val opacity: Float) {
+    Clear("clear", 0.5f),
+    Frosted("frosted", 0.65f),
+
+    /** Plain tiles, for a wallpaper too busy to read over. */
+    Solid("solid", 1f),
+    ;
+
+    companion object {
+        val Default = Frosted
+    }
 }

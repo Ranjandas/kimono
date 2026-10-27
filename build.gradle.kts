@@ -14,7 +14,8 @@ val ktlintSettings =
         "ktlint_code_style" to "android_studio",
         "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
         "ktlint_standard_chain-method-continuation" to "disabled",
-        "compose_allowed_composition_locals" to "LocalKimonoColors,LocalKimonoShapes,LocalKimonoTypography",
+        "compose_allowed_composition_locals" to
+            "LocalKimonoColors,LocalKimonoShapes,LocalKimonoTypography,LocalBackdrop",
     )
 
 spotless {

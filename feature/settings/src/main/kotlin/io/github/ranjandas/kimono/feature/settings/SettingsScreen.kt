@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
+import io.github.ranjandas.kimono.core.data.settings.Panels
 import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
@@ -52,6 +53,8 @@ fun SettingsScreen(
     onPixelShiftChange: (Boolean) -> Unit,
     wallpaper: WallpaperChoice,
     onWallpaperToggle: () -> Unit,
+    panels: Panels,
+    onPanelsChange: (Panels) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -96,6 +99,7 @@ fun SettingsScreen(
                     onPixelShiftChange(!pixelShift)
                 })
                 SettingRow(KimonoIcon.Wallpaper, "wallpaper", wallpaper.label, onClick = onWallpaperToggle)
+                SettingRow(KimonoIcon.Glass, "panels", panels.label, onClick = { onPanelsChange(panels.next()) })
             }
         }
         // Pinned to the bottom, where home and the drawer keep theirs.
@@ -145,6 +149,8 @@ private fun SettingsScreenPreview() {
             onPixelShiftChange = {},
             wallpaper = WallpaperChoice.Theme,
             onWallpaperToggle = {},
+            panels = Panels.Default,
+            onPanelsChange = {},
             onClose = {},
         )
     }

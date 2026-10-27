@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -18,6 +19,7 @@ import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
+import io.github.ranjandas.kimono.core.design.component.LocalBackdrop
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
@@ -58,11 +60,23 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     val wallpaper = rememberWallpaper(dependencies.wallpapers, wallpaperUrl(loadedSettings, theme))
     val shift = rememberPixelShift(isIdle && loadedSettings.pixelShift)
     KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale) {
+        val fade = rememberFadeIn(wallpaper)
+        val backdrop = rememberBackdrop(wallpaper, loadedSettings.panels, fade)
         Box {
-            WallpaperBackground(wallpaper)
+            WallpaperBackground(wallpaper, fade)
             KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale, overWallpaper = wallpaper != null) {
-                Box(Modifier.offset(shift.x, shift.y)) {
-                    Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
+                CompositionLocalProvider(LocalBackdrop provides backdrop) {
+                    Box(Modifier.offset(shift.x, shift.y)) {
+                        Screens(
+                            dependencies,
+                            loadedSettings,
+                            updateSettings,
+                            loadedWorkspaces,
+                            apps,
+                            recents,
+                            homePresses,
+                        )
+                    }
                 }
             }
             IdleDim(isIdle)
@@ -83,7 +97,6 @@ private fun Screens(
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
     val actions = appCallbacks(dependencies, workspaces)
     val theme = ThemeId.fromName(settings.themeName)
-    val cornerStyle = CornerStyle.fromName(settings.cornerStyleName)
     // A Home press goes back to the start: the home screen on workspace 1. Everything else (the screen, the
     // workspace) is saved, so it survives the process being killed in the background.
     LaunchedEffect(homePresses) {
@@ -123,24 +136,35 @@ private fun Screens(
             onClose = { screen = Screen.Home },
         )
 
-        Screen.Settings -> SettingsScreen(
-            theme = theme,
-            onThemeChange = { new -> updateSettings { it.copy(themeName = new.name) } },
-            cornerStyle = cornerStyle,
-            onCornerStyleChange = { new -> updateSettings { it.copy(cornerStyleName = new.name) } },
-            clockFormat = settings.clockFormat,
-            onClockFormatChange = { new -> updateSettings { it.copy(clockFormat = new) } },
-            textSize = settings.textSize,
-            onTextSizeChange = { new -> updateSettings { it.copy(textSize = new) } },
-            idleTimeout = settings.idleTimeout,
-            onIdleTimeoutChange = { new -> updateSettings { it.copy(idleTimeout = new) } },
-            pixelShift = settings.pixelShift,
-            onPixelShiftChange = { new -> updateSettings { it.copy(pixelShift = new) } },
-            wallpaper = wallpaperChoice(settings),
-            onWallpaperToggle = { updateSettings { it.copy(wallpaper = !it.wallpaper) } },
-            onClose = { screen = Screen.Home },
-        )
+        Screen.Settings -> Settings(settings, updateSettings, onClose = { screen = Screen.Home })
     }
+}
+
+@Composable
+private fun Settings(
+    settings: LauncherSettings,
+    updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
+    onClose: () -> Unit,
+) {
+    SettingsScreen(
+        theme = ThemeId.fromName(settings.themeName),
+        onThemeChange = { new -> updateSettings { it.copy(themeName = new.name) } },
+        cornerStyle = CornerStyle.fromName(settings.cornerStyleName),
+        onCornerStyleChange = { new -> updateSettings { it.copy(cornerStyleName = new.name) } },
+        clockFormat = settings.clockFormat,
+        onClockFormatChange = { new -> updateSettings { it.copy(clockFormat = new) } },
+        textSize = settings.textSize,
+        onTextSizeChange = { new -> updateSettings { it.copy(textSize = new) } },
+        idleTimeout = settings.idleTimeout,
+        onIdleTimeoutChange = { new -> updateSettings { it.copy(idleTimeout = new) } },
+        pixelShift = settings.pixelShift,
+        onPixelShiftChange = { new -> updateSettings { it.copy(pixelShift = new) } },
+        wallpaper = wallpaperChoice(settings),
+        onWallpaperToggle = { updateSettings { it.copy(wallpaper = !it.wallpaper) } },
+        panels = settings.panels,
+        onPanelsChange = { new -> updateSettings { it.copy(panels = new) } },
+        onClose = onClose,
+    )
 }
 
 /** What the home list and the drawer do to an app, beyond opening it. */
