@@ -1,20 +1,14 @@
 package io.github.ranjandas.kimono.feature.home
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,11 +25,6 @@ import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
-import io.github.ranjandas.kimono.core.design.component.HintBar
-import io.github.ranjandas.kimono.core.design.component.SectionHeader
-import io.github.ranjandas.kimono.core.design.component.Tile
-import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
-import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
@@ -45,7 +34,7 @@ import io.github.ranjandas.kimono.data.apps.forWorkspace
 import java.time.Clock
 
 /** Layout sizes, in dp on the 960 × 540 canvas. They scale the mockup by the same 1.4 × as the type scale. */
-private object HomeDimens {
+internal object HomeDimens {
     val ScreenPaddingH = 20.dp
     val ScreenPaddingV = 12.dp
     val Gap = 14.dp
@@ -56,10 +45,10 @@ private object HomeDimens {
 }
 
 /**
- * The home screen grid from the mockup: continue watching and recent apps on the left, system info and the apps
- * list on the right, the top bar above and key hints below. Tiles hold placeholders until their data lands
- * (continue watching in M3, recents in M2). [apps] is null while the app list is still loading. The top bar
- * reads the time from [clock], which tests fix.
+ * The launcher's main screen: the top bar, and under it the current workspace as a page of its own (#98). Home is
+ * the grid from the mockup, watch and play are grids of their apps, and all apps is the [allApps] page, the
+ * drawer. Left and Right at the edge of a page switch workspace, sliding the next page in. [apps] is null while
+ * the app list is still loading. The top bar reads the time from [clock], which tests fix.
  */
 @Composable
 fun HomeScreen(
@@ -67,7 +56,6 @@ fun HomeScreen(
     onLaunchApp: (InstalledApp) -> LaunchResult,
     workspaces: WorkspaceState,
     onSelectWorkspace: (Workspace) -> Unit,
-    onOpenDrawer: () -> Unit,
     onTogglePin: (InstalledApp) -> Unit,
     onOpenAppInfo: (InstalledApp) -> Unit,
     onUninstallApp: (InstalledApp) -> Unit,
@@ -79,157 +67,113 @@ fun HomeScreen(
     onRequestUsageAccess: () -> Unit,
     modifier: Modifier = Modifier,
     clock: Clock = Clock.systemDefaultZone(),
+    allApps: @Composable () -> Unit,
 ) {
     val workspace = workspaces.current
-    val workspaceApps = remember(apps, workspace, workspaces) { apps?.forWorkspace(workspace, workspaces) }
-    val appsFocus = remember { FocusRequester() }
+    val switcher = rememberWorkspaceSwitcher(workspace, onSelectWorkspace)
     val workspaceFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(HomeArea.Apps) }
-    val hasApps = !workspaceApps.isNullOrEmpty()
-    // Start on the apps list: it's the one tile with something to do until continue watching lands (M3). Come
-    // back to it when its contents change (a workspace switch) and when the options panel closes, so focus is
-    // never left on whatever the system picks first. A workspace with no apps starts on its own button instead:
-    // with nothing focused, the number keys and the D-pad would do nothing.
-    val panelOpen = options != null
-    val loaded = workspaceApps != null
-    LaunchedEffect(hasApps, loaded, workspace, panelOpen) {
-        when {
-            panelOpen || !loaded -> Unit
-            hasApps -> appsFocus.requestFocusWhenLaidOut()
-            else -> workspaceFocus.requestFocusWhenLaidOut()
-        }
-    }
-    // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.
-    BackHandler { runCatching { appsFocus.requestFocus() } }
+    val pageActions = PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen = options != null)
     Box(modifier = modifier.fillMaxSize()) {
-        HomeGrid(
-            apps = workspaceApps,
-            onLaunchApp = onLaunchApp,
-            onShowOptions = { options = it },
-            workspace = workspace,
-            onSelectWorkspace = onSelectWorkspace,
-            onOpenDrawer = onOpenDrawer,
-            theme = theme,
-            onCycleTheme = onCycleTheme,
-            onOpenSettings = onOpenSettings,
-            clockFormat = clockFormat,
-            appsFocus = appsFocus,
-            workspaceFocus = workspaceFocus,
-            focusArea = focusArea,
-            onFocusArea = { focusArea = it },
-            clock = clock,
-            recents = recents,
-            onRequestUsageAccess = onRequestUsageAccess,
-        )
-        options?.let { app ->
-            AppOptionsPanel(
-                appLabel = app.label,
-                workspaceLabel = workspace.label,
-                pinned = app.packageName in workspaces.pinsOf(workspace),
-                onTogglePin = { onTogglePin(app) },
-                onOpenAppInfo = { onOpenAppInfo(app) },
-                onUninstall = { onUninstallApp(app) },
-                onDismiss = { options = null },
+        HomeLayout(workspace, switcher, topBar = { barModifier ->
+            TopBar(
+                workspace = workspace,
+                onSelectWorkspace = switcher::select,
+                theme = theme,
+                onCycleTheme = onCycleTheme,
+                onOpenSettings = onOpenSettings,
+                clockFormat = clockFormat,
+                onFocusArea = { focusArea = it },
+                clock = clock,
+                currentWorkspaceFocus = workspaceFocus,
+                modifier = barModifier,
             )
+        }) { page ->
+            val pageApps = remember(apps, workspaces) { apps?.forWorkspace(page, workspaces) }
+            when (page) {
+                Workspace.Home -> HomePage(
+                    apps = pageApps,
+                    actions = pageActions,
+                    recents = recents,
+                    onRequestUsageAccess = onRequestUsageAccess,
+                    theme = theme,
+                    focusArea = focusArea,
+                    onFocusArea = { focusArea = it },
+                    emptyFocus = workspaceFocus,
+                )
+
+                Workspace.Watch, Workspace.Play -> AppGridPage(page, pageApps, pageActions)
+
+                Workspace.AllApps -> allApps()
+            }
+        }
+        options?.let {
+            WorkspaceOptions(it, workspaces, onTogglePin, onOpenAppInfo, onUninstallApp, onDismiss = { options = null })
         }
     }
 }
 
-/** The grid itself: top bar, the four tiles and the hint bar. */
+/**
+ * The top bar over the current workspace's page. Number, channel and menu keys switch workspace from anywhere
+ * (see [selectsWorkspace]); Left and Right at the edge of the page do it on any remote (see [WorkspacePages]).
+ */
 @Composable
-private fun HomeGrid(
-    apps: List<InstalledApp>?,
-    onLaunchApp: (InstalledApp) -> LaunchResult,
-    onShowOptions: (InstalledApp) -> Unit,
+private fun HomeLayout(
     workspace: Workspace,
-    onSelectWorkspace: (Workspace) -> Unit,
-    onOpenDrawer: () -> Unit,
-    theme: ThemeId,
-    onCycleTheme: () -> Unit,
-    onOpenSettings: () -> Unit,
-    clockFormat: ClockFormat,
-    appsFocus: FocusRequester,
-    workspaceFocus: FocusRequester,
-    focusArea: HomeArea,
-    onFocusArea: (HomeArea) -> Unit,
-    clock: Clock,
-    recents: RecentApps,
-    onRequestUsageAccess: () -> Unit,
+    switcher: WorkspaceSwitcher,
+    topBar: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
+    page: @Composable (Workspace) -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
-            .onPreviewKeyEvent { event ->
-                event.opensDrawer(onOpenDrawer) ||
-                    event.selectsWorkspace(workspace, onSelectWorkspace)
-            }
+            .onPreviewKeyEvent { it.selectsWorkspace(workspace, switcher::select) }
             .padding(horizontal = HomeDimens.ScreenPaddingH, vertical = HomeDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
     ) {
-        TopBar(
-            workspace = workspace,
-            onSelectWorkspace = onSelectWorkspace,
-            theme = theme,
-            onCycleTheme = onCycleTheme,
-            onOpenSettings = onOpenSettings,
-            clockFormat = clockFormat,
-            onFocusArea = onFocusArea,
-            clock = clock,
-            currentWorkspaceFocus = workspaceFocus,
-            modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
-        ) {
-            Column(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
-            ) {
-                ContinueTile(Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Continue, onFocusArea))
-                RecentsRow(
-                    recents = recents,
-                    onLaunchApp = { onLaunchApp(it) },
-                    onRequestAccess = onRequestUsageAccess,
-                    modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight)
-                        .tracksFocus(HomeArea.Recents, onFocusArea),
-                )
-            }
-            Column(
-                modifier = Modifier.width(HomeDimens.SideColumnWidth).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
-            ) {
-                SystemInfoTile(theme, Modifier.fillMaxWidth())
-                AppsTile(
-                    apps = apps,
-                    onLaunchApp = onLaunchApp,
-                    onShowOptions = onShowOptions,
-                    workspace = workspace,
-                    modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
-                    listFocusRequester = appsFocus,
-                )
-            }
-        }
-        HintBar(homeHints(focusArea), Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
+        topBar(Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight))
+        WorkspacePages(switcher, workspace, Modifier.fillMaxWidth().weight(1f), page)
     }
 }
 
+/** The options for [app] on the current workspace; pins from all apps go to home. */
 @Composable
-private fun ContinueTile(modifier: Modifier = Modifier) {
-    // Focusable now so D-pad moves stay the same once it gets resume and details buttons in M3.
-    Tile(modifier = modifier, onClick = {}) {
-        SectionHeader("~/continue", icon = KimonoIcon.Continue)
-        Spacer(Modifier.weight(1f))
-        Text("nothing to continue yet", style = KimonoTheme.typography.headline)
-        Text(
-            "shows here once Trakt is connected",
-            style = KimonoTheme.typography.body,
-            color = KimonoTheme.colors.textMuted,
-        )
-    }
+private fun WorkspaceOptions(
+    app: InstalledApp,
+    workspaces: WorkspaceState,
+    onTogglePin: (InstalledApp) -> Unit,
+    onOpenAppInfo: (InstalledApp) -> Unit,
+    onUninstallApp: (InstalledApp) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val target = workspaces.current.pinTarget
+    AppOptionsPanel(
+        appLabel = app.label,
+        workspaceLabel = target.label,
+        pinned = app.packageName in workspaces.pinsOf(target),
+        onTogglePin = { onTogglePin(app) },
+        onOpenAppInfo = { onOpenAppInfo(app) },
+        onUninstall = { onUninstallApp(app) },
+        onDismiss = onDismiss,
+    )
+}
+
+/**
+ * What a page of apps does beyond showing them: open one, show its options, go to all apps or home. While
+ * [panelOpen] the options panel has focus; a page takes focus back when it closes.
+ */
+internal class PageActions(
+    val onLaunchApp: (InstalledApp) -> LaunchResult,
+    val onShowOptions: (InstalledApp) -> Unit,
+    private val switcher: WorkspaceSwitcher,
+    val panelOpen: Boolean,
+) {
+    fun onOpenAllApps() = switcher.select(Workspace.AllApps)
+
+    fun onGoHome() = switcher.select(Workspace.Home)
 }
 
 @Preview(device = Devices.TV_1080p)
@@ -243,7 +187,6 @@ private fun HomeScreenPreview() {
             onLaunchApp = { LaunchResult.Launched },
             workspaces = WorkspaceState(),
             onSelectWorkspace = {},
-            onOpenDrawer = {},
             onTogglePin = {},
             onOpenAppInfo = {},
             onUninstallApp = {},
@@ -253,6 +196,7 @@ private fun HomeScreenPreview() {
             clockFormat = ClockFormat.System,
             recents = RecentApps.NeedsAccess,
             onRequestUsageAccess = {},
+            allApps = { Text("all apps") },
         )
     }
 }

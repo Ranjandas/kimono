@@ -9,10 +9,9 @@ import io.github.ranjandas.kimono.data.apps.InstalledApp
 internal val Workspace.icon: KimonoIcon
     get() = when (this) {
         Workspace.Home -> KimonoIcon.Home
-        Workspace.Media -> KimonoIcon.Media
-        Workspace.Games -> KimonoIcon.Games
-        Workspace.Apps -> KimonoIcon.Apps
-        Workspace.System -> KimonoIcon.System
+        Workspace.Watch -> KimonoIcon.Media
+        Workspace.Play -> KimonoIcon.Games
+        Workspace.AllApps -> KimonoIcon.Apps
     }
 
 /** The app's brand icon, or one for what kind of app it is. */

@@ -67,7 +67,7 @@ with that in mind from day one.
 | O3 | Dependency injection | Manual DI (one `AppContainer`); revisit if it hurts | M0 |
 | O4 | How wallpapers get onto the device | Bundled set + import from a URL | M4 |
 | O5 | Crash reporting | None; maybe opt-in later | M5 |
-| O6 | What each workspace contains | 1 home · 2 media · 3 games · 4 apps · 5 system, user-pinnable | M1 |
+| O6 | What each workspace contains | 1 home · 2 watch · 3 play · 4 all apps, each a full page, user-pinnable (was five; changed by [ADR 0003](adr/0003-full-page-workspaces.md)) | M1 |
 
 ## 4. Design principles
 
@@ -89,7 +89,7 @@ Taken from the mockups; these settle arguments during implementation.
 
 | Area | What the user sees | Milestone |
 |---|---|---|
-| Top bar | Workspaces 1–5, current workspace name, clock/date, network, volume, theme switcher | M1 |
+| Top bar | Workspaces 1–4, current workspace name, clock/date, network, volume, theme switcher | M1 |
 | Home tiles | Continue watching, recent apps, system info ("fetch" tile), numbered app list | M1–M3 |
 | App drawer | Full-screen text list grouped by category (watch / listen / play / system) with type-to-filter | M1 |
 | App options | Long-press OK: pin to workspace, app info, uninstall | M1 |

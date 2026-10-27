@@ -31,14 +31,18 @@ class HomeHintsTest {
     }
 
     @Test
-    fun `every area ends with the shortcuts that work anywhere on home`() {
+    fun `every area ends with how to switch workspace, and names no key most remotes lack`() {
         HomeArea.entries.forEach { area ->
-            assertEquals(
-                listOf(Hint("1…5", "workspace"), Hint("menu", "all apps")),
-                homeHints(area).takeLast(2),
-                "$area",
-            )
+            val hints = homeHints(area)
+            assertEquals(Hint("edge ◀ ▶", "workspace"), hints.last(), "$area")
+            assertTrue(hints.none { it.key == "menu" || it.key.startsWith("1") }, "$area")
         }
+    }
+
+    @Test
+    fun `the grid pages say how to go home`() {
+        assertTrue(Hint("back", "home") in GridHints)
+        assertEquals(EdgeHint, GridHints.last())
     }
 
     @Test

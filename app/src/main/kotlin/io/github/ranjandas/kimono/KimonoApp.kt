@@ -26,10 +26,10 @@ import io.github.ranjandas.kimono.feature.home.RecentApps
 import io.github.ranjandas.kimono.feature.settings.SettingsScreen
 import kotlinx.coroutines.launch
 
-private enum class Screen { Home, Drawer, Settings }
+private enum class Screen { Home, Settings }
 
 /**
- * The launcher: home, the drawer and settings, themed from the stored settings. Nothing is drawn until the
+ * The launcher: the workspaces (all apps, the drawer, among them) and settings, themed from the stored settings. Nothing is drawn until the
  * settings and workspaces have loaded, so a chosen theme never flashes the default one first. The app list is
  * collected from the start too, so it loads alongside them; it's null until the first list arrives.
  *
@@ -92,7 +92,6 @@ private fun Screens(
                 onLaunchApp = dependencies.appLauncher::launch,
                 workspaces = workspaces,
                 onSelectWorkspace = actions.selectWorkspace,
-                onOpenDrawer = { screen = Screen.Drawer },
                 onTogglePin = actions.togglePin,
                 onOpenAppInfo = actions.openInfo,
                 onUninstallApp = actions.uninstall,
@@ -102,18 +101,18 @@ private fun Screens(
                 clockFormat = settings.clockFormat,
                 recents = recents,
                 onRequestUsageAccess = actions.requestUsageAccess,
-            )
+            ) {
+                DrawerScreen(
+                    apps = apps.orEmpty(),
+                    onLaunchApp = dependencies.appLauncher::launch,
+                    workspaces = workspaces,
+                    onTogglePin = actions.togglePin,
+                    onOpenAppInfo = actions.openInfo,
+                    onUninstallApp = actions.uninstall,
+                    onClose = { actions.selectWorkspace(Workspace.Home) },
+                )
+            }
         }
-
-        Screen.Drawer -> DrawerScreen(
-            apps = apps.orEmpty(),
-            onLaunchApp = dependencies.appLauncher::launch,
-            workspaces = workspaces,
-            onTogglePin = actions.togglePin,
-            onOpenAppInfo = actions.openInfo,
-            onUninstallApp = actions.uninstall,
-            onClose = { screen = Screen.Home },
-        )
 
         Screen.Settings -> Settings(settings, updateSettings, onClose = { screen = Screen.Home })
     }
@@ -170,7 +169,8 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
     return AppCallbacks(
         selectWorkspace = { workspace -> scope.launch { store.select(workspace) } },
         togglePin = { app ->
-            val workspace = workspaces.current
+            // All apps lists everything, so pins made there go to home.
+            val workspace = workspaces.current.pinTarget
             scope.launch {
                 if (app.packageName in workspaces.pinsOf(workspace)) {
                     store.unpin(workspace, app.packageName)

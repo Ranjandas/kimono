@@ -1,12 +1,10 @@
 package io.github.ranjandas.kimono.feature.drawer
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,9 +16,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -44,23 +42,20 @@ import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.LocalBackdrop
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
-import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
 import kotlinx.coroutines.delay
 
-private object DrawerDimens {
-    val ScreenPaddingH = 20.dp
-    val ScreenPaddingV = 12.dp
-    val Gap = 14.dp
-}
+private val Gap = 14.dp
 
 /**
- * The full-screen app drawer: every installed app as text, grouped into watch, listen, play and system,
- * with type-to-filter search. Letters and digits typed on the remote's keyboard narrow the list, Del
- * deletes a character, and Back clears the search before it closes the drawer.
+ * The all apps page: every installed app as text, grouped into watch, listen, play and system, with search. Up
+ * from the list reaches the search field, where OK brings up the on-screen keyboard (or the phone remote's).
+ * Letters and digits typed on a hardware keyboard narrow the list from anywhere, Del deletes a character, and
+ * Back clears the search before it calls [onClose]. It fills the page it's given; the launcher draws the top bar
+ * and padding around it.
  */
 @Composable
 fun DrawerScreen(
@@ -77,27 +72,23 @@ fun DrawerScreen(
     var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     val sections = remember(apps, query) { drawerSections(apps, query) }
-    val listFocus = remember { FocusRequester() }
-    val rootFocus = remember { FocusRequester() }
+    val focus = remember { DrawerFocus() }
     val hasResults = sections.isNotEmpty()
     val panelOpen = options != null
+    // Pins made here go where the options panel says: all apps lists everything, so home.
+    val pinTarget = workspaces.current.pinTarget
     // The screen itself takes focus on its first frame, so letters typed straight after opening reach the
     // search before the list has laid out its rows; the list takes over as soon as it can.
-    LaunchedEffect(Unit) { runCatching { rootFocus.requestFocus() } }
+    LaunchedEffect(Unit) { runCatching { focus.root.requestFocus() } }
     // With nothing listed the screen keeps focus itself, so typing and Back still reach it.
     LaunchedEffect(hasResults, panelOpen) {
         when {
-            panelOpen -> Unit
-            hasResults -> listFocus.requestFocusWhenLaidOut()
-            else -> runCatching { rootFocus.requestFocus() }
+            panelOpen || focus.searching -> Unit
+            hasResults -> focus.list.requestFocusWhenLaidOut()
+            else -> runCatching { focus.root.requestFocus() }
         }
     }
-    LaunchedEffect(unavailable) {
-        if (unavailable != null) {
-            delay(STATUS_MILLIS)
-            unavailable = null
-        }
-    }
+    ClearAfterDelay(unavailable) { unavailable = null }
     // Back clears the search first, so a mistyped query doesn't cost the whole screen. The screen's key handler
     // takes Back while it has focus; the back handler is for when nothing does.
     val goBack: () -> Unit = { if (query.isEmpty()) onClose() else query = "" }
@@ -105,25 +96,26 @@ fun DrawerScreen(
     Box(modifier = modifier.fillMaxSize()) {
         DrawerContent(
             sections = sections,
-            pinned = workspaces.pinsOf(workspaces.current).toSet(),
+            pinned = workspaces.pinsOf(pinTarget).toSet(),
             query = query,
+            onQueryChange = { query = it },
             // Reads the query state at the time of the key, not the value from the last frame: keys typed
             // faster than the screen recomposes would otherwise each edit the same old query and drop letters.
-            onTypeKey = { event -> event.editQuery(query)?.also { query = it } != null },
+            // While the search field has focus it does its own typing.
+            onTypeKey = { event -> !focus.searching && event.editQuery(query)?.also { query = it } != null },
             onBack = goBack,
             onClickApp = { app ->
                 if (onLaunchApp(app) is LaunchResult.Unavailable) unavailable = app
             },
             onShowOptions = { options = it },
             unavailable = unavailable,
-            listFocus = listFocus,
-            rootFocus = rootFocus,
+            focus = focus,
         )
         options?.let { app ->
             AppOptionsPanel(
                 appLabel = app.label,
-                workspaceLabel = workspaces.current.label,
-                pinned = app.packageName in workspaces.pinsOf(workspaces.current),
+                workspaceLabel = pinTarget.label,
+                pinned = app.packageName in workspaces.pinsOf(pinTarget),
                 onTogglePin = { onTogglePin(app) },
                 onOpenAppInfo = { onOpenAppInfo(app) },
                 onUninstall = { onUninstallApp(app) },
@@ -133,25 +125,46 @@ fun DrawerScreen(
     }
 }
 
-/** The search line, the grouped list and the hints: everything the options panel sits over. */
+/** Clears [unavailable] a few seconds after it's set, so the note under the list doesn't stay. */
+@Composable
+private fun ClearAfterDelay(unavailable: InstalledApp?, onClear: () -> Unit) {
+    val clear by rememberUpdatedState(onClear)
+    LaunchedEffect(unavailable) {
+        if (unavailable != null) {
+            delay(STATUS_MILLIS)
+            clear()
+        }
+    }
+}
+
+/** Where focus can go on the page: the page itself, the search field and the list. */
+private class DrawerFocus {
+    val root = FocusRequester()
+    val search = FocusRequester()
+    val list = FocusRequester()
+
+    // Plain state: only key handling reads it, so it needn't recompose anything.
+    var searching = false
+}
+
+/** The search field, the grouped list and the hints: everything the options panel sits over. */
 @Composable
 private fun DrawerContent(
     sections: List<DrawerSection>,
     pinned: Set<String>,
     query: String,
+    onQueryChange: (String) -> Unit,
     onTypeKey: (KeyEvent) -> Boolean,
     onBack: () -> Unit,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
     unavailable: InstalledApp?,
-    listFocus: FocusRequester,
-    rootFocus: FocusRequester,
+    focus: DrawerFocus,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(KimonoTheme.colors.background)
             .onPreviewKeyEvent { event ->
                 val edited = onTypeKey(event)
                 // Back acts on release, as the system's back does.
@@ -159,12 +172,19 @@ private fun DrawerContent(
                 edited || event.key == Key.Back
             }
             // After the key handler, so the handler sees keys while the screen itself holds focus.
-            .focusRequester(rootFocus)
-            .focusable()
-            .padding(horizontal = DrawerDimens.ScreenPaddingH, vertical = DrawerDimens.ScreenPaddingV),
-        verticalArrangement = Arrangement.spacedBy(DrawerDimens.Gap),
+            .focusRequester(focus.root)
+            .focusable(),
+        verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
-        SearchLine(query, matches = sections.sumOf { it.apps.size })
+        SearchField(
+            query = query,
+            onQueryChange = onQueryChange,
+            matches = sections.sumOf { it.apps.size },
+            onFocusChange = { focus.searching = it },
+            // Done typing: back to the list to pick a result.
+            onDone = { runCatching { focus.list.requestFocus() } },
+            focusRequester = focus.search,
+        )
         // The list isn't on a frosted tile, so its rows keep their own fill to stay readable over a wallpaper.
         CompositionLocalProvider(LocalBackdrop provides null) {
             DrawerList(
@@ -173,7 +193,7 @@ private fun DrawerContent(
                 query = query,
                 onClickApp = onClickApp,
                 onShowOptions = onShowOptions,
-                modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(listFocus).focusRestorer(),
+                modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.list).focusRestorer(),
             )
         }
         unavailable?.let {
@@ -202,7 +222,7 @@ private fun DrawerList(
             item(key = "group:${section.group.name}") {
                 SectionHeader(
                     "~/${section.group.label}",
-                    modifier = Modifier.padding(top = DrawerDimens.Gap, bottom = 4.dp),
+                    modifier = Modifier.padding(top = Gap, bottom = 4.dp),
                     icon = section.group.icon,
                     trailing = "${section.apps.size}",
                 )
@@ -232,44 +252,21 @@ private fun DrawerList(
 private fun DrawerHints(query: String, modifier: Modifier = Modifier) {
     HintBar(
         listOf(
-            Hint("a…z", "search"),
+            Hint("▲ ok", "search"),
             Hint("ok", "launch"),
             Hint("hold ok", "options"),
             Hint("back", if (query.isEmpty()) "home" else "clear search"),
+            Hint("◀ ▶", "workspace"),
         ),
         modifier,
     )
 }
 
 @Composable
-private fun SearchLine(query: String, matches: Int, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row {
-            Text("~/apps ❯ ", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
-            Text(
-                query.ifEmpty { "type to search" },
-                style = KimonoTheme.typography.headline,
-                color = if (query.isEmpty()) KimonoTheme.colors.textMuted else KimonoTheme.colors.text,
-            )
-            Text("▌", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
-        }
-        Text(
-            count(matches, "app"),
-            style = KimonoTheme.typography.label,
-            color = KimonoTheme.colors.textMuted,
-        )
-    }
-}
-
-@Composable
 private fun EmptyResults(query: String, modifier: Modifier = Modifier) {
     Text(
         "nothing matches \"$query\"",
-        modifier = modifier.padding(top = DrawerDimens.Gap),
+        modifier = modifier.padding(top = Gap),
         style = KimonoTheme.typography.body,
         color = KimonoTheme.colors.textMuted,
     )
