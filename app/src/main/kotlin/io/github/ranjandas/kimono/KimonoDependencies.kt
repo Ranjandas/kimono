@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono
 
+import io.github.ranjandas.kimono.core.data.history.LaunchHistory
 import io.github.ranjandas.kimono.core.data.settings.SettingsStore
 import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceStore
@@ -17,5 +18,6 @@ class KimonoDependencies(
     val workspaceStore: WorkspaceStore,
     val settingsStore: SettingsStore,
     val usageHistory: UsageHistory,
+    val launchHistory: LaunchHistory,
     val wallpapers: WallpaperCache,
 )

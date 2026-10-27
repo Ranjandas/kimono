@@ -1,8 +1,9 @@
 package io.github.ranjandas.kimono.core.design.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -37,15 +39,25 @@ import kotlin.math.roundToInt
  * inside it, has focus. The border follows the corner style. Over a wallpaper ([LocalBackdrop]) the surface
  * is frosted glass.
  *
- * Pass [onClick] for a tile that is a single focus target (a recent app). Leave it null for a tile whose
- * children take focus (the apps list).
+ * Pass [onClick] for a tile that is a single focus target (a recent app), and [onLongClick] for held OK on it
+ * (the app's options). Leave [onClick] null for a tile whose children take focus (the apps list).
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Tile(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
+fun Tile(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     var hasFocus by remember { mutableStateOf(false) }
     val colors = KimonoTheme.colors
     val shape = KimonoTheme.shapes.tile
-    val clickable = onClick?.let { Modifier.clickable(interactionSource = null, indication = null, onClick = it) }
+    val heldOk = remember { HeldOk() }
+    val clickable = onClick?.let {
+        val held = onLongClick?.let { long -> Modifier.onPreviewKeyEvent { heldOk.onKey(it, long) } } ?: Modifier
+        held.combinedClickable(interactionSource = null, indication = null, onLongClick = onLongClick, onClick = it)
+    }
     val backdrop = LocalBackdrop.current
     val glass = remember { GlassPosition() }
     val surface = if (backdrop == null) {

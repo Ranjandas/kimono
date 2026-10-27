@@ -21,13 +21,11 @@ class HomeHintsTest {
     }
 
     @Test
-    fun `continue watching offers no ok action until it has content`() {
-        assertEquals(null, okAction(HomeArea.Continue))
-    }
-
-    @Test
-    fun `ok opens a recent app`() {
-        assertEquals("open", okAction(HomeArea.Recents))
+    fun `ok opens the last used or a recent app, and held ok its options`() {
+        listOf(HomeArea.LastUsed, HomeArea.Recents).forEach { area ->
+            assertEquals("open", okAction(area), "$area")
+            assertTrue(Hint("hold ok", "app options") in homeHints(area), "$area")
+        }
     }
 
     @Test

@@ -40,8 +40,9 @@ so they install over each other. It is a debug key only and never signs a releas
 
 ## Recent apps
 
-The recents row on home reads usage stats, which needs usage access. Google TV hides that screen in Settings,
-so grant it over adb (and revoke it the same way with `deny`):
+Home's last used tile and recents row show the apps opened from Kimono, which it remembers itself. With usage
+access they show every app opened, from anywhere, read from the system's usage stats. Google TV hides that screen in
+Settings, so grant it over adb (and revoke it the same way with `deny`):
 
 ```sh
 adb shell appops set io.github.ranjandas.kimono GET_USAGE_STATS allow

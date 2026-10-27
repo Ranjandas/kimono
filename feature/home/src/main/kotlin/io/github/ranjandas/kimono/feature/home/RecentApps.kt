@@ -2,11 +2,15 @@ package io.github.ranjandas.kimono.feature.home
 
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.text.TextStyle
@@ -14,15 +18,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.design.component.Monogram
+import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 
-/** What the recents row shows. */
+/** What the last used tile and the recents row show. */
 sealed interface RecentApps {
-    /** Usage access isn't granted, so the row asks for it instead. */
+    /** Usage access isn't granted and Kimono hasn't opened anything yet, so the row asks for access instead. */
     data object NeedsAccess : RecentApps
 
     /** The apps opened most recently, newest first; may be empty. */
@@ -30,18 +36,67 @@ sealed interface RecentApps {
     data class Apps(val apps: List<InstalledApp>) : RecentApps
 }
 
+/** The newest recent app, the one the last used tile shows. */
+internal val RecentApps.lastUsed: InstalledApp?
+    get() = (this as? RecentApps.Apps)?.apps?.firstOrNull()
+
 /**
- * The four tiles under continue watching: the last apps opened, or a tile asking for usage access when Kimono
- * can't read them. Empty slots stay as placeholders so the row keeps its shape.
+ * Home's big tile: the app opened last, as a large monogram and its name, so getting back to it is one OK
+ * (#108). Held OK opens its options. Before anything has been opened it says where the tile's content comes from.
+ */
+@Composable
+internal fun LastUsedTile(
+    app: InstalledApp?,
+    onLaunchApp: (InstalledApp) -> Unit,
+    onShowOptions: (InstalledApp) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Tile(
+        modifier = modifier,
+        // Focusable even when empty, so D-pad moves around home stay the same once something has been opened.
+        onClick = { app?.let(onLaunchApp) },
+        onLongClick = app?.let { { onShowOptions(it) } },
+    ) {
+        SectionHeader("~/last used", icon = KimonoIcon.Continue)
+        Row(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (app == null) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("nothing opened yet", style = KimonoTheme.typography.headline)
+                    Text(
+                        "the app you open last shows here, one press away",
+                        style = KimonoTheme.typography.body,
+                        color = KimonoTheme.colors.textMuted,
+                    )
+                }
+            } else {
+                Monogram(app.label, Modifier.fillMaxHeight())
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(app.label, style = HeroNameStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text("press ok to open", style = KimonoTheme.typography.body, color = KimonoTheme.colors.textMuted)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The four tiles under last used: the apps opened before it, or a tile asking for usage access when Kimono can't
+ * read them and hasn't opened anything itself. Empty slots stay as placeholders so the row keeps its shape.
  */
 @Composable
 internal fun RecentsRow(
     recents: RecentApps,
     onLaunchApp: (InstalledApp) -> Unit,
+    onShowOptions: (InstalledApp) -> Unit,
     onRequestAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val apps = (recents as? RecentApps.Apps)?.apps.orEmpty().take(RECENT_SLOTS)
+    // The newest is in the last used tile above.
+    val apps = (recents as? RecentApps.Apps)?.apps.orEmpty().drop(1).take(RECENT_SLOTS)
     Row(
         modifier = modifier.focusRestorer().focusGroup(),
         horizontalArrangement = Arrangement.spacedBy(TileGap),
@@ -51,11 +106,11 @@ internal fun RecentsRow(
             val app = apps.getOrNull(slot)
             when {
                 recents is RecentApps.NeedsAccess && slot == 0 ->
-                    RecentTile(KimonoIcon.Recent, "allow access", "press ok", onRequestAccess, tileModifier)
+                    PlaceholderTile("allow access", "press ok", onRequestAccess, tileModifier)
 
-                app != null -> RecentTile(app.icon, app.label, "recent", { onLaunchApp(app) }, tileModifier)
+                app != null -> RecentTile(app, { onLaunchApp(app) }, { onShowOptions(app) }, tileModifier)
 
-                else -> RecentTile(KimonoIcon.Recent, "recent", "none yet", {}, tileModifier)
+                else -> PlaceholderTile("recent", "none yet", {}, tileModifier)
             }
         }
     }
@@ -64,19 +119,40 @@ internal fun RecentsRow(
 private val TileTitleStyle: TextStyle
     @Composable get() = KimonoTheme.typography.body.copy(fontWeight = FontWeight.Bold)
 
+// Big enough to lead the tile, small enough that most app names fit beside the monogram on two lines at most.
+private val HeroNameStyle: TextStyle
+    @Composable get() = KimonoTheme.typography.headline.let {
+        it.copy(
+            fontSize = it.fontSize * HERO_SCALE,
+            lineHeight = it.lineHeight * HERO_SCALE,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+
+private const val HERO_SCALE = 1.8f
+
+/** A recent app: its monogram filling the tile, and its name under it, since two letters alone can be ambiguous. */
 @Composable
-private fun RecentTile(
-    icon: KimonoIcon,
-    title: String,
-    detail: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun RecentTile(app: InstalledApp, onClick: () -> Unit, onLongClick: () -> Unit, modifier: Modifier = Modifier) {
+    Tile(modifier = modifier, onClick = onClick, onLongClick = onLongClick) {
+        Monogram(app.label, Modifier.weight(1f))
+        // A quarter-width tile fits about nine characters of body text.
+        Text(
+            app.label,
+            modifier = Modifier.padding(top = 4.dp),
+            style = TileTitleStyle,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun PlaceholderTile(title: String, detail: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Tile(modifier = modifier, onClick = onClick) {
-        Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.headline)
+        Icon(KimonoIcon.Recent, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.headline)
         Spacer(Modifier.weight(1f))
-        // Body size over two lines: a quarter-width tile only fits about nine characters a line.
-        Text(title, style = TileTitleStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(title, style = TileTitleStyle, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
             detail,
             style = KimonoTheme.typography.label,

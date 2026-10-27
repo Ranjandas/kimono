@@ -24,8 +24,8 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
+import io.github.ranjandas.kimono.core.design.component.AppCard
 import io.github.ranjandas.kimono.core.design.component.HintBar
-import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.TextButton
 import io.github.ranjandas.kimono.core.design.component.Tile
@@ -37,9 +37,9 @@ import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
 
 /**
- * A workspace that is just its apps, watch or play: a grid of them filling the page, pins first. OK opens one and
- * held OK its options; Back goes home. An empty workspace offers all apps instead, so there's always something
- * to press. [apps] is null while the app list is still loading.
+ * A workspace that is just its apps, watch or play: a grid of their monograms filling the page, pins first. OK
+ * opens one and held OK its options; Back goes home. An empty workspace offers all apps instead, so there's always
+ * something to press. [apps] is null while the app list is still loading.
  */
 @Composable
 internal fun AppGridPage(
@@ -103,15 +103,10 @@ private fun AppGrid(
         // Coming back to the grid lands on the app that was focused last.
         modifier = modifier.padding(top = 8.dp).focusRestorer(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(apps, key = { it.packageName }) { app ->
-            ListRow(
-                text = app.label,
-                onClick = { onClickApp(app) },
-                icon = app.icon,
-                onLongClick = { onShowOptions(app) },
-            )
+            AppCard(label = app.label, onClick = { onClickApp(app) }, onLongClick = { onShowOptions(app) })
         }
     }
 }
@@ -146,4 +141,5 @@ private fun Note(text: String) {
     )
 }
 
-private const val GRID_COLUMNS = 3
+// Six monograms a row fill the page at about the size of a recent tile's.
+private const val GRID_COLUMNS = 6
