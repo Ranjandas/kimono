@@ -17,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -37,7 +39,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * Workspaces on the left, date and time in the middle, network, volume and the theme switcher on the right.
- * Status values update live.
+ * Status values update live. [currentWorkspaceFocus] focuses the current workspace's button.
  */
 @Composable
 internal fun TopBar(
@@ -49,6 +51,7 @@ internal fun TopBar(
     clockFormat: ClockFormat,
     onFocusArea: (HomeArea) -> Unit,
     clock: Clock,
+    currentWorkspaceFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -66,6 +69,7 @@ internal fun TopBar(
                     workspace = candidate,
                     selected = candidate == workspace,
                     onClick = { onSelectWorkspace(candidate) },
+                    modifier = if (candidate == workspace) Modifier.focusRequester(currentWorkspaceFocus) else Modifier,
                 )
             }
             Icon(
