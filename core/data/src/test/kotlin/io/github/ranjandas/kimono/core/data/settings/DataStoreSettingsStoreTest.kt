@@ -22,6 +22,7 @@ class DataStoreSettingsStoreTest {
             cornerStyleName = "Round",
             clockFormat = ClockFormat.TwentyFourHour,
             textSize = TextSize.Large,
+            idleTimeout = IdleTimeout.TwoMinutes,
         )
         store.update { changed }
         DataStoreSettingsStore(dataStore).settings.test { assertEquals(changed, awaitItem()) }

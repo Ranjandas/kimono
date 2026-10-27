@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
+import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
@@ -45,6 +46,8 @@ fun SettingsScreen(
     onClockFormatChange: (ClockFormat) -> Unit,
     textSize: TextSize,
     onTextSizeChange: (TextSize) -> Unit,
+    idleTimeout: IdleTimeout,
+    onIdleTimeoutChange: (IdleTimeout) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -81,6 +84,9 @@ fun SettingsScreen(
                 })
                 SettingRow(KimonoIcon.Clock, "clock", clockFormat.label, onClick = {
                     onClockFormatChange(clockFormat.next())
+                })
+                SettingRow(KimonoIcon.Idle, "dim after", idleTimeout.label, onClick = {
+                    onIdleTimeoutChange(idleTimeout.next())
                 })
             }
         }
@@ -122,6 +128,8 @@ private fun SettingsScreenPreview() {
             onClockFormatChange = {},
             textSize = TextSize.Default,
             onTextSizeChange = {},
+            idleTimeout = IdleTimeout.Default,
+            onIdleTimeoutChange = {},
             onClose = {},
         )
     }
