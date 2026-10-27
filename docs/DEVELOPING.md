@@ -139,6 +139,24 @@ adb shell cmd package query-activities -a android.intent.action.MAIN -c android.
 Kimono should appear in both. Installing it does not change which app the Home button opens; see
 [PLAN §6.7](PLAN.md#67-home-screen-takeover-on-google-tv).
 
+## Make Kimono the home screen
+
+Google TV ignores the usual choice of home app, so Kimono takes over by disabling the stock launcher and
+Google's setup helper ([ADR 0001](adr/0001-home-takeover.md), route A). Two scripts do it and undo it:
+
+```sh
+scripts/home-take --dry-run     # print what would change, change nothing
+scripts/home-take               # asks you to type "yes", then Home opens Kimono
+scripts/home-restore            # Home opens the stock launcher again; safe to run any time
+```
+
+Set `ADB_SERIAL=<tv-ip>:<port>` when more than one device is connected. Both scripts print the state before
+and after: which app Home opens, the HOME role holder and which of the two packages are disabled.
+
+Before leaving Kimono as home, make sure adb comes back after a reboot. `home-take` warns when it won't
+(`adb tcpip` connections don't survive one). Kimono's drawer can still open Settings to re-enable wireless
+debugging.
+
 ## Recovery
 
 Being a home screen means a bug can leave the TV with nothing usable to show. Before experimenting with home
@@ -151,15 +169,16 @@ adb shell am force-stop io.github.ranjandas.kimono
 adb uninstall io.github.ranjandas.kimono      # removes it entirely; Google TV takes over again
 ```
 
-**The stock launcher was disabled** (PLAN §6.7, route A) and the Home button now does nothing:
+**The stock launcher was disabled** (route A) and you want it back, or Home misbehaves: run
+`scripts/home-restore`. By hand, it does this:
 
 ```sh
-adb shell pm list packages -d                            # list disabled packages
-adb shell pm enable com.google.android.apps.tv.launcherx # Google TV's home screen on the Streamer
+adb shell pm enable com.google.android.tungsten.setupwraith
+adb shell pm enable com.google.android.apps.tv.launcherx
+adb shell cmd package set-home-activity com.google.android.apps.tv.launcherx/.home.HomeActivity
 ```
 
-Re-enable anything else you disabled from the `pm list packages -d` output the same way, then reboot with
-`adb reboot`. Keep a note of every package you disable so this list is complete.
+Check `adb shell pm list packages -d` for anything else you disabled, and re-enable it the same way.
 
 **adb can't reach the TV**
 

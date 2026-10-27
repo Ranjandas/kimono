@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Gives Home back to the stock Google TV launcher: re-enables it and Google's setup helper, and makes it the
+# default home again. Safe to run when nothing was changed.
+#
+#   scripts/home-restore [--dry-run]
+#
+# Set ADB_SERIAL when more than one device is connected.
+set -euo pipefail
+# shellcheck source=scripts/lib-home.sh
+. "$(dirname "$0")/lib-home.sh"
+
+for arg in "$@"; do
+    case $arg in
+        --dry-run) DRY_RUN=1 ;;
+        -h | --help) sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) die "unknown option $arg" ;;
+    esac
+done
+
+require_device
+
+echo "Before:"
+show_state
+echo
+change shell pm enable "$SETUP_HELPER"
+change shell pm enable "$STOCK_HOME"
+change shell cmd package set-home-activity "$STOCK_HOME_ACTIVITY"
+
+if [ "$DRY_RUN" -eq 1 ]; then
+    exit 0
+fi
+
+echo
+echo "After:"
+show_state
+case $(current_home) in
+    "$STOCK_HOME"/*) adb_ shell input keyevent KEYCODE_HOME; echo; echo "Done. Home opens the stock launcher." ;;
+    *) die "Home still doesn't resolve to $STOCK_HOME; check 'Recovery' in docs/DEVELOPING.md" ;;
+esac
