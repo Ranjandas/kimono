@@ -53,7 +53,9 @@ internal fun AppGridPage(
     var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
     val hasApps = !apps.isNullOrEmpty()
     val loaded = apps != null
-    LaunchedEffect(hasApps, loaded, actions.panelOpen) {
+    // Also when the page's apps change: an app unpinned from a page it doesn't belong on leaves it, and focus would
+    // otherwise go with it, up to the top bar.
+    LaunchedEffect(hasApps, loaded, actions.panelOpen, apps?.size) {
         when {
             actions.panelOpen || !loaded -> Unit
             hasApps -> gridFocus.requestFocusWhenLaidOut()
