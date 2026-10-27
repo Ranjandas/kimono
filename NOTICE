@@ -9,13 +9,14 @@ its own licence. Entries are added as the work is bundled.
 Fonts
 -----
 
-The app bundles JetBrains Mono Nerd Font 3.5.1 (core/design/fonts), subset at
-build time to the glyphs Kimono uses.
+The app bundles these fonts (core/design/fonts):
 
-- JetBrains Mono: https://github.com/JetBrains/JetBrainsMono
+- Noto Sans 2.015, Regular and Bold, for all text:
+  https://github.com/notofonts/latin-greek-cyrillic
   SIL Open Font License 1.1 (core/design/fonts/OFL.txt),
-  Copyright 2020 The JetBrains Mono Project Authors
-- Nerd Fonts: https://github.com/ryanoasis/nerd-fonts
+  Copyright 2022 The Noto Project Authors
+- Symbols Nerd Font 3.5.1, cut down at build time to the icons Kimono uses:
+  https://github.com/ryanoasis/nerd-fonts
   Patched fonts under the SIL Open Font License 1.1, the Nerd Fonts project
   under the MIT License, Copyright (c) 2014 Ryan L McIntyre
 - Material Design Icons (the icons Kimono uses so far), by Pictogrammers:

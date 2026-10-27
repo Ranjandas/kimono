@@ -6,31 +6,25 @@ import java.io.File
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 
 class KimonoIconTest {
-    @ParameterizedTest
-    @ValueSource(strings = ["JetBrainsMonoNerdFont-Regular.ttf", "JetBrainsMonoNerdFont-Bold.ttf"])
-    fun `every icon is in the source font`(fileName: String) {
-        val font = File(System.getProperty("kimono.fontDir"), fileName).inputStream().use {
-            Font.createFont(Font.TRUETYPE_FONT, it)
-        }
-        val missing = KimonoIcon.entries.filterNot { font.canDisplay(it.codePoint) }
-        assertTrue(missing.isEmpty(), "Not in $fileName: $missing")
+    private val font = File(System.getProperty("kimono.fontDir"), ICON_FONT).inputStream().use {
+        Font.createFont(Font.TRUETYPE_FONT, it).deriveFont(EM)
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["JetBrainsMonoNerdFont-Regular.ttf", "JetBrainsMonoNerdFont-Bold.ttf"])
-    fun `every icon fits in the width Icon gives it`(fileName: String) {
-        val font = File(System.getProperty("kimono.fontDir"), fileName).inputStream().use {
-            Font.createFont(Font.TRUETYPE_FONT, it).deriveFont(EM)
-        }
+    @Test
+    fun `every icon is in the icon font`() {
+        val missing = KimonoIcon.entries.filterNot { font.canDisplay(it.codePoint) }
+        assertTrue(missing.isEmpty(), "Not in $ICON_FONT: $missing")
+    }
+
+    @Test
+    fun `every icon fits in the width Icon gives it`() {
         val context = FontRenderContext(null, false, false)
         val tooWide = KimonoIcon.entries.filter {
             font.createGlyphVector(context, it.text).visualBounds.maxX > EM * ICON_WIDTH_EM
         }
-        assertTrue(tooWide.isEmpty(), "Wider than $ICON_WIDTH_EM em in $fileName: $tooWide")
+        assertTrue(tooWide.isEmpty(), "Wider than $ICON_WIDTH_EM em: $tooWide")
     }
 
     @Test
@@ -51,5 +45,6 @@ class KimonoIconTest {
 
     private companion object {
         const val EM = 1000f
+        const val ICON_FONT = "SymbolsNerdFont-Regular.ttf"
     }
 }

@@ -159,7 +159,7 @@ private fun KimonoColors.toTvColorScheme() = if (isLight) {
     )
 }
 
-// Stock tv-material components keep their own sizes but switch to the monospace font. Plain Text
+// Stock tv-material components keep their own sizes but switch to Kimono's font. Plain Text
 // picks up bodyLarge, which is Kimono's body style.
 private val TvTypography = Typography().run {
     Typography(

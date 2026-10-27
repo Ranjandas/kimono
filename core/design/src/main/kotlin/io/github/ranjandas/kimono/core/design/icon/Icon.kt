@@ -7,16 +7,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.isSpecified
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.design.theme.KimonoIconFontFamily
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * Draws [icon] as text in the bundled font, so it lines up with the label next to it and takes its colour.
- * Icons are decorative: the label carries the meaning, so TalkBack skips them (PLAN §6.5).
+ * Draws [icon] as text in the icon font at [style]'s size, so it lines up with the label next to it and takes
+ * its colour. Icons are decorative: the label carries the meaning, so TalkBack skips them (PLAN §6.5).
  *
- * The font's icons are up to 0.92 em wide but advance only one 0.6 em cell, so text layout would clip their
- * right side. The icon gets a full em instead.
+ * The font's icons are up to 0.92 em wide but advance only 0.83 em, so text layout would clip their right side.
+ * The icon gets a full em instead.
  */
 @Composable
 fun Icon(
@@ -34,7 +36,7 @@ fun Icon(
         text = icon.text,
         modifier = modifier.then(width).clearAndSetSemantics {},
         color = color,
-        style = style,
+        style = style.copy(fontFamily = KimonoIconFontFamily, fontWeight = FontWeight.Normal),
         maxLines = 1,
         softWrap = false,
     )

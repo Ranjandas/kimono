@@ -8,11 +8,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import io.github.ranjandas.kimono.core.design.R
 
-/** JetBrains Mono Nerd Font, subset at build time. Text and icons both use it (PLAN §4). */
+/**
+ * Noto Sans for all text: easy to read from the sofa, and it covers most scripts an app name might use. Others
+ * fall back to the system's fonts.
+ */
 val KimonoFontFamily = FontFamily(
-    Font(R.font.kimono_mono_regular, FontWeight.Normal),
-    Font(R.font.kimono_mono_bold, FontWeight.Bold),
+    Font(R.font.kimono_sans_regular, FontWeight.Normal),
+    Font(R.font.kimono_sans_bold, FontWeight.Bold),
 )
+
+/** The Nerd Fonts symbols, cut down at build time to the icons Kimono uses. Only [Icon] draws with it. */
+val KimonoIconFontFamily = FontFamily(Font(R.font.kimono_icons, FontWeight.Normal))
 
 /**
  * Type scale for a TV seen from across the room. Sizes are for the 960 × 540 dp canvas a 1080p TV
