@@ -30,6 +30,15 @@ android {
         release {
             isMinifyEnabled = false
         }
+        // A release build for measuring speed on the TV: optimised and not debuggable, but signed with the
+        // debug key so it installs over a debug build in place and keeps settings (docs/DEVELOPING.md).
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            matchingFallbacks += "release"
+        }
     }
 
     compileOptions {
