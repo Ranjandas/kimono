@@ -29,13 +29,20 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build, check (unit tests, screenshots, lint, ktlint, Detekt)
-        run: ./gradlew assembleDebug check verifyRoborazziDebug --stacktrace
+        run: ./gradlew assembleDebug assembleBenchmark check verifyRoborazziDebug --stacktrace
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
           name: kimono-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload benchmark APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: kimono-benchmark-apk
+          path: app/build/outputs/apk/benchmark/*.apk
           if-no-files-found: error
 
       # Fresh screenshots to commit when a screen changed on purpose (docs/DEVELOPING.md).

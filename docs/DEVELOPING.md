@@ -114,6 +114,22 @@ clears Kimono's settings, then install again:
 adb uninstall io.github.ranjandas.kimono
 ```
 
+### Measuring speed
+
+Debug builds are much slower than what users get, so measure frame times with the benchmark build: optimised
+and not debuggable, but signed with the debug key, so it installs over a debug build and keeps settings. CI
+uploads it as `kimono-benchmark-apk`.
+
+```sh
+adb install -r app-benchmark.apk
+adb shell cmd package compile -f -m speed io.github.ranjandas.kimono     # compile ahead of time, as a store install would
+adb shell dumpsys gfxinfo io.github.ranjandas.kimono reset
+# ...move focus around...
+adb shell dumpsys gfxinfo io.github.ranjandas.kimono                     # janky frames and percentiles
+```
+
+`run-as` doesn't work on it, since it isn't debuggable; install a debug build again for that.
+
 ### Wallpaper
 
 Each theme has a default wallpaper that Kimono downloads on the TV the first time it's shown and keeps
