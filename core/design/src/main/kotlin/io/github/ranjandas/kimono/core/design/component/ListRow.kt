@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -55,6 +56,8 @@ fun ListRow(
     val focused by interactionSource.collectIsFocusedAsState()
     val heldOk = remember { HeldOk() }
     val colors = KimonoTheme.colors
+    // Over frosted glass an unfocused row is clear, so the glass shows through rather than a solid strip.
+    val restingColor = if (LocalBackdrop.current == null) colors.surface else Color.Transparent
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -73,7 +76,7 @@ fun ListRow(
                 onLongClick = onLongClick,
                 onClick = onClick,
             )
-            .background(if (focused) colors.surfaceVariant else colors.surface, shape)
+            .background(if (focused) colors.surfaceVariant else restingColor, shape)
             .padding(horizontal = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,

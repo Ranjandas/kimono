@@ -124,7 +124,9 @@ adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallp
 adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper ""   # back to the theme's
 ```
 
-Settings' wallpaper row turns it off and on again.
+Settings' wallpaper row turns it off and on again. Its panels row sets how much of the wallpaper shows
+through the tiles (clear, frosted or solid); the glass is a blurred copy made once per wallpaper, so it costs
+nothing per frame.
 
 ### Logs
 

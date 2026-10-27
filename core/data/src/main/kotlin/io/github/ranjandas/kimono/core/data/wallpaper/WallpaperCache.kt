@@ -24,9 +24,9 @@ class WallpaperCache(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /** The wallpaper at [url], or null if it can't be downloaded or decoded. */
-    suspend fun load(url: String): Bitmap? = withContext(ioDispatcher) {
+    suspend fun load(url: String): Wallpaper? = withContext(ioDispatcher) {
         val file = File(dir, "${sha256(url)}.webp")
-        cached(file) ?: fetch(url, file)
+        (cached(file) ?: fetch(url, file))?.let { Wallpaper(it, blurred(it)) }
     }
 
     private fun cached(file: File): Bitmap? = if (file.exists()) BitmapFactory.decodeFile(file.path) else null
@@ -70,6 +70,18 @@ private fun decodeForScreen(bytes: ByteArray): Bitmap? {
     return cropped.scale(width, height)
 }
 
+/**
+ * A blurred copy at an eighth of the size, which is all a blur needs; panels draw it scaled back up. Made on
+ * each load rather than cached, since it takes a few milliseconds.
+ */
+private fun blurred(screen: Bitmap): Bitmap {
+    val small = screen.scale(screen.width / BLUR_DOWNSCALE, screen.height / BLUR_DOWNSCALE)
+    val pixels = IntArray(small.width * small.height)
+    small.getPixels(pixels, 0, small.width, 0, 0, small.width, small.height)
+    val blurred = boxBlur(pixels, small.width, small.height, BLUR_RADIUS)
+    return Bitmap.createBitmap(blurred, small.width, small.height, Bitmap.Config.ARGB_8888)
+}
+
 private fun httpGet(url: URL): ByteArray {
     val connection = url.openConnection() as HttpURLConnection
     try {
@@ -87,6 +99,10 @@ private fun sha256(text: String): String =
     MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
 
 private const val TIMEOUT_MS = 15_000
+
+// About a 35 px blur at full size, after three passes.
+private const val BLUR_DOWNSCALE = 8
+private const val BLUR_RADIUS = 4
 
 // A 5K WebP is well under 1 MB; this only stops a wrong URL filling the disk.
 private const val MAX_BYTES = 32L * 1024 * 1024

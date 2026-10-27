@@ -27,6 +27,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
         val PixelShiftKey = booleanPreferencesKey("settings.pixelShift")
         val WallpaperKey = booleanPreferencesKey("settings.wallpaper")
         val WallpaperUrlKey = stringPreferencesKey("settings.wallpaperUrl")
+        val PanelsKey = stringPreferencesKey("settings.panels")
 
         fun Preferences.toSettings() = LauncherSettings(
             themeName = this[ThemeKey],
@@ -37,6 +38,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             pixelShift = this[PixelShiftKey] ?: true,
             wallpaper = this[WallpaperKey] ?: true,
             wallpaperUrl = this[WallpaperUrlKey],
+            panels = Panels.entries.find { it.name == this[PanelsKey] } ?: Panels.Default,
         )
 
         fun MutablePreferences.write(settings: LauncherSettings) {
@@ -48,6 +50,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             this[PixelShiftKey] = settings.pixelShift
             this[WallpaperKey] = settings.wallpaper
             setOrRemove(WallpaperUrlKey, settings.wallpaperUrl)
+            this[PanelsKey] = settings.panels.name
         }
 
         fun MutablePreferences.setOrRemove(key: Preferences.Key<String>, value: String?) {
