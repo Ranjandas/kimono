@@ -83,15 +83,22 @@ fun HomeScreen(
     val workspace = workspaces.current
     val workspaceApps = remember(apps, workspace, workspaces) { apps?.forWorkspace(workspace, workspaces) }
     val appsFocus = remember { FocusRequester() }
+    val workspaceFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(HomeArea.Apps) }
     val hasApps = !workspaceApps.isNullOrEmpty()
     // Start on the apps list: it's the one tile with something to do until continue watching lands (M3). Come
     // back to it when its contents change (a workspace switch) and when the options panel closes, so focus is
-    // never left on whatever the system picks first.
+    // never left on whatever the system picks first. A workspace with no apps starts on its own button instead:
+    // with nothing focused, the number keys and the D-pad would do nothing.
     val panelOpen = options != null
-    LaunchedEffect(hasApps, workspace, panelOpen) {
-        if (hasApps && !panelOpen) appsFocus.requestFocusWhenLaidOut()
+    val loaded = workspaceApps != null
+    LaunchedEffect(hasApps, loaded, workspace, panelOpen) {
+        when {
+            panelOpen || !loaded -> Unit
+            hasApps -> appsFocus.requestFocusWhenLaidOut()
+            else -> workspaceFocus.requestFocusWhenLaidOut()
+        }
     }
     // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.
     BackHandler { runCatching { appsFocus.requestFocus() } }
@@ -108,6 +115,7 @@ fun HomeScreen(
             onOpenSettings = onOpenSettings,
             clockFormat = clockFormat,
             appsFocus = appsFocus,
+            workspaceFocus = workspaceFocus,
             focusArea = focusArea,
             onFocusArea = { focusArea = it },
             clock = clock,
@@ -142,6 +150,7 @@ private fun HomeGrid(
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     appsFocus: FocusRequester,
+    workspaceFocus: FocusRequester,
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
     clock: Clock,
@@ -169,6 +178,7 @@ private fun HomeGrid(
             clockFormat = clockFormat,
             onFocusArea = onFocusArea,
             clock = clock,
+            currentWorkspaceFocus = workspaceFocus,
             modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
         )
         Row(
