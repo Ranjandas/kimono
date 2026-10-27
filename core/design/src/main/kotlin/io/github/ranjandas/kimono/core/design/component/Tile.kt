@@ -50,7 +50,7 @@ fun Tile(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, content: 
     val surface = if (backdrop == null) {
         Modifier.background(colors.surface, shape)
     } else {
-        glass.modifier(backdrop, colors.surface, shape)
+        Modifier.frosted(backdrop, glass, colors.surface, shape)
     }
     Column(
         modifier = modifier
@@ -67,33 +67,35 @@ fun Tile(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, content: 
 private class GlassPosition {
     var origin by mutableStateOf(Offset.Zero)
     var window by mutableStateOf(Size.Zero)
-
-    fun modifier(backdrop: Backdrop, color: Color, shape: Shape): Modifier = Modifier
-        .onGloballyPositioned { coordinates ->
-            origin = coordinates.positionInRoot()
-            window = coordinates.findRootCoordinates().size.toSize()
-        }
-        .drawBehind {
-            if (window == Size.Zero) return@drawBehind
-            val visibility = backdrop.visibility()
-            val outline = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawBehind)) }
-            clipPath(outline) {
-                val image = backdrop.blurred
-                val (srcOffset, srcSize) = backdropCrop(IntSize(image.width, image.height), window, origin, size)
-                drawImage(
-                    image,
-                    srcOffset,
-                    srcSize,
-                    dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()),
-                    alpha = visibility,
-                    filterQuality = FilterQuality.Low,
-                )
-                drawRect(backdrop.tint, alpha = visibility)
-                // Solid while the wallpaper fades in, reaching the glass opacity once it's fully there.
-                drawRect(color, alpha = 1f - visibility * (1f - backdrop.opacity))
-            }
-        }
 }
+
+/** [color] over [backdrop]'s crop under this tile, at the backdrop's opacity: frosted glass. */
+private fun Modifier.frosted(backdrop: Backdrop, position: GlassPosition, color: Color, shape: Shape): Modifier = this
+    .onGloballyPositioned { coordinates ->
+        position.origin = coordinates.positionInRoot()
+        position.window = coordinates.findRootCoordinates().size.toSize()
+    }
+    .drawBehind {
+        val window = position.window
+        if (window == Size.Zero) return@drawBehind
+        val visibility = backdrop.visibility()
+        val outline = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawBehind)) }
+        clipPath(outline) {
+            val image = backdrop.blurred
+            val (srcOffset, srcSize) = backdropCrop(IntSize(image.width, image.height), window, position.origin, size)
+            drawImage(
+                image,
+                srcOffset,
+                srcSize,
+                dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()),
+                alpha = visibility,
+                filterQuality = FilterQuality.Low,
+            )
+            drawRect(backdrop.tint, alpha = visibility)
+            // Solid while the wallpaper fades in, reaching the glass opacity once it's fully there.
+            drawRect(color, alpha = 1f - visibility * (1f - backdrop.opacity))
+        }
+    }
 
 object TileDefaults {
     /** Border width, focused or not, so focus changes colour without moving anything. */
