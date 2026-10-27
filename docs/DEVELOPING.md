@@ -144,6 +144,28 @@ Settings' wallpaper row turns it off and on again. Its panels row sets how much 
 through the tiles (clear, frosted or solid); the glass is a blurred copy made once per wallpaper, so it costs
 nothing per frame.
 
+### Screensaver
+
+Kimono also offers its idle pixel art as the system screensaver (`KimonoDream`), made from the same cached
+wallpaper in the theme's colours, cycling so no pixel stays lit for long. Google TV's settings only list its own
+ambient mode, so pick it over adb, and note what was set before so you can put it back:
+
+```sh
+adb shell settings get secure screensaver_components   # note this, to restore it later
+adb shell settings put secure screensaver_components io.github.ranjandas.kimono/.KimonoDream
+```
+
+To see it now, open Settings → System → Ambient screensaver and choose Start now. Over adb, `cmd dreams` needs
+root and there's no Somnambulator, so open that screen and press OK on Start now (it has focus):
+
+```sh
+adb shell am start -n com.android.tv.settings/com.google.android.tv.settings.AmbientActivity
+adb shell input keyevent KEYCODE_DPAD_CENTER
+```
+
+To go back to Google's, put the value you noted back, for example
+`com.google.android.apps.tv.dreamx/.service.Backdrop`.
+
 ### Logs
 
 ```sh
