@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,34 +54,38 @@ fun AppsTile(
     }
     Tile(modifier = modifier) {
         SectionHeader("~/${workspace.label}", icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
-        // A different workspace is a different list, so it starts from the top.
-        val listState = rememberLazyListState()
-        LaunchedEffect(workspace) { listState.scrollToItem(0) }
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .padding(top = 8.dp)
-                // Coming back to the list lands on the row that was focused last.
-                .focusRequester(listFocusRequester)
-                .focusRestorer(),
-        ) {
-            itemsIndexed(apps.orEmpty().take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
-                ListRow(
-                    text = app.label,
-                    onClick = {
-                        status = when (onLaunchApp(app)) {
-                            LaunchResult.Launched -> LaunchStatus.Opening(app)
-                            is LaunchResult.Unavailable -> LaunchStatus.Unavailable(app)
-                        }
-                    },
-                    leading = "%02d".format(index + 1),
-                    icon = app.icon,
-                    onLongClick = { onShowOptions(app) },
-                    // The list is the right edge of the screen, so Right stays put instead of jumping to the top bar.
-                    modifier = Modifier.focusProperties { right = FocusRequester.Cancel },
-                    trailing = if ((status as? LaunchStatus.Opening)?.app == app) "opening…" else null,
-                )
+        // A different workspace is a different list, so it starts again: at the top, and with focus coming back to
+        // its first row rather than to whichever app had focus before. That app may still be in the new list (Home
+        // switches workspace after the list has taken focus), and the focus restorer would land on it.
+        key(workspace) {
+            val listState = rememberLazyListState()
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 8.dp)
+                    // Coming back to the list lands on the row that was focused last.
+                    .focusRequester(listFocusRequester)
+                    .focusRestorer(),
+            ) {
+                itemsIndexed(apps.orEmpty().take(MAX_APPS), key = { _, app -> app.packageName }) { index, app ->
+                    ListRow(
+                        text = app.label,
+                        onClick = {
+                            status = when (onLaunchApp(app)) {
+                                LaunchResult.Launched -> LaunchStatus.Opening(app)
+                                is LaunchResult.Unavailable -> LaunchStatus.Unavailable(app)
+                            }
+                        },
+                        leading = "%02d".format(index + 1),
+                        icon = app.icon,
+                        onLongClick = { onShowOptions(app) },
+                        // The list is the right edge of the screen, so Right stays put instead of jumping to the
+                        // top bar.
+                        modifier = Modifier.focusProperties { right = FocusRequester.Cancel },
+                        trailing = if ((status as? LaunchStatus.Opening)?.app == app) "opening…" else null,
+                    )
+                }
             }
         }
         AppsNotes(apps, status)
