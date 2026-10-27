@@ -23,6 +23,7 @@ import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
+import io.github.ranjandas.kimono.core.design.component.fadingEdges
 import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
@@ -64,6 +65,9 @@ fun AppsTile(
                 modifier = Modifier
                     .weight(1f)
                     .padding(top = 8.dp)
+                    // Rows don't divide the tile evenly, so the edge the list scrolls past fades instead of cutting
+                    // a row in half.
+                    .fadingEdges(listState)
                     // Coming back to the list lands on the row that was focused last.
                     .focusRequester(listFocusRequester)
                     .focusRestorer(),
