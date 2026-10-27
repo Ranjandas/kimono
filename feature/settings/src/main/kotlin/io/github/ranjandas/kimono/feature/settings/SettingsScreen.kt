@@ -48,6 +48,8 @@ fun SettingsScreen(
     onTextSizeChange: (TextSize) -> Unit,
     idleTimeout: IdleTimeout,
     onIdleTimeoutChange: (IdleTimeout) -> Unit,
+    pixelShift: Boolean,
+    onPixelShiftChange: (Boolean) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -87,6 +89,9 @@ fun SettingsScreen(
                 })
                 SettingRow(KimonoIcon.Idle, "dim after", idleTimeout.label, onClick = {
                     onIdleTimeoutChange(idleTimeout.next())
+                })
+                SettingRow(KimonoIcon.Device, "shift pixels", if (pixelShift) "on" else "off", onClick = {
+                    onPixelShiftChange(!pixelShift)
                 })
             }
         }
@@ -130,6 +135,8 @@ private fun SettingsScreenPreview() {
             onTextSizeChange = {},
             idleTimeout = IdleTimeout.Default,
             onIdleTimeoutChange = {},
+            pixelShift = true,
+            onPixelShiftChange = {},
             onClose = {},
         )
     }

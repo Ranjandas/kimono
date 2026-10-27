@@ -3,6 +3,7 @@ package io.github.ranjandas.kimono.core.data.settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +24,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
         val ClockFormatKey = stringPreferencesKey("settings.clockFormat")
         val TextSizeKey = stringPreferencesKey("settings.textSize")
         val IdleTimeoutKey = stringPreferencesKey("settings.idleTimeout")
+        val PixelShiftKey = booleanPreferencesKey("settings.pixelShift")
 
         fun Preferences.toSettings() = LauncherSettings(
             themeName = this[ThemeKey],
@@ -30,6 +32,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             clockFormat = ClockFormat.entries.find { it.name == this[ClockFormatKey] } ?: ClockFormat.System,
             textSize = TextSize.entries.find { it.name == this[TextSizeKey] } ?: TextSize.Default,
             idleTimeout = IdleTimeout.entries.find { it.name == this[IdleTimeoutKey] } ?: IdleTimeout.Default,
+            pixelShift = this[PixelShiftKey] ?: true,
         )
 
         fun MutablePreferences.write(settings: LauncherSettings) {
@@ -38,6 +41,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             this[ClockFormatKey] = settings.clockFormat.name
             this[TextSizeKey] = settings.textSize.name
             this[IdleTimeoutKey] = settings.idleTimeout.name
+            this[PixelShiftKey] = settings.pixelShift
         }
 
         fun MutablePreferences.setOrRemove(key: Preferences.Key<String>, value: String?) {

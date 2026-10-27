@@ -2,6 +2,7 @@ package io.github.ranjandas.kimono
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -10,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ranjandas.kimono.core.data.idle.IdleController
@@ -34,7 +36,8 @@ private enum class Screen { Home, Drawer, Settings }
  * settings and workspaces have loaded, so a chosen theme never flashes the default one first. The app list is
  * collected from the start too, so it loads alongside them; it's null until the first list arrives.
  *
- * [homePresses] goes up on each Home press while Kimono is running; see [Screens]. While [idle], everything dims.
+ * [homePresses] goes up on each Home press while Kimono is running; see [Screens]. While [idle], everything
+ * dims and slowly shifts by a few pixels.
  */
 @Composable
 internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, homePresses: Int = 0) {
@@ -55,8 +58,11 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
         cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName),
         textScale = loadedSettings.textSize.scale,
     ) {
+        val shift = rememberPixelShift(isIdle && loadedSettings.pixelShift)
         Box {
-            Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
+            Box(Modifier.offset(shift.x, shift.y)) {
+                Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
+            }
             IdleDim(isIdle)
         }
     }
@@ -126,6 +132,8 @@ private fun Screens(
             onTextSizeChange = { new -> updateSettings { it.copy(textSize = new) } },
             idleTimeout = settings.idleTimeout,
             onIdleTimeoutChange = { new -> updateSettings { it.copy(idleTimeout = new) } },
+            pixelShift = settings.pixelShift,
+            onPixelShiftChange = { new -> updateSettings { it.copy(pixelShift = new) } },
             onClose = { screen = Screen.Home },
         )
     }
