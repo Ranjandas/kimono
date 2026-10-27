@@ -25,7 +25,7 @@ import io.github.ranjandas.kimono.core.design.theme.ThemeId
 /**
  * Kimono as the system screensaver: the idle pixel art on black, from the same wallpaper cache and in the same
  * theme colours as home. It builds up block by block, holds, breaks down and builds up again a little to one
- * side, so nothing stays lit in one place on an OLED panel. Any key ends it.
+ * side, dimmed, so nothing stays brightly lit in one place on an OLED panel. Any key ends it.
  *
  * A dream isn't an activity, so it hosts Compose itself: it is the lifecycle and saved-state owner the view tree
  * needs, alive from attach to detach and resumed while dreaming.
@@ -79,7 +79,10 @@ class KimonoDream :
     }
 }
 
-/** The theme's pixel art cycling on black; just black until it's made, or if there's no image to make it from. */
+/**
+ * The theme's pixel art cycling on black, dimmed as on home when idle, since a screensaver can run for hours. Just
+ * black until it's made, or if there's no image to make it from.
+ */
 @Composable
 private fun DreamArt(settingsStore: SettingsStore, wallpapers: WallpaperCache) {
     val settings by settingsStore.settings.collectAsStateWithLifecycle(initialValue = null)
@@ -88,5 +91,6 @@ private fun DreamArt(settingsStore: SettingsStore, wallpapers: WallpaperCache) {
         val theme = ThemeId.fromName(loaded.themeName)
         val art = rememberPixelArt(rememberWallpaper(wallpapers, artworkUrl(loaded, theme)), theme)
         PixelDissolve(art, idle = true)
+        IdleDim(idle = true)
     }
 }

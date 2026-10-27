@@ -153,8 +153,18 @@ ambient mode, so pick it over adb, and note what was set before so you can put i
 ```sh
 adb shell settings get secure screensaver_components   # note this, to restore it later
 adb shell settings put secure screensaver_components io.github.ranjandas.kimono/.KimonoDream
-adb shell am start -n com.android.systemui/.Somnambulator   # show it now
 ```
+
+To see it now, open Settings → System → Ambient screensaver and choose Start now. Over adb, `cmd dreams` needs
+root and there's no Somnambulator, so open that screen and press OK on Start now (it has focus):
+
+```sh
+adb shell am start -n com.android.tv.settings/com.google.android.tv.settings.AmbientActivity
+adb shell input keyevent KEYCODE_DPAD_CENTER
+```
+
+To go back to Google's, put the value you noted back, for example
+`com.google.android.apps.tv.dreamx/.service.Backdrop`.
 
 ### Logs
 
