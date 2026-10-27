@@ -17,13 +17,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.ListRow
+import io.github.ranjandas.kimono.core.design.component.ListRowDefaults
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
-import io.github.ranjandas.kimono.core.design.component.fadingEdges
 import io.github.ranjandas.kimono.core.design.text.count
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
@@ -65,9 +66,7 @@ fun AppsTile(
                 modifier = Modifier
                     .weight(1f)
                     .padding(top = 8.dp)
-                    // Rows don't divide the tile evenly, so the edge the list scrolls past fades instead of cutting
-                    // a row in half.
-                    .fadingEdges(listState)
+                    .wholeRows()
                     // Coming back to the list lands on the row that was focused last.
                     .focusRequester(listFocusRequester)
                     .focusRestorer(),
@@ -94,6 +93,24 @@ fun AppsTile(
         }
         AppsNotes(apps, status)
     }
+}
+
+/**
+ * Makes the list a whole number of rows tall, at the top of the space it's given, so no row is ever cut by the
+ * edge. A D-pad move then scrolls by exactly one row, so the rows stay whole as the list scrolls too. (A fade
+ * at the edges did the same job, but its offscreen layer cost the TV's GPU about 4 ms a frame.)
+ */
+private fun Modifier.wholeRows(): Modifier = layout { measurable, constraints ->
+    if (!constraints.hasBoundedHeight) {
+        val placeable = measurable.measure(constraints)
+        return@layout layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    }
+    val row = ListRowDefaults.Height.roundToPx()
+    // Too short for even one row (a tiny window), it keeps all it has.
+    val height = (constraints.maxHeight / row * row).takeIf { it > 0 } ?: constraints.maxHeight
+    val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = height))
+    // Takes all the height it was given, so what's below the list stays where it was.
+    layout(placeable.width, constraints.maxHeight) { placeable.place(0, 0) }
 }
 
 /** What the tile says under the list: that apps are loading or the workspace is empty, or that one won't open. */
