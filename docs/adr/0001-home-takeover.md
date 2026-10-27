@@ -1,8 +1,8 @@
 # ADR 0001: Home-screen takeover on Google TV
 
-- **Status:** Proposed. The routes below haven't been tried on the Streamer yet. Ranjan asked for that to wait
-  until he says so, because it changes what the Home button does on his TV.
-- **Date:** 2026-10-26
+- **Status:** Accepted for route A (development and Ranjan's own TV), tried on the Streamer on 2026-10-27.
+  Route B is still proposed and not yet built.
+- **Date:** 2026-10-26, results added 2026-10-27
 - **Issue:** #24 (M2-1). See [PLAN §6.7](../PLAN.md#67-home-screen-takeover-on-google-tv).
 
 ## Context
@@ -25,13 +25,23 @@ These are read-only queries over adb. Nothing on the device was changed to colle
 | Also installed | `com.google.android.tvlauncher` (the older launcher), `tvrecommendations`, `dreamx` |
 | Accessibility | Off: `accessibility_enabled=0`, no enabled or bound services. Projectivy declares `ProjectivyAccessibilityService` but it isn't on. |
 
-Two things follow from this:
+From this ordering it looked like disabling `launcherx` alone wouldn't be enough, since `setupwraith`'s
+`RecoveryActivity` (priority 1) outranks Kimono (0). The spike below confirmed that.
 
-- **Disabling `launcherx` alone won't be enough.** The next HOME candidate is `setupwraith`'s
-  `RecoveryActivity` at priority 1, ahead of Kimono at 0. Some community guides for Google TV disable `setupwraith`
-  as well, which matches this ordering. It still needs confirming here.
-- **Projectivy is a HOME candidate too.** With both stock activities out of the way, Android would show a
-  chooser between Projectivy and Kimono. Picking Kimono with "always" settles it.
+### What the spike found (2026-10-27)
+
+Tried over adb on the Streamer with `launcherx` 1.0.1002449598. Every change was undone at the end, and the final
+state matched the starting one: `launcherx` as HOME role holder and resolved home, nothing disabled.
+
+| Step | Result |
+|---|---|
+| A′: `cmd role add-role-holder android.app.role.HOME io.github.ranjandas.kimono` | The role moved to Kimono, but `resolve-activity` HOME still gave `launcherx`, and four Home presses all opened the stock launcher. **The role alone doesn't change Home.** `launcherx`'s priority-2 HOME filter wins. Removing the role handed it back to `launcherx` by itself. |
+| A: `pm disable-user --user 0 …launcherx` | Within about 2 s, `setupwraith`'s `RecoveryActivity` took the role and became home. It kept relaunching (its task id climbed by ~300 in 20 s) and showed the Settings screen. **Not usable on its own.** |
+| A: then `pm disable-user --user 0 …setupwraith` | The role passed to Kimono automatically and Home opened Kimono **directly, with no chooser**, even though Projectivy is also a HOME candidate. Kimono ran in a `type=home` task. |
+| Home from inside an app | Went to Kimono on workspace 1. Focus landed on the app's own row rather than row 01, fixed in #76. |
+| Settings with both disabled | Android TV Settings opens from Kimono's drawer. Accounts and profiles, and System, both open. Nothing was changed. |
+| Undo | `pm enable` both packages, then `cmd package set-home-activity com.google.android.apps.tv.launcherx/.home.HomeActivity` ("Success"). The role went back to `launcherx`, and Home opened the stock launcher. |
+| Reboot | Not tried. adb on the Streamer runs over `adb tcpip 5555`, which doesn't survive a reboot, and the wireless-debugging port changes on boot, so a reboot could cut off adb while the stock launcher is disabled. |
 
 ## Options
 
@@ -42,14 +52,14 @@ adb shell pm disable-user --user 0 com.google.android.apps.tv.launcherx
 adb shell pm disable-user --user 0 com.google.android.tungsten.setupwraith   # if Home still lands on RecoveryActivity
 ```
 
-Then press Home and choose Kimono, "always".
+Both are needed on the Streamer (see the spike). Home then opens Kimono straight away, with no chooser.
 
 - **For:** Home goes straight to Kimono with no flash. Kimono comes back on boot as the real home activity.
   It needs no special permissions, so the Play listing is unaffected.
 - **Against:**
   - It needs adb, so it's fine for Ranjan's own TV but not for other people.
-  - Disabling `setupwraith` may break the Google TV setup flow and the account and profile screens that hang
-    off it.
+  - Disabling `setupwraith` may break the Google TV setup flow. Account, profile and system settings still
+    opened in the spike, but the first-run setup and adding a profile weren't tried.
   - A Play Store update to `launcherx` or a system OTA may re-enable it. That needs checking after each one.
   - Google TV features that live in `launcherx` go away: the For You row, Ambient and the profile switcher.
     Kimono's own ambient mode (M4) covers part of this.
@@ -58,6 +68,7 @@ Then press Home and choose Kimono, "always".
   ```sh
   adb shell pm enable com.google.android.tungsten.setupwraith
   adb shell pm enable com.google.android.apps.tv.launcherx
+  adb shell cmd package set-home-activity com.google.android.apps.tv.launcherx/.home.HomeActivity
   ```
 
   If adb isn't reachable, use Settings > Apps > See all apps > Show system apps > Google TV Home > Enable, if
@@ -69,9 +80,8 @@ Then press Home and choose Kimono, "always".
 adb shell cmd role add-role-holder android.app.role.HOME io.github.ranjandas.kimono
 ```
 
-This is the "supported" form of choosing a home app, and it doesn't disable anything. On Google TV,
-`launcherx` is expected to win it back, or Home is expected to bypass the role. That should be tried first,
-because undoing it is just `remove-role-holder` and it is the least invasive.
+This is the "supported" form of choosing a home app, and it doesn't disable anything. **It doesn't work on the
+Streamer**: the role moves, but Home keeps resolving to `launcherx`. Ruled out.
 
 ### B. Accessibility watcher
 
@@ -88,27 +98,28 @@ how Projectivy and other third-party TV launchers work without adb.
   - The service can see window contents across apps, so its config must limit it to window-state events and
     the README has to say what it reads.
 
-## Proposed decision
+## Decision
 
-1. **For Ranjan's Streamer and for development:** try A′ first. If Home still goes to `launcherx`, use A with
-   only `launcherx` disabled, then add `setupwraith` only if Home lands on `RecoveryActivity`. Check after
-   reboot, after a `launcherx` update and after an OTA. Package this as the M2-2 scripts (`scripts/home-take`
-   and `scripts/home-restore`), with the undo steps above in DEVELOPING.md.
+1. **For Ranjan's Streamer and for development:** route A, disabling both `launcherx` and `setupwraith`. Package
+   it as the M2-2 scripts (`scripts/home-take` and `scripts/home-restore`), with the undo steps above in
+   DEVELOPING.md. Before leaving it on long term, make adb survive a reboot (wireless debugging re-paired, or a
+   USB route), then check reboot, a `launcherx` update and an OTA.
 2. **For everyone else:** build B as an optional onboarding step (M2-3), sideload-only until the Play
    accessibility policy is checked against a draft listing.
 
 ## Spike checklist
 
-To fill in on the Streamer once Ranjan gives the go-ahead. Finish every session with the TV asleep.
+Finish every session with the TV asleep.
 
-- [ ] A′: does `add-role-holder` change what Home opens? Does it survive a reboot?
-- [ ] A: with `launcherx` disabled, where does Home go? Is there a chooser? Is `setupwraith` needed?
-- [ ] A: after a reboot, does Kimono come up? How long until first draw?
-- [ ] A: does Settings still open? Do account, profile and input settings still work?
-- [ ] A: undo restores stock Home exactly.
+- [x] A′: does `add-role-holder` change what Home opens? No.
+- [x] A: with `launcherx` disabled, where does Home go? To `RecoveryActivity`, in a relaunch loop. `setupwraith`
+      is needed too, and then there's no chooser.
+- [ ] A: after a reboot, does Kimono come up? How long until first draw? Needs adb that survives a reboot first.
+- [x] A: does Settings still open? Yes, with accounts, profiles and system. Input settings weren't opened.
+- [x] A: undo restores stock Home exactly.
 - [ ] B: with a minimal watcher, how long is the stock-launcher flash on Home? Does it survive a reboot and an
       app update?
-- [ ] Record the `launcherx` version tested, so a later update that re-enables it can be spotted.
+- [x] Record the `launcherx` version tested: 1.0.1002449598.
 
 ## Consequences
 
