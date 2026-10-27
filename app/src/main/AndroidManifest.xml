@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Downloads the wallpaper the first time it's shown. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- TV-only app: no touchscreen, leanback required. -->
     <uses-feature
         android:name="android.hardware.touchscreen"

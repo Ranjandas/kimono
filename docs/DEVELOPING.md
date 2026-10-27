@@ -114,6 +114,18 @@ clears Kimono's settings, then install again:
 adb uninstall io.github.ranjandas.kimono
 ```
 
+### Wallpaper
+
+Each theme has a default wallpaper that Kimono downloads on the TV the first time it's shown and keeps
+(scaled to 1080p) in its own storage; none are bundled in the app. To use your own, pass an https URL:
+
+```sh
+adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper https://example.com/wall.jpg
+adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper ""   # back to the theme's
+```
+
+Settings' wallpaper row turns it off and on again.
+
 ### Logs
 
 ```sh

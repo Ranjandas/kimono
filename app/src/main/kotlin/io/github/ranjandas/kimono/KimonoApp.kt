@@ -53,15 +53,17 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     val updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit = { change ->
         scope.launch { dependencies.settingsStore.update(change) }
     }
-    KimonoTheme(
-        theme = ThemeId.fromName(loadedSettings.themeName),
-        cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName),
-        textScale = loadedSettings.textSize.scale,
-    ) {
-        val shift = rememberPixelShift(isIdle && loadedSettings.pixelShift)
+    val theme = ThemeId.fromName(loadedSettings.themeName)
+    val cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName)
+    val wallpaper = rememberWallpaper(dependencies.wallpapers, wallpaperUrl(loadedSettings, theme))
+    val shift = rememberPixelShift(isIdle && loadedSettings.pixelShift)
+    KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale) {
         Box {
-            Box(Modifier.offset(shift.x, shift.y)) {
-                Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
+            WallpaperBackground(wallpaper)
+            KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale, overWallpaper = wallpaper != null) {
+                Box(Modifier.offset(shift.x, shift.y)) {
+                    Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
+                }
             }
             IdleDim(isIdle)
         }
@@ -134,6 +136,8 @@ private fun Screens(
             onIdleTimeoutChange = { new -> updateSettings { it.copy(idleTimeout = new) } },
             pixelShift = settings.pixelShift,
             onPixelShiftChange = { new -> updateSettings { it.copy(pixelShift = new) } },
+            wallpaper = wallpaperChoice(settings),
+            onWallpaperToggle = { updateSettings { it.copy(wallpaper = !it.wallpaper) } },
             onClose = { screen = Screen.Home },
         )
     }

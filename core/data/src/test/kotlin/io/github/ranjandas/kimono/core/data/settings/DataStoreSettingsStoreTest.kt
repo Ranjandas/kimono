@@ -24,6 +24,8 @@ class DataStoreSettingsStoreTest {
             textSize = TextSize.Large,
             idleTimeout = IdleTimeout.TwoMinutes,
             pixelShift = false,
+            wallpaper = false,
+            wallpaperUrl = "https://example.com/wall.webp",
         )
         store.update { changed }
         DataStoreSettingsStore(dataStore).settings.test { assertEquals(changed, awaitItem()) }

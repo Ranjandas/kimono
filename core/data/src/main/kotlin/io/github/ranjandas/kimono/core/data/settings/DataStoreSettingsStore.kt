@@ -25,6 +25,8 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
         val TextSizeKey = stringPreferencesKey("settings.textSize")
         val IdleTimeoutKey = stringPreferencesKey("settings.idleTimeout")
         val PixelShiftKey = booleanPreferencesKey("settings.pixelShift")
+        val WallpaperKey = booleanPreferencesKey("settings.wallpaper")
+        val WallpaperUrlKey = stringPreferencesKey("settings.wallpaperUrl")
 
         fun Preferences.toSettings() = LauncherSettings(
             themeName = this[ThemeKey],
@@ -33,6 +35,8 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             textSize = TextSize.entries.find { it.name == this[TextSizeKey] } ?: TextSize.Default,
             idleTimeout = IdleTimeout.entries.find { it.name == this[IdleTimeoutKey] } ?: IdleTimeout.Default,
             pixelShift = this[PixelShiftKey] ?: true,
+            wallpaper = this[WallpaperKey] ?: true,
+            wallpaperUrl = this[WallpaperUrlKey],
         )
 
         fun MutablePreferences.write(settings: LauncherSettings) {
@@ -42,6 +46,8 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             this[TextSizeKey] = settings.textSize.name
             this[IdleTimeoutKey] = settings.idleTimeout.name
             this[PixelShiftKey] = settings.pixelShift
+            this[WallpaperKey] = settings.wallpaper
+            setOrRemove(WallpaperUrlKey, settings.wallpaperUrl)
         }
 
         fun MutablePreferences.setOrRemove(key: Preferences.Key<String>, value: String?) {
