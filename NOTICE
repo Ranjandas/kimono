@@ -27,7 +27,7 @@ The app bundles these fonts (core/design/fonts):
 Colour palettes
 ---------------
 
-The seven theme palettes in core/design (ThemeId.kt) are taken from the
+The seven Omarchy theme palettes in core/design (ThemeId.kt) are taken from the
 colors.toml files of the matching themes in Omarchy
 (https://github.com/basecamp/omarchy), MIT License,
 Copyright (c) David Heinemeier Hansson.
