@@ -134,10 +134,13 @@ adb shell dumpsys gfxinfo io.github.ranjandas.kimono                     # janky
 ### Wallpaper
 
 Each theme has a default wallpaper that Kimono downloads on the TV the first time it's shown and keeps
-(scaled to 1080p) in its own storage; none are bundled in the app. To use your own, pass an https URL:
+(scaled to 1080p) in its own storage; none are bundled in the app. The Kimono theme instead draws its own on
+the TV, a different one each day: `kimono:moon`, `kimono:seigaiha` and `kimono:asanoha`. To use your own, pass an
+https URL, or one of those links to keep it under any theme:
 
 ```sh
 adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper https://example.com/wall.jpg
+adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper kimono:moon
 adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper ""   # back to the theme's
 ```
 
