@@ -33,7 +33,7 @@ class IconLabActivity : ComponentActivity() {
                 LabApp(
                     label = info.loadLabel(packageManager).toString(),
                     enabled = info.applicationInfo.enabled,
-                    glyphs = loader.load(info.packageName, info.name),
+                    loadGlyphs = { loader.load(info) },
                 )
             }
             .sortedBy { it.label.lowercase() }
@@ -51,4 +51,5 @@ class IconLabActivity : ComponentActivity() {
     }
 }
 
-internal class LabApp(val label: String, val enabled: Boolean, val glyphs: AppGlyphs)
+/** An app in the lab. Its glyphs take a while, so each row loads its own as it scrolls into view. */
+internal class LabApp(val label: String, val enabled: Boolean, val loadGlyphs: () -> AppGlyphs)

@@ -11,28 +11,26 @@ import kotlin.math.sqrt
  * already outlines the logo, and the glyph is its alpha.
  */
 internal object GlyphMask {
-    /** The glyph's alpha, 0 to 255, for each pixel of [argb]. */
-    fun extract(argb: IntArray): IntArray {
-        val plate = plateColour(argb)
-        return IntArray(argb.size) { i ->
-            val pixel = argb[i]
-            val alpha = pixel ushr ALPHA_SHIFT
-            if (plate == null) alpha else (alpha * contrast(pixel, plate)).roundToInt()
-        }
+    /** The glyph's alpha, 0 to 255, for each pixel of [argb], with [plate] taken out when there is one. */
+    fun extract(argb: IntArray, plate: Int? = plateColour(argb)): IntArray = IntArray(argb.size) { i ->
+        val pixel = argb[i]
+        val alpha = pixel ushr ALPHA_SHIFT
+        if (plate == null) alpha else (alpha * contrast(pixel, plate)).roundToInt()
     }
 
     /** The plate colour as 0xRRGGBB, or null when no single colour covers most of the image. */
     fun plateColour(argb: IntArray): Int? {
-        val counts = HashMap<Int, Int>()
+        // A plain array rather than a map, since a banner has a quarter of a million pixels to count.
+        val counts = IntArray(BUCKET_COUNT)
         var opaque = 0
         for (pixel in argb) {
             if (pixel ushr ALPHA_SHIFT < OPAQUE_ALPHA) continue
             opaque++
-            counts.merge(bucket(pixel), 1, Int::plus)
+            counts[bucket(pixel)]++
         }
-        val top = counts.maxByOrNull { it.value } ?: return null
-        val isPlate = opaque >= argb.size * MIN_PLATE_COVER && top.value >= opaque * MIN_PLATE_SHARE
-        return if (isPlate) meanColour(argb, top.key) else null
+        val top = counts.indices.maxBy { counts[it] }
+        val isPlate = opaque > 0 && opaque >= argb.size * MIN_PLATE_COVER && counts[top] >= opaque * MIN_PLATE_SHARE
+        return if (isPlate) meanColour(argb, top) else null
     }
 
     /** The smallest box holding every pixel of [alpha], an image [width] wide, above [threshold]. */
@@ -94,6 +92,7 @@ internal object GlyphMask {
     private const val CHANNEL = 0xFF
     private const val BUCKET_BITS = 3
     private const val BUCKET_DROP = 8 - BUCKET_BITS
+    private const val BUCKET_COUNT = 1 shl (3 * BUCKET_BITS)
     private const val OPAQUE_ALPHA = 200
     private const val INK_THRESHOLD = 16
 

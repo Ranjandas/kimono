@@ -46,6 +46,7 @@ import io.github.ranjandas.kimono.core.data.settings.SettingsStore
 import io.github.ranjandas.kimono.core.design.component.Monogram
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
+import io.github.ranjandas.kimono.data.apps.icon.AppGlyphs
 import io.github.ranjandas.kimono.data.apps.icon.Glyph
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
@@ -88,7 +89,7 @@ internal fun IconLab(settingsStore: SettingsStore, loadApps: () -> List<LabApp>)
             )
             HeaderRow()
             val loaded = apps
-            if (loaded == null) Caption("Reading icons…") else LabList(loaded)
+            if (loaded == null) Caption("Listing apps…") else LabList(loaded)
         }
     }
 }
@@ -122,6 +123,7 @@ private fun LabRow(app: LabApp, modifier: Modifier = Modifier) {
     val focused by interaction.collectIsFocusedAsState()
     val colors = KimonoTheme.colors
     val shape = KimonoTheme.shapes.tile
+    val glyphs by produceState<AppGlyphs?>(null, app) { value = withContext(Dispatchers.Default) { app.loadGlyphs() } }
     Row(
         modifier
             .fillMaxWidth()
@@ -135,16 +137,16 @@ private fun LabRow(app: LabApp, modifier: Modifier = Modifier) {
             Text(app.label, style = KimonoTheme.typography.title, color = colors.text, maxLines = 1)
             if (!app.enabled) Caption("disabled")
         }
-        val icon = app.glyphs.icon
+        val icon = glyphs?.icon
         Box(Modifier.size(SquareSize), contentAlignment = Alignment.Center) {
             if (icon != null) {
                 val bitmap = remember(icon) { icon.asImageBitmap() }
                 Image(bitmap, contentDescription = null, modifier = Modifier.fillMaxSize())
             }
         }
-        GlyphCell(app.glyphs.monochrome, SquareSize, SquareSize)
-        GlyphCell(app.glyphs.silhouette, SquareSize, SquareSize)
-        GlyphCell(app.glyphs.wordmark, WordmarkWidth, SquareSize)
+        GlyphCell(glyphs?.monochrome, SquareSize, SquareSize)
+        GlyphCell(glyphs?.silhouette, SquareSize, SquareSize)
+        GlyphCell(glyphs?.wordmark, WordmarkWidth, SquareSize)
         Monogram(app.label, Modifier.size(SquareSize))
     }
 }

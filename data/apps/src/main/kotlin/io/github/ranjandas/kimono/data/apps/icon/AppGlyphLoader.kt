@@ -1,7 +1,7 @@
 package io.github.ranjandas.kimono.data.apps.icon
 
-import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.AdaptiveIconDrawable
@@ -31,11 +31,13 @@ class AppGlyphs(
 
 /** Makes [AppGlyphs] from what an app ships. Slow enough to keep off the main thread. */
 class AppGlyphLoader private constructor(private val packageManager: PackageManager) {
-    fun load(packageName: String, activityName: String): AppGlyphs {
-        val component = ComponentName(packageName, activityName)
-        val icon = runCatching { packageManager.getActivityIcon(component) }.getOrNull()
-        val banner = runCatching { packageManager.getActivityBanner(component) }.getOrNull()
-            ?: runCatching { packageManager.getApplicationBanner(packageName) }.getOrNull()
+    /**
+     * Reads [activity]'s own icon and banner, falling back to the app's. Taking the [ActivityInfo] from a query
+     * works for disabled apps too, where looking the component up again would fail.
+     */
+    fun load(activity: ActivityInfo): AppGlyphs {
+        val icon = runCatching { activity.loadIcon(packageManager) }.getOrNull()
+        val banner = runCatching { activity.loadBanner(packageManager) }.getOrNull()
         return AppGlyphs(
             icon = icon?.toBitmap(ICON_PX, ICON_PX),
             monochrome = icon?.monochromeLayer()?.let { glyphOf(it.toBitmap(ADAPTIVE_PX, ADAPTIVE_PX), plate = false) },
@@ -59,7 +61,8 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
         val width = source.width
         val pixels = IntArray(width * source.height)
         source.getPixels(pixels, 0, width, 0, 0, width, source.height)
-        val alpha = if (plate) GlyphMask.extract(pixels) else IntArray(pixels.size) { pixels[it] ushr ALPHA_SHIFT }
+        val plateColour = if (plate) GlyphMask.plateColour(pixels) else null
+        val alpha = GlyphMask.extract(pixels, plateColour)
         val box = GlyphMask.bounds(alpha, width)?.takeIf { it.width * it.height >= MIN_GLYPH_PIXELS }
             ?: return null
         val out = IntArray(box.width * box.height)
@@ -74,7 +77,7 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
         return Glyph(
             bitmap = Bitmap.createBitmap(out, box.width, box.height, Bitmap.Config.ARGB_8888),
             coverage = ink.toFloat() / (MAX_ALPHA * out.size),
-            removedPlate = plate && GlyphMask.plateColour(pixels) != null,
+            removedPlate = plateColour != null,
         )
     }
 
