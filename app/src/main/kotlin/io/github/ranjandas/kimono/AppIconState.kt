@@ -10,6 +10,7 @@ import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.Mark
 import io.github.ranjandas.kimono.core.design.icon.brandIcon
+import io.github.ranjandas.kimono.core.design.icon.hasNoTileLogo
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.icon.AppMarkBitmaps
 import io.github.ranjandas.kimono.data.apps.icon.AppMarkCache
@@ -42,9 +43,13 @@ internal fun rememberAppMarks(
 }
 
 // The logo is the brand icon the lists show when the font has one, so an app looks the same everywhere, and
-// otherwise the shape cut from the app's icon. A wordmark falls back to the logo for apps without a banner.
+// otherwise the shape cut from the app's icon; apps with no tile logo show their monogram. A wordmark falls back
+// to the logo for apps without a banner.
 private fun markFor(packageName: String, bitmaps: AppMarkBitmaps?, style: IconStyle): Mark? {
-    val logo = brandIcon(packageName)?.let(Mark::Symbol) ?: bitmaps?.logo?.let { Mark.Picture(it.asImageBitmap()) }
+    val logo = when {
+        hasNoTileLogo(packageName) -> null
+        else -> brandIcon(packageName)?.let(Mark::Symbol) ?: bitmaps?.logo?.let { Mark.Picture(it.asImageBitmap()) }
+    }
     return when (style) {
         IconStyle.Logo -> logo
         IconStyle.Wordmark -> bitmaps?.wordmark?.let { Mark.Picture(it.asImageBitmap()) } ?: logo
