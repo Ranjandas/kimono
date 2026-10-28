@@ -75,7 +75,7 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
         val pixels = IntArray(width * source.height)
         source.getPixels(pixels, 0, width, 0, 0, width, source.height)
         val plateColour = if (plate) GlyphMask.plateColour(pixels) else null
-        val alpha = GlyphMask.extract(pixels, plateColour)
+        val alpha = GlyphMask.extract(pixels, width, plateColour)
         val box = GlyphMask.bounds(alpha, width)?.takeIf { it.width * it.height >= MIN_GLYPH_PIXELS }
             ?: return null
         val out = IntArray(box.width * box.height)

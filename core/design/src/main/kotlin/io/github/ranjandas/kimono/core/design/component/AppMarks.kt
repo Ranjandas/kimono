@@ -2,7 +2,7 @@ package io.github.ranjandas.kimono.core.design.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -12,15 +12,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import io.github.ranjandas.kimono.core.design.icon.Icon
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
+/** What a tile shows as an app's logo, tinted in the accent (#116). */
+@Immutable
+sealed interface Mark {
+    /** A shape cut from what the app ships: its logo or banner wordmark. */
+    @Immutable
+    data class Picture(val bitmap: ImageBitmap) : Mark
+
+    /** A brand icon from Kimono's icon font, the same one the lists show. */
+    @Immutable
+    data class Symbol(val icon: KimonoIcon) : Mark
+}
+
 /**
- * Each app's mark by package name: its logo or wordmark as a shape to tint, shown in place of its [Monogram]
- * (#116). Apps without one, or not made yet, have none.
+ * Each app's [Mark] by package name, shown in place of its [Monogram]. Apps without one, or whose mark isn't made
+ * yet, have none.
  */
 @Immutable
-class AppMarks(private val byPackage: Map<String, ImageBitmap>) {
-    operator fun get(packageName: String): ImageBitmap? = byPackage[packageName]
+class AppMarks(private val byPackage: Map<String, Mark>) {
+    operator fun get(packageName: String): Mark? = byPackage[packageName]
 
     companion object {
         val None = AppMarks(emptyMap())
@@ -32,24 +49,35 @@ class AppMarks(private val byPackage: Map<String, ImageBitmap>) {
  * its monogram while there is no mark. The square takes its size from [modifier].
  */
 @Composable
-fun AppMark(label: String, mark: ImageBitmap?, modifier: Modifier = Modifier) {
+fun AppMark(label: String, mark: Mark?, modifier: Modifier = Modifier) {
     if (mark == null) {
         Monogram(label, modifier)
     } else {
         val colors = KimonoTheme.colors
-        Box(
+        BoxWithConstraints(
             modifier = modifier
                 .aspectRatio(1f)
                 .background(colors.accent.copy(alpha = TINT_ALPHA), KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)),
             contentAlignment = Alignment.Center,
         ) {
-            Image(
-                bitmap = mark,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(MARK_SIZE),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(colors.accent),
-            )
+            when (mark) {
+                is Mark.Picture -> Image(
+                    bitmap = mark.bitmap,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(MARK_SIZE),
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(colors.accent),
+                )
+
+                is Mark.Symbol -> {
+                    val fontSize = with(LocalDensity.current) { (maxHeight * MARK_SIZE).toSp() }
+                    Icon(
+                        mark.icon,
+                        color = colors.accent,
+                        style = TextStyle(fontSize = fontSize, lineHeight = fontSize, textAlign = TextAlign.Center),
+                    )
+                }
+            }
         }
     }
 }

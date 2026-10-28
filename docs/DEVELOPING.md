@@ -178,8 +178,8 @@ when a background colour was taken out.
 adb shell am start -n io.github.ranjandas.kimono/.IconLabActivity
 ```
 
-The tiles show each app's logo the same way: the app's own monochrome layer, otherwise the silhouette, and the
-monogram when the result is a solid blob. Held OK on an app sets its icon style to logo, wordmark or monogram
+The tiles show each app's logo: its brand icon from the icon font when there is one (the same as the lists),
+otherwise its own monochrome layer or the silhouette, and the monogram when the result is a solid blob. Held OK on an app sets its icon style to logo, wordmark or monogram
 (#116). Marks are made once per app version and kept in Kimono's cache folder. To make them all again:
 
 ```sh

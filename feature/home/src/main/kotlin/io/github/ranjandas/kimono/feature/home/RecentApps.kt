@@ -13,7 +13,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.component.AppMark
 import io.github.ranjandas.kimono.core.design.component.AppMarks
+import io.github.ranjandas.kimono.core.design.component.Mark
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
@@ -140,7 +140,7 @@ private const val HERO_SCALE = 1.8f
 @Composable
 private fun RecentTile(
     app: InstalledApp,
-    mark: ImageBitmap?,
+    mark: Mark?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,

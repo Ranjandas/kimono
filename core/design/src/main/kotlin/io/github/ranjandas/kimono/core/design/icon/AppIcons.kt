@@ -6,6 +6,14 @@ package io.github.ranjandas.kimono.core.design.icon
  */
 fun appIcon(packageName: String, fallback: KimonoIcon): KimonoIcon = BrandIcons[packageName] ?: fallback
 
+/**
+ * The app's brand icon when the font has a real one, for a tile to show as its logo, the same as in the lists
+ * (#116). Apps named here only to give them a kind of icon have none.
+ */
+fun brandIcon(packageName: String): KimonoIcon? = BrandIcons[packageName]?.takeUnless { it in KindIcons }
+
+private val KindIcons = setOf(KimonoIcon.Media)
+
 // TV packages first, then the phone builds that some people sideload.
 private val BrandIcons = mapOf(
     "com.google.android.youtube.tv" to KimonoIcon.YouTube,

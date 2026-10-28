@@ -19,7 +19,7 @@ class GlyphMaskTest {
             red, white, white, red,
             clear, red, red, clear,
         )
-        val alpha = GlyphMask.extract(image)
+        val alpha = GlyphMask.extract(image, width = 4)
         assertEquals(listOf(0, 0, 0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 0, 0), alpha.toList())
         assertEquals(0xE62117, GlyphMask.plateColour(image))
     }
@@ -28,12 +28,36 @@ class GlyphMaskTest {
     fun `a logo on transparency keeps its own outline`() {
         val image = intArrayOf(
             clear, clear, clear, clear,
-            clear, purple, white, clear,
-            clear, white, purple, clear,
+            clear, purple, purple, clear,
+            clear, purple, purple, clear,
             clear, clear, clear, clear,
         )
         assertNull(GlyphMask.plateColour(image))
-        assertEquals(listOf(0, 0, 0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 0, 0), GlyphMask.extract(image).toList())
+        val alpha = GlyphMask.extract(image, width = 4)
+        assertEquals(listOf(0, 0, 0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 0, 0), alpha.toList())
+    }
+
+    @Test
+    fun `a gap is cut where two colours of a logo meet`() {
+        // Purple on the left, white on the right, on transparency: the purple next to the white is cut away.
+        val image = IntArray(6 * 6) { i ->
+            val x = i % 6
+            val y = i / 6
+            when {
+                x == 0 || x == 5 || y == 0 || y == 5 -> clear
+                x < 3 -> purple
+                else -> white
+            }
+        }
+        val alpha = GlyphMask.extract(image, width = 6)
+        val row = alpha.slice(12 until 18)
+        assertEquals(listOf(0, 0, 0, 255, 255, 0), row)
+    }
+
+    @Test
+    fun `a smooth gradient isn't cut`() {
+        val image = IntArray(16) { i -> 0xFF000000.toInt() or ((i * 4) shl 16) or (i * 4) }
+        assertEquals(List(16) { 255 }, GlyphMask.extract(image, width = 4, plate = null).toList())
     }
 
     @Test

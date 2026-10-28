@@ -1,22 +1,41 @@
 package io.github.ranjandas.kimono.data.apps.icon
 
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 /**
  * Cuts a single-colour glyph out of a colour image, such as an app icon or a TV banner, so it can be tinted.
  *
  * When most of the image is one opaque colour, that colour is the plate the logo sits on (YouTube's red square,
  * Netflix's black one), and the glyph is whatever contrasts with it. Otherwise the image's own transparency
- * already outlines the logo, and the glyph is its alpha.
+ * already outlines the logo, and the glyph is its alpha, with thin gaps cut where two colours meet, so a
+ * many-coloured logo like Google Play's keeps its segments instead of becoming one solid shape.
  */
 internal object GlyphMask {
-    /** The glyph's alpha, 0 to 255, for each pixel of [argb], with [plate] taken out when there is one. */
-    fun extract(argb: IntArray, plate: Int? = plateColour(argb)): IntArray = IntArray(argb.size) { i ->
-        val pixel = argb[i]
-        val alpha = pixel ushr ALPHA_SHIFT
-        if (plate == null) alpha else (alpha * contrast(pixel, plate)).roundToInt()
+    /**
+     * The glyph's alpha, 0 to 255, for each pixel of [argb], an image [width] wide, with [plate] taken out when
+     * there is one.
+     */
+    fun extract(argb: IntArray, width: Int, plate: Int? = plateColour(argb)): IntArray = if (plate == null) {
+        IntArray(argb.size) { i -> if (meetsOtherColour(argb, width, i)) 0 else argb[i] ushr ALPHA_SHIFT }
+    } else {
+        IntArray(argb.size) { i -> ((argb[i] ushr ALPHA_SHIFT) * contrast(argb[i], plate)).roundToInt() }
     }
+
+    // True when an opaque pixel a little to the right or below is a clearly different opaque colour. Looking only
+    // that way puts each gap on one side of the boundary, CUT_WIDTH pixels wide. Smooth gradients never trigger it.
+    private fun meetsOtherColour(argb: IntArray, width: Int, i: Int): Boolean {
+        val pixel = argb[i]
+        if (pixel ushr ALPHA_SHIFT < OPAQUE_ALPHA) return false
+        val x = i % width
+        return (1..CUT_WIDTH).any { step ->
+            val right = if (x + step < width) argb[i + step] else 0
+            val below = argb.getOrElse(i + step * width) { 0 }
+            differs(pixel, right) || differs(pixel, below)
+        }
+    }
+
+    private fun differs(pixel: Int, other: Int): Boolean =
+        other ushr ALPHA_SHIFT >= OPAQUE_ALPHA && distance(pixel, other) > CUT_DISTANCE
 
     /** The plate colour as 0xRRGGBB, or null when no single colour covers most of the image. */
     fun plateColour(argb: IntArray): Int? {
@@ -54,13 +73,8 @@ internal object GlyphMask {
 
     // 0 for the plate's own colour, rising to 1 for anything clearly different, with a soft edge between so
     // anti-aliased outlines stay smooth.
-    private fun contrast(pixel: Int, plate: Int): Float {
-        val dr = red(pixel) - red(plate)
-        val dg = green(pixel) - green(plate)
-        val db = blue(pixel) - blue(plate)
-        val distance = sqrt((dr * dr + dg * dg + db * db).toFloat()) / MAX_DISTANCE
-        return ((distance - CONTRAST_LOW) / (CONTRAST_HIGH - CONTRAST_LOW)).coerceIn(0f, 1f)
-    }
+    private fun contrast(pixel: Int, plate: Int): Float =
+        ((distance(pixel, plate) - CONTRAST_LOW) / (CONTRAST_HIGH - CONTRAST_LOW)).coerceIn(0f, 1f)
 
     private fun meanColour(argb: IntArray, key: Int): Int {
         var r = 0L
@@ -82,14 +96,7 @@ internal object GlyphMask {
         ((green(pixel) shr BUCKET_DROP) shl BUCKET_BITS) or
         (blue(pixel) shr BUCKET_DROP)
 
-    private fun red(pixel: Int) = (pixel shr RED_SHIFT) and CHANNEL
-    private fun green(pixel: Int) = (pixel shr GREEN_SHIFT) and CHANNEL
-    private fun blue(pixel: Int) = pixel and CHANNEL
-
     private const val ALPHA_SHIFT = 24
-    private const val RED_SHIFT = 16
-    private const val GREEN_SHIFT = 8
-    private const val CHANNEL = 0xFF
     private const val BUCKET_BITS = 3
     private const val BUCKET_DROP = 8 - BUCKET_BITS
     private const val BUCKET_COUNT = 1 shl (3 * BUCKET_BITS)
@@ -99,10 +106,12 @@ internal object GlyphMask {
     // A plate covers at least half the image, and one colour makes up at least 40% of its opaque pixels.
     private const val MIN_PLATE_COVER = 0.5f
     private const val MIN_PLATE_SHARE = 0.4f
-
-    private val MAX_DISTANCE = 255f * sqrt(3f)
     private const val CONTRAST_LOW = 0.08f
     private const val CONTRAST_HIGH = 0.25f
+
+    // Two colour areas of a logo, such as Google Play's blue and green, not two shades of one gradient.
+    private const val CUT_DISTANCE = 0.3f
+    private const val CUT_WIDTH = 3
 }
 
 /** A box in pixels: [left] and [top] inclusive, [right] and [bottom] exclusive. */
