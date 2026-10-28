@@ -11,6 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
@@ -44,6 +45,8 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     val workspaces by dependencies.workspaceStore.state.collectAsStateWithLifecycle(initialValue = null)
     val apps by dependencies.appsRepository.apps.collectAsStateWithLifecycle(initialValue = null)
     val recents = rememberRecentApps(dependencies.usageHistory, dependencies.launchHistory, apps)
+    val iconStyles by dependencies.iconStyleStore.styles.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val marks = rememberAppMarks(dependencies.appMarks, apps, iconStyles)
     val isIdle by idle.idle.collectAsStateWithLifecycle()
     val loadedSettings = settings ?: return
     val loadedWorkspaces = workspaces ?: return
@@ -59,7 +62,16 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale) {
         Ambient(wallpaper, theme, loadedSettings.panels, isIdle, shift) {
             KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale, overWallpaper = wallpaper != null) {
-                Screens(dependencies, loadedSettings, updateSettings, loadedWorkspaces, apps, recents, homePresses)
+                Screens(
+                    dependencies = dependencies,
+                    settings = loadedSettings,
+                    updateSettings = updateSettings,
+                    workspaces = loadedWorkspaces,
+                    apps = apps,
+                    recents = recents,
+                    icons = AppIconState(marks, iconStyles),
+                    homePresses = homePresses,
+                )
             }
         }
     }
@@ -73,6 +85,7 @@ private fun Screens(
     workspaces: WorkspaceState,
     apps: List<InstalledApp>?,
     recents: RecentApps,
+    icons: AppIconState,
     homePresses: Int,
 ) {
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
@@ -103,6 +116,9 @@ private fun Screens(
                 clockFormat = settings.clockFormat,
                 recents = recents,
                 onRequestUsageAccess = actions.requestUsageAccess,
+                marks = icons.marks,
+                iconStyles = icons.styles,
+                onChangeIconStyle = actions.changeIconStyle,
             ) {
                 DrawerScreen(
                     apps = apps.orEmpty(),
@@ -157,6 +173,7 @@ private class AppCallbacks(
     val openInfo: (InstalledApp) -> Unit,
     val uninstall: (InstalledApp) -> Unit,
     val requestUsageAccess: () -> Unit,
+    val changeIconStyle: (InstalledApp, IconStyle) -> Unit,
 )
 
 @Composable
@@ -191,6 +208,7 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
         movePin = { app, workspace, by -> scope.launch { store.move(workspace, app.packageName, by) } },
         openInfo = openScreen(AppScreen.Info),
         uninstall = openScreen(AppScreen.Uninstall),
+        changeIconStyle = { app, style -> scope.launch { dependencies.iconStyleStore.set(app.packageName, style) } },
         requestUsageAccess = {
             if (!dependencies.usageHistory.openAccessSettings()) {
                 Toast.makeText(context, USAGE_ACCESS_OVER_ADB, Toast.LENGTH_LONG).show()

@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import io.github.ranjandas.kimono.core.data.history.LaunchHistory
+import io.github.ranjandas.kimono.core.data.icons.IconStyleStore
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.SettingsStore
@@ -20,6 +21,7 @@ import io.github.ranjandas.kimono.data.apps.AppActions
 import io.github.ranjandas.kimono.data.apps.AppLauncher
 import io.github.ranjandas.kimono.data.apps.AppsRepository
 import io.github.ranjandas.kimono.data.apps.UsageHistory
+import io.github.ranjandas.kimono.data.apps.icon.AppMarkCache
 import kotlinx.coroutines.launch
 
 class HomeActivity : ComponentActivity() {
@@ -33,6 +35,8 @@ class HomeActivity : ComponentActivity() {
             usageHistory = UsageHistory.create(this),
             launchHistory = LaunchHistory.create(this),
             wallpapers = WallpaperCache.create(this),
+            iconStyleStore = IconStyleStore.create(this),
+            appMarks = AppMarkCache.create(this),
         )
     }
 

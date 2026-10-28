@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono.data.apps.icon
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -45,6 +46,18 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
             wordmark = banner?.let { glyphOf(it.toBitmap(BANNER_WIDTH_PX, BANNER_HEIGHT_PX), plate = true) },
         )
     }
+
+    /** [load] for an enabled app's activity, by name; null when it can't be found, such as just after an uninstall. */
+    fun load(packageName: String, activityName: String): AppGlyphs? =
+        runCatching { activityInfo(ComponentName(packageName, activityName)) }.getOrNull()?.let(::load)
+
+    private fun activityInfo(component: ComponentName): ActivityInfo =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getActivityInfo(component, PackageManager.ComponentInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getActivityInfo(component, 0)
+        }
 
     // An adaptive icon's foreground usually holds the logo alone. Some apps draw the logo into the background
     // layer and leave the foreground empty, so fall back to the whole icon.

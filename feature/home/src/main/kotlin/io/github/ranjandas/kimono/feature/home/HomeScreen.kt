@@ -21,9 +21,11 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
+import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
@@ -67,6 +69,9 @@ fun HomeScreen(
     recents: RecentApps,
     onRequestUsageAccess: () -> Unit,
     modifier: Modifier = Modifier,
+    marks: AppMarks = AppMarks.None,
+    iconStyles: Map<String, IconStyle> = emptyMap(),
+    onChangeIconStyle: ((InstalledApp, IconStyle) -> Unit)? = null,
     clock: Clock = Clock.systemDefaultZone(),
     allApps: @Composable () -> Unit,
 ) {
@@ -75,7 +80,8 @@ fun HomeScreen(
     val workspaceFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(HomeArea.Apps) }
-    val pageActions = PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen = options != null)
+    val pageActions =
+        PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen = options != null, marks)
     Box(modifier = modifier.fillMaxSize()) {
         HomeLayout(workspace, switcher, topBar = { barModifier ->
             TopBar(
@@ -116,6 +122,8 @@ fun HomeScreen(
                 onOpenAppInfo = onOpenAppInfo,
                 onUninstallApp = onUninstallApp,
                 onDismiss = { options = null },
+                iconStyle = iconStyles[it.packageName] ?: IconStyle.Default,
+                onChangeIconStyle = onChangeIconStyle,
             )
         }
     }
@@ -159,6 +167,8 @@ private fun WorkspaceOptions(
     onOpenAppInfo: (InstalledApp) -> Unit,
     onUninstallApp: (InstalledApp) -> Unit,
     onDismiss: () -> Unit,
+    iconStyle: IconStyle,
+    onChangeIconStyle: ((InstalledApp, IconStyle) -> Unit)?,
 ) {
     val page = workspaces.current
     val choices = workspaces.pinChoices(app.packageName)
@@ -173,6 +183,8 @@ private fun WorkspaceOptions(
         onDismiss = onDismiss,
         onMoveUp = if (index > 0) ({ onMovePin(app, page, -1) }) else null,
         onMoveDown = if (index >= 0 && index < pagePins.lastIndex) ({ onMovePin(app, page, 1) }) else null,
+        iconStyle = iconStyle.label,
+        onNextIconStyle = onChangeIconStyle?.let { change -> { change(app, iconStyle.next) } },
     )
 }
 
@@ -185,6 +197,8 @@ internal class PageActions(
     val onShowOptions: (InstalledApp) -> Unit,
     private val switcher: WorkspaceSwitcher,
     val panelOpen: Boolean,
+    /** Each app's logo for its tile; apps without one show their monogram. */
+    val marks: AppMarks = AppMarks.None,
 ) {
     fun onOpenAllApps() = switcher.select(Workspace.AllApps)
 

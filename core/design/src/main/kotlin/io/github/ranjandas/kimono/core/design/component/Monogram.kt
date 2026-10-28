@@ -43,7 +43,7 @@ fun Monogram(label: String, modifier: Modifier = Modifier) {
 }
 
 // Faint enough that the letters carry the colour, strong enough to read as a square on glass.
-private const val TINT_ALPHA = 0.16f
+internal const val TINT_ALPHA = 0.16f
 
 // Two capitals fill about two thirds of the width at this height.
 private const val LETTER_HEIGHT = 0.42f

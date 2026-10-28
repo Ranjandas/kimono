@@ -13,12 +13,14 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
-import io.github.ranjandas.kimono.core.design.component.Monogram
+import io.github.ranjandas.kimono.core.design.component.AppMark
+import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
@@ -41,7 +43,7 @@ internal val RecentApps.lastUsed: InstalledApp?
     get() = (this as? RecentApps.Apps)?.apps?.firstOrNull()
 
 /**
- * Home's big tile: the app opened last, as a large monogram and its name, so getting back to it is one OK
+ * Home's big tile: the app opened last, as its large logo (or monogram) and its name, so getting back to it is one OK
  * (#108). Held OK opens its options. Before anything has been opened it says where the tile's content comes from.
  */
 @Composable
@@ -50,6 +52,7 @@ internal fun LastUsedTile(
     onLaunchApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
     modifier: Modifier = Modifier,
+    marks: AppMarks = AppMarks.None,
 ) {
     Tile(
         modifier = modifier,
@@ -73,7 +76,7 @@ internal fun LastUsedTile(
                     )
                 }
             } else {
-                Monogram(app.label, Modifier.fillMaxHeight())
+                AppMark(app.label, marks[app.packageName], Modifier.fillMaxHeight())
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(app.label, style = HeroNameStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("press ok to open", style = KimonoTheme.typography.body, color = KimonoTheme.colors.textMuted)
@@ -94,6 +97,7 @@ internal fun RecentsRow(
     onShowOptions: (InstalledApp) -> Unit,
     onRequestAccess: () -> Unit,
     modifier: Modifier = Modifier,
+    marks: AppMarks = AppMarks.None,
 ) {
     // The newest is in the last used tile above.
     val apps = (recents as? RecentApps.Apps)?.apps.orEmpty().drop(1).take(RECENT_SLOTS)
@@ -108,7 +112,8 @@ internal fun RecentsRow(
                 recents is RecentApps.NeedsAccess && slot == 0 ->
                     PlaceholderTile("allow access", "press ok", onRequestAccess, tileModifier)
 
-                app != null -> RecentTile(app, { onLaunchApp(app) }, { onShowOptions(app) }, tileModifier)
+                app != null ->
+                    RecentTile(app, marks[app.packageName], { onLaunchApp(app) }, { onShowOptions(app) }, tileModifier)
 
                 else -> PlaceholderTile("recent", "none yet", {}, tileModifier)
             }
@@ -131,11 +136,17 @@ private val HeroNameStyle: TextStyle
 
 private const val HERO_SCALE = 1.8f
 
-/** A recent app: its monogram filling the tile, and its name under it, since two letters alone can be ambiguous. */
+/** A recent app: its logo or monogram filling the tile, and its name under it, since a mark alone can be ambiguous. */
 @Composable
-private fun RecentTile(app: InstalledApp, onClick: () -> Unit, onLongClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun RecentTile(
+    app: InstalledApp,
+    mark: ImageBitmap?,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Tile(modifier = modifier, onClick = onClick, onLongClick = onLongClick) {
-        Monogram(app.label, Modifier.weight(1f))
+        AppMark(app.label, mark, Modifier.weight(1f))
         // A quarter-width tile fits about nine characters of body text.
         Text(
             app.label,
