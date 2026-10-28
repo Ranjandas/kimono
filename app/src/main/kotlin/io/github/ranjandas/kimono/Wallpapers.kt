@@ -18,11 +18,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
 import io.github.ranjandas.kimono.core.data.settings.Panels
+import io.github.ranjandas.kimono.core.data.wallpaper.DrawnWallpaper
 import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.design.component.Backdrop
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.feature.settings.WallpaperChoice
+import java.time.LocalDate
 
 /**
  * Each theme's wallpaper, downloaded on first use rather than shipped (see [WallpaperCache]). Links are pinned
@@ -35,17 +37,24 @@ private val ThemeWallpapers = mapOf(
 )
 
 /** The wallpaper to show for these settings, or null for none. */
-internal fun wallpaperUrl(settings: LauncherSettings, theme: ThemeId): String? = when {
-    !settings.wallpaper -> null
-    else -> artworkUrl(settings, theme)
-}
+internal fun wallpaperUrl(settings: LauncherSettings, theme: ThemeId, today: LocalDate = LocalDate.now()): String? =
+    when {
+        !settings.wallpaper -> null
+        else -> artworkUrl(settings, theme, today)
+    }
 
 /**
  * The image the pixel art is made from: the wallpaper, even with it switched off on home, since choosing Kimono
  * as the screensaver is asking for the art. Null if the theme has none and no image of the user's is set.
  */
-internal fun artworkUrl(settings: LauncherSettings, theme: ThemeId): String? =
-    settings.wallpaperUrl ?: ThemeWallpapers[theme]
+internal fun artworkUrl(settings: LauncherSettings, theme: ThemeId, today: LocalDate = LocalDate.now()): String? =
+    settings.wallpaperUrl ?: themeWallpaper(theme, today)
+
+/** Kimono's own theme draws its wallpapers, a different one each day; the others download theirs. */
+private fun themeWallpaper(theme: ThemeId, today: LocalDate): String? = when (theme) {
+    ThemeId.Kimono -> DrawnWallpaper.forDay(today.toEpochDay()).url
+    else -> ThemeWallpapers[theme]
+}
 
 internal fun wallpaperChoice(settings: LauncherSettings): WallpaperChoice = when {
     !settings.wallpaper -> WallpaperChoice.Off

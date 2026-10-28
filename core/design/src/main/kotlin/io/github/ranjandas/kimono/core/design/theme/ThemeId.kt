@@ -10,7 +10,8 @@ enum class ThemeId(val displayName: String, val palette: Palette) {
     /**
      * Kimono's own theme, made for OLED panels. The screen is true black, so its pixels are off, and tiles are only
      * just lit. Text is a warm off-white rather than white, so labels that stay put wear the panel less. The colours
-     * are traditional Japanese dyes: shu vermilion for focus, kin gold for headers. It has no wallpaper of its own.
+     * are traditional Japanese dyes: shu vermilion for focus, kin gold for headers. Its wallpapers are drawn by
+     * Kimono in the same dyes, thin lines on black, a different one each day.
      */
     Kimono(
         "Kimono",
