@@ -14,6 +14,7 @@ import io.github.ranjandas.kimono.core.data.history.LaunchHistory
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.SettingsStore
+import io.github.ranjandas.kimono.core.data.wallpaper.DrawnWallpaper
 import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceStore
 import io.github.ranjandas.kimono.data.apps.AppActions
@@ -78,10 +79,11 @@ class HomeActivity : ComponentActivity() {
         idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN) || super.dispatchKeyEvent(event)
 
     // Sets a wallpaper of the user's own, since typing a URL with a remote is painful (docs/DEVELOPING.md). An
-    // empty value goes back to the theme's. Only https links are taken.
+    // empty value goes back to the theme's. Only https links are taken, and the kimono: links of the wallpapers
+    // Kimono draws, which pin one of those under any theme.
     private fun applyWallpaperExtra(intent: Intent) {
         val url = intent.getStringExtra(WALLPAPER_EXTRA) ?: return
-        if (url.isNotEmpty() && !url.startsWith("https://")) return
+        if (url.isNotEmpty() && !url.startsWith("https://") && DrawnWallpaper.fromUrl(url) == null) return
         lifecycleScope.launch {
             dependencies.settingsStore.update { it.copy(wallpaperUrl = url.ifEmpty { null }, wallpaper = true) }
         }
