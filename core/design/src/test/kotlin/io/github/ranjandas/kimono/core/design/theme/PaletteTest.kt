@@ -49,12 +49,20 @@ class PaletteTest {
     }
 
     @Test
-    fun `ships the seven Omarchy palettes with Tokyo Night as default`() {
+    fun `ships Kimono's own palette and the seven Omarchy ones, with Tokyo Night as default`() {
         assertEquals(
-            listOf("Tokyo Night", "Catppuccin", "Gruvbox", "Rosé Pine", "Nord", "Kanagawa", "Everforest"),
+            listOf("Kimono", "Tokyo Night", "Catppuccin", "Gruvbox", "Rosé Pine", "Nord", "Kanagawa", "Everforest"),
             ThemeId.entries.map { it.displayName },
         )
         assertEquals(ThemeId.TokyoNight, ThemeId.Default)
+    }
+
+    @Test
+    fun `Kimono keeps OLED pixels off behind everything and its tiles only just lit`() {
+        val p = ThemeId.Kimono.palette
+        assertEquals(Rgb.of("#000000"), p.background)
+        assertTrue(p.surface.luminance < MAX_OLED_SURFACE_LUMINANCE, "surface ${p.surface} is too bright")
+        assertTrue(p.foreground.luminance < 1.0, "text should be off-white, not white")
     }
 
     @Test
@@ -70,5 +78,10 @@ class PaletteTest {
     private fun assertContrast(a: Rgb, b: Rgb, min: Double, what: String) {
         val ratio = contrastRatio(a, b)
         assertTrue(ratio >= min, "$what: $a on $b is %.2f:1".format(ratio))
+    }
+
+    private companion object {
+        /** About 1% of white: enough to show a tile's edge on black, too little to wear an OLED panel. */
+        const val MAX_OLED_SURFACE_LUMINANCE = 0.01
     }
 }

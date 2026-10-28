@@ -3,9 +3,36 @@ package io.github.ranjandas.kimono.core.design.theme
 private fun rgb(hex: String) = Rgb.of(hex)
 
 /**
- * The palettes Kimono ships, ported from the themes in Omarchy (MIT); see NOTICE for the upstream themes.
+ * The palettes Kimono ships: Kimono's own, then the themes ported from Omarchy (MIT); see NOTICE for the upstream
+ * themes.
  */
 enum class ThemeId(val displayName: String, val palette: Palette) {
+    /**
+     * Kimono's own theme, made for OLED panels. The screen is true black, so its pixels are off, and tiles are only
+     * just lit. Text is a warm off-white rather than white, so labels that stay put wear the panel less. The colours
+     * are traditional Japanese dyes: shu vermilion for focus, kin gold for headers. Its wallpapers are drawn by
+     * Kimono in the same dyes, thin lines on black, a different one each day.
+     */
+    Kimono(
+        "Kimono",
+        Palette(
+            isLight = false,
+            background = rgb("#000000"),
+            surface = rgb("#0b0a0d"),
+            surfaceVariant = rgb("#1d1a21"),
+            foreground = rgb("#dcd6ca"),
+            mutedForeground = rgb("#6b6573"),
+            line = rgb("#2e2a34"),
+            accent = rgb("#f2543d"),
+            accent2 = rgb("#e6b84a"),
+            red = rgb("#ef4657"),
+            yellow = rgb("#e6b84a"),
+            green = rgb("#93b866"),
+            cyan = rgb("#4fb3bf"),
+            blue = rgb("#6f95e0"),
+            magenta = rgb("#c77dba"),
+        ),
+    ),
     TokyoNight(
         "Tokyo Night",
         Palette(

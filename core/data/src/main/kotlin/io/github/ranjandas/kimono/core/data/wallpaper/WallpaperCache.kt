@@ -23,10 +23,15 @@ class WallpaperCache(
     private val download: (URL) -> ByteArray = ::httpGet,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    /** The wallpaper at [url], or null if it can't be downloaded or decoded. */
+    /**
+     * The wallpaper at [url], or null if it can't be downloaded or decoded. A [DrawnWallpaper] link is drawn
+     * instead, each time, since that's quicker than reading it back.
+     */
     suspend fun load(url: String): Wallpaper? = withContext(ioDispatcher) {
         val file = File(dir, "${sha256(url)}.webp")
-        (cached(file) ?: fetch(url, file))?.let { Wallpaper(it, blurred(it)) }
+        val drawn = DrawnWallpaper.fromUrl(url)
+        val screen = if (drawn != null) drawForScreen(drawn) else cached(file) ?: fetch(url, file)
+        screen?.let { Wallpaper(it, blurred(it)) }
     }
 
     private fun cached(file: File): Bitmap? = if (file.exists()) BitmapFactory.decodeFile(file.path) else null
@@ -68,6 +73,12 @@ private fun decodeForScreen(bytes: ByteArray): Bitmap? {
     val crop = centerCrop(decoded.width, decoded.height, width, height)
     val cropped = Bitmap.createBitmap(decoded, crop.x, crop.y, crop.width, crop.height)
     return cropped.scale(width, height)
+}
+
+private fun drawForScreen(wallpaper: DrawnWallpaper): Bitmap {
+    val width = WallpaperCache.SCREEN_WIDTH
+    val height = WallpaperCache.SCREEN_HEIGHT
+    return Bitmap.createBitmap(wallpaper.pixels(width, height), width, height, Bitmap.Config.ARGB_8888)
 }
 
 /**
