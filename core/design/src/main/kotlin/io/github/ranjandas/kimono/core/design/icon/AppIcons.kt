@@ -6,6 +6,24 @@ package io.github.ranjandas.kimono.core.design.icon
  */
 fun appIcon(packageName: String, fallback: KimonoIcon): KimonoIcon = BrandIcons[packageName] ?: fallback
 
+/**
+ * The app's brand icon when the font has a real one, for a tile to show as its logo, the same as in the lists
+ * (#116). Apps named here only to give them a kind of icon have none.
+ */
+fun brandIcon(packageName: String): KimonoIcon? =
+    BrandIcons[packageName]?.takeUnless { it in KindIcons || packageName in BorrowedIcons }
+
+/**
+ * True for apps whose tile should show their monogram rather than a logo: the list borrows another brand's icon
+ * for them, which on a tile would make two apps look the same, and their own logo doesn't cut out cleanly.
+ */
+fun hasNoTileLogo(packageName: String): Boolean = packageName in BorrowedIcons
+
+private val KindIcons = setOf(KimonoIcon.Media)
+
+// SmartTube is a YouTube client: YouTube's icon suits it in a list, but not as a big tile next to YouTube's own.
+private val BorrowedIcons = setOf("org.smarttube.stable", "org.smarttube.beta", "com.teamsmart.videomanager.tv")
+
 // TV packages first, then the phone builds that some people sideload.
 private val BrandIcons = mapOf(
     "com.google.android.youtube.tv" to KimonoIcon.YouTube,

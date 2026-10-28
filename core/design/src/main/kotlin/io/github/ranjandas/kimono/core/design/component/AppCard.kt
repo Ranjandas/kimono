@@ -25,12 +25,18 @@ import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * An app in a grid: its [Monogram] with the name under it. Focus lifts the card onto the variant surface with an
- * accent border; OK is [onClick] and held OK [onLongClick], as on a [ListRow].
+ * An app in a grid: its [AppMark] ([mark], or its monogram without one) with the name under it. Focus lifts the card
+ * onto the variant surface with an accent border; OK is [onClick] and held OK [onLongClick], as on a [ListRow].
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AppCard(label: String, onClick: () -> Unit, onLongClick: () -> Unit, modifier: Modifier = Modifier) {
+fun AppCard(
+    label: String,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    mark: Mark? = null,
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     val heldOk = remember { HeldOk() }
@@ -52,7 +58,7 @@ fun AppCard(label: String, onClick: () -> Unit, onLongClick: () -> Unit, modifie
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Monogram(label, Modifier.fillMaxWidth())
+        AppMark(label, mark, Modifier.fillMaxWidth())
         Text(
             label,
             style = KimonoTheme.typography.body,

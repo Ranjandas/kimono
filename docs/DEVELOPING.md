@@ -170,6 +170,25 @@ adb shell input keyevent KEYCODE_DPAD_CENTER
 To go back to Google's, put the value you noted back, for example
 `com.google.android.apps.tv.dreamx/.service.Backdrop`.
 
+### Icon lab
+
+Debug builds include a page that shows every app on the TV in each themed icon style side by side: the colour
+icon, the app's own monochrome layer, a silhouette cut from the icon, a wordmark cut from the banner, and the
+monogram (#114). Left and Right cycle the theme. Under each glyph is how much of its box it fills, and `plate`
+when a background colour was taken out.
+
+```sh
+adb shell am start -n io.github.ranjandas.kimono/.IconLabActivity
+```
+
+The tiles show each app's logo: its brand icon from the icon font when there is one (the same as the lists),
+otherwise its own monochrome layer or the silhouette, and the monogram when the result is a solid blob. Held OK on an app sets its icon style to logo, wordmark or monogram
+(#116). Marks are made once per app version and kept in Kimono's cache folder. To make them all again:
+
+```sh
+adb shell run-as io.github.ranjandas.kimono rm -r cache/marks
+```
+
 ### Logs
 
 ```sh

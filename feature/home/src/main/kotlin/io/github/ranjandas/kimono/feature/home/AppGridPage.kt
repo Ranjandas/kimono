@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.AppCard
+import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.TextButton
@@ -37,9 +38,9 @@ import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
 
 /**
- * A workspace that is just its apps, watch or play: a grid of their monograms filling the page, pins first. OK
- * opens one and held OK its options; Back goes home. An empty workspace offers all apps instead, so there's always
- * something to press. [apps] is null while the app list is still loading.
+ * A workspace that is just its apps, watch or play: a grid of their logos (or monograms) filling the page, pins
+ * first. OK opens one and held OK its options; Back goes home. An empty workspace offers all apps instead, so
+ * there's always something to press. [apps] is null while the app list is still loading.
  */
 @Composable
 internal fun AppGridPage(
@@ -75,6 +76,7 @@ internal fun AppGridPage(
                         unavailable = app.takeIf { actions.onLaunchApp(it) is LaunchResult.Unavailable }
                     },
                     onShowOptions = actions.onShowOptions,
+                    marks = actions.marks,
                     modifier = Modifier.weight(1f).focusRequester(gridFocus),
                 )
 
@@ -98,6 +100,7 @@ private fun AppGrid(
     apps: List<InstalledApp>,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
+    marks: AppMarks,
     modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
@@ -108,7 +111,12 @@ private fun AppGrid(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(apps, key = { it.packageName }) { app ->
-            AppCard(label = app.label, onClick = { onClickApp(app) }, onLongClick = { onShowOptions(app) })
+            AppCard(
+                label = app.label,
+                onClick = { onClickApp(app) },
+                onLongClick = { onShowOptions(app) },
+                mark = marks[app.packageName],
+            )
         }
     }
 }

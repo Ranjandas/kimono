@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug builds only: compares themed app icon styles (#114). Open with
+             adb shell am start -n io.github.ranjandas.kimono/.IconLabActivity -->
+        <activity
+            android:name=".IconLabActivity"
+            android:exported="true" />
+    </application>
+</manifest>
