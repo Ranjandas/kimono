@@ -32,9 +32,19 @@ import java.time.LocalDate
  */
 private val ThemeWallpapers = mapOf(
     // Omarchy's Quattro, from its Tokyo Night set.
-    ThemeId.TokyoNight to "https://raw.githubusercontent.com/omacom/omarchy/" +
-        "097c733fc6f24cd437028e0233910b7143fe83f7/themes/tokyo-night/backgrounds/2-quattro.webp",
+    ThemeId.TokyoNight to omarchyWallpaper("tokyo-night/backgrounds/2-quattro.webp"),
+    ThemeId.Catppuccin to omarchyWallpaper("catppuccin/backgrounds/2-waves.webp"),
+    ThemeId.Gruvbox to omarchyWallpaper("gruvbox/backgrounds/1-the-backwater.jpg"),
+    ThemeId.RosePine to omarchyWallpaper("rose-pine/backgrounds/1-funky-shapes.webp"),
+    ThemeId.Nord to omarchyWallpaper("nord/backgrounds/0-black-moon.jpg"),
+    // Hokusai's The Great Wave off Kanagawa.
+    ThemeId.Kanagawa to omarchyWallpaper("kanagawa/backgrounds/1-kanagawa.jpg"),
+    ThemeId.Everforest to omarchyWallpaper("everforest/backgrounds/1-tree-tops.webp"),
 )
+
+/** An image from one of Omarchy's themes, at the commit Quattro was picked from. */
+private fun omarchyWallpaper(path: String) =
+    "https://raw.githubusercontent.com/omacom/omarchy/097c733fc6f24cd437028e0233910b7143fe83f7/themes/$path"
 
 /** The wallpaper to show for these settings, or null for none. */
 internal fun wallpaperUrl(settings: LauncherSettings, theme: ThemeId, today: LocalDate = LocalDate.now()): String? =
