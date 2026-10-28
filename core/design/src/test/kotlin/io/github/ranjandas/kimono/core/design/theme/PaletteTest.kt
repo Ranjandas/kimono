@@ -49,12 +49,12 @@ class PaletteTest {
     }
 
     @Test
-    fun `ships Kimono's own palette and the seven Omarchy ones, with Tokyo Night as default`() {
+    fun `ships Kimono's own palette and the seven Omarchy ones, with Kimono as default`() {
         assertEquals(
             listOf("Kimono", "Tokyo Night", "Catppuccin", "Gruvbox", "Rosé Pine", "Nord", "Kanagawa", "Everforest"),
             ThemeId.entries.map { it.displayName },
         )
-        assertEquals(ThemeId.TokyoNight, ThemeId.Default)
+        assertEquals(ThemeId.Kimono, ThemeId.Default)
     }
 
     @Test
