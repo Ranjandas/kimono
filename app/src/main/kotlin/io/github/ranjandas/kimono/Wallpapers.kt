@@ -74,8 +74,12 @@ internal fun wallpaperChoice(settings: LauncherSettings): WallpaperChoice = when
     else -> WallpaperChoice.Theme
 }
 
-/** Every theme's downloaded wallpaper, fetched ahead so that switching theme never waits for the network. */
-internal val themeWallpaperUrls: Collection<String> get() = ThemeWallpapers.values
+/**
+ * Every theme's wallpaper, fetched (or for Kimono's, drawn) ahead so that switching theme never waits for the
+ * network or a 2 s draw.
+ */
+internal val themeWallpaperUrls: Collection<String>
+    get() = ThemeWallpapers.values + DrawnWallpaper.entries.map { it.url }
 
 /** A loaded wallpaper and its blurred copy, ready to draw. */
 internal class WallpaperImages(val image: ImageBitmap, val blurred: ImageBitmap)
