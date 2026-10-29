@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -96,8 +97,8 @@ internal fun rememberWallpaper(cache: WallpaperCache, url: String?): WallpaperIm
 
 /**
  * How far the wallpaper has faded in, from 0 to 1, so the first one doesn't pop in after the first frame. A
- * switch from one wallpaper to another is at once, like the theme's colours. A function, read while drawing, so
- * the fade doesn't recompose anything.
+ * switch from one wallpaper to another crossfades instead (see [WallpaperBackground]). A function, read while
+ * drawing, so the fade doesn't recompose anything.
  */
 @Composable
 internal fun rememberFadeIn(wallpaper: WallpaperImages?): () -> Float {
@@ -120,21 +121,28 @@ internal fun rememberBackdrop(wallpaper: WallpaperImages?, panels: Panels, fade:
 
 /**
  * The theme background, with the wallpaper over it under a tint of the same colour, so text on and between the
- * tiles stays readable over a bright image.
+ * tiles stays readable over a bright image. A new wallpaper crossfades in over the last one.
  */
 @Composable
 internal fun WallpaperBackground(wallpaper: WallpaperImages?, fade: () -> Float, modifier: Modifier = Modifier) {
     val background = KimonoTheme.colors.background
     Box(modifier.fillMaxSize().background(background)) {
-        if (wallpaper != null) {
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = fade() }) {
-                Image(
-                    wallpaper.image,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(Modifier.fillMaxSize().background(background.copy(alpha = WALLPAPER_TINT)))
+        Crossfade(
+            targetState = wallpaper,
+            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = fade() },
+            animationSpec = tween(SWITCH_FADE_MS),
+            label = "wallpaper",
+        ) { shown ->
+            if (shown != null) {
+                Box(Modifier.fillMaxSize()) {
+                    Image(
+                        shown.image,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Box(Modifier.fillMaxSize().background(background.copy(alpha = WALLPAPER_TINT)))
+                }
             }
         }
     }
@@ -142,3 +150,4 @@ internal fun WallpaperBackground(wallpaper: WallpaperImages?, fade: () -> Float,
 
 private const val WALLPAPER_TINT = 0.55f
 private const val FADE_IN_MS = 600
+private const val SWITCH_FADE_MS = 400
