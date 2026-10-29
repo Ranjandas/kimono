@@ -27,6 +27,7 @@ class DataStoreSettingsStoreTest {
             wallpaper = false,
             wallpaperUrl = "https://example.com/wall.webp",
             panels = Panels.Solid,
+            systemPanel = SystemPanel.Top,
         )
         store.update { changed }
         DataStoreSettingsStore(dataStore).settings.test { assertEquals(changed, awaitItem()) }

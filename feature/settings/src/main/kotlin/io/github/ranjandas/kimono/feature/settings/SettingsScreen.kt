@@ -26,6 +26,7 @@ import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.Panels
+import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
@@ -63,6 +64,8 @@ fun SettingsScreen(
     onPanelsChange: (Panels) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    systemPanel: SystemPanel = SystemPanel.Default,
+    onSystemPanelChange: (SystemPanel) -> Unit = {},
 ) {
     val firstRow = remember { FocusRequester() }
     // Retried like home and the drawer, in case the screen draws before it can take focus.
@@ -107,6 +110,9 @@ fun SettingsScreen(
                 })
                 SettingRow(KimonoIcon.Wallpaper, "wallpaper", wallpaper.label, onStep = { onWallpaperToggle() })
                 SettingRow(KimonoIcon.Glass, "panels", panels.label, onStep = { onPanelsChange(panels.step(it)) })
+                SettingRow(KimonoIcon.Activity, "system tile", systemPanel.label, onStep = {
+                    onSystemPanelChange(systemPanel.step(it))
+                })
             }
         }
         // Pinned to the bottom, where home and the drawer keep theirs.

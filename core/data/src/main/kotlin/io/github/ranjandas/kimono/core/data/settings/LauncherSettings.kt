@@ -21,6 +21,7 @@ data class LauncherSettings(
     /** An image of the user's own, set over adb; null uses the theme's wallpaper. */
     val wallpaperUrl: String? = null,
     val panels: Panels = Panels.Default,
+    val systemPanel: SystemPanel = SystemPanel.Default,
 )
 
 /** How the top bar shows the time. */
@@ -64,5 +65,19 @@ enum class Panels(val label: String, val opacity: Float) {
 
     companion object {
         val Default = Frosted
+    }
+}
+
+/** What home's system tile shows. */
+enum class SystemPanel(val label: String) {
+    /** What the box is: device, Android version, uptime, storage, like a fetch tool. */
+    Fetch("fetch"),
+
+    /** How it's doing right now: memory, CPU, heat, network and the apps on screen most today, like top. */
+    Top("top"),
+    ;
+
+    companion object {
+        val Default = Fetch
     }
 }

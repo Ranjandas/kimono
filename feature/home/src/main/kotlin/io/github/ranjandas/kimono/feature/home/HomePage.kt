@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
@@ -22,9 +23,10 @@ import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 
 /**
- * The home workspace: the last used app and the ones before it on the left, system info and the apps list on the right,
- * key hints below. [apps] is null while the app list is still loading. With no apps at all, focus goes to
- * [emptyFocus] (the workspace's button in the top bar) so the remote still has something to move from.
+ * The home workspace: the last used app and the ones before it on the left, system info (in the [systemPanel] view)
+ * and the apps list on the right, key hints below. [apps] is null while the app list is still loading. With no apps at
+ * all, focus goes to [emptyFocus] (the workspace's button in the top bar) so the remote still has something to move
+ * from.
  */
 @Composable
 internal fun HomePage(
@@ -33,6 +35,8 @@ internal fun HomePage(
     recents: RecentApps,
     onRequestUsageAccess: () -> Unit,
     theme: ThemeId,
+    systemPanel: SystemPanel,
+    screenTime: ScreenTimeToday,
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
     emptyFocus: FocusRequester,
@@ -84,7 +88,7 @@ internal fun HomePage(
                 modifier = Modifier.width(HomeDimens.SideColumnWidth).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
             ) {
-                SystemInfoTile(theme, Modifier.fillMaxWidth())
+                SystemTile(systemPanel, theme, screenTime, Modifier.fillMaxWidth())
                 AppsTile(
                     apps = apps,
                     onLaunchApp = actions.onLaunchApp,

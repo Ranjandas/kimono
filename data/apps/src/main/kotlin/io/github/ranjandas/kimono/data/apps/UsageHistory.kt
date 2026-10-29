@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Process
 import android.provider.Settings
 import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,6 +25,12 @@ interface UsageHistory {
     /** Packages brought to the foreground within [window], most recent first. Empty without access. */
     suspend fun recentPackages(window: Duration = DefaultWindow): List<String>
 
+    /**
+     * How long each package was on screen since [since], longest first, leaving out Kimono itself. Empty without
+     * access. The system keeps these totals in day-sized buckets, so a start mid-day is rounded to its bucket.
+     */
+    suspend fun screenTime(since: Instant): List<ScreenTime>
+
     /** Opens the usage access screen in Settings. False when this device has none. */
     fun openAccessSettings(): Boolean
 
@@ -33,6 +40,13 @@ interface UsageHistory {
         fun create(context: Context): UsageHistory = SystemUsageHistory(context)
     }
 }
+
+/** How long one package was in the foreground. */
+data class ScreenTime(val packageName: String, val time: Duration)
+
+/** Packages that were on screen at all, longest first. */
+internal fun longestFirst(times: List<ScreenTime>): List<ScreenTime> =
+    times.filter { !it.time.isZero && !it.time.isNegative }.sortedByDescending { it.time }
 
 /** One time an app came to the foreground. */
 internal data class AppUse(val packageName: String, val timeMillis: Long)
@@ -62,6 +76,18 @@ internal class SystemUsageHistory(context: Context, private val ioDispatcher: Co
         return withContext(ioDispatcher) {
             val end = System.currentTimeMillis()
             mostRecentFirst(readUses(end - window.toMillis(), end)).filter { it != appContext.packageName }
+        }
+    }
+
+    override suspend fun screenTime(since: Instant): List<ScreenTime> {
+        if (!hasAccess()) return emptyList()
+        return withContext(ioDispatcher) {
+            val stats = usageStats.queryAndAggregateUsageStats(since.toEpochMilli(), System.currentTimeMillis())
+            longestFirst(
+                stats.values
+                    .filter { it.packageName != appContext.packageName }
+                    .map { ScreenTime(it.packageName, Duration.ofMillis(it.totalTimeInForeground)) },
+            )
         }
     }
 

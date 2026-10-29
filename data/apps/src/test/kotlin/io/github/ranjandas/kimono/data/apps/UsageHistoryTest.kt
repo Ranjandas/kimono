@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono.data.apps
 
+import java.time.Duration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -18,5 +19,18 @@ class UsageHistoryTest {
     @Test
     fun `no uses means no recents`() {
         assertEquals(emptyList<String>(), mostRecentFirst(emptyList()))
+    }
+
+    @Test
+    fun `screen time is longest first and drops apps never on screen`() {
+        val times = listOf(
+            ScreenTime("kodi", Duration.ofMinutes(5)),
+            ScreenTime("tuner", Duration.ZERO),
+            ScreenTime("youtube", Duration.ofMinutes(72)),
+        )
+        assertEquals(
+            listOf(ScreenTime("youtube", Duration.ofMinutes(72)), ScreenTime("kodi", Duration.ofMinutes(5))),
+            longestFirst(times),
+        )
     }
 }
