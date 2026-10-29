@@ -45,6 +45,11 @@ enum class KimonoIcon(val codePoint: Int) {
     Idle(0xF04B2), // nf-md-sleep
     Storage(0xF02CA), // nf-md-harddisk
     Font(0xF06D6), // nf-md-format_font
+    Activity(0xF0430), // nf-md-pulse
+    Memory(0xF035B), // nf-md-memory
+    Cpu(0xF061A), // nf-md-chip
+    Heat(0xF050F), // nf-md-thermometer
+    Traffic(0xF04E2), // nf-md-swap_vertical
 
     // Settings
     Palette(0xF03D8), // nf-md-palette

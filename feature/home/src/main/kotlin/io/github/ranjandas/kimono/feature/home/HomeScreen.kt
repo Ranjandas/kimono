@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
+import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppMarks
@@ -70,6 +71,8 @@ fun HomeScreen(
     onRequestUsageAccess: () -> Unit,
     modifier: Modifier = Modifier,
     marks: AppMarks = AppMarks.None,
+    systemPanel: SystemPanel = SystemPanel.Default,
+    screenTime: ScreenTimeToday = ScreenTimeToday.Apps(emptyList()),
     iconStyles: Map<String, IconStyle> = emptyMap(),
     onChangeIconStyle: ((InstalledApp, IconStyle) -> Unit)? = null,
     clock: Clock = Clock.systemDefaultZone(),
@@ -103,6 +106,8 @@ fun HomeScreen(
                     recents = recents,
                     onRequestUsageAccess = onRequestUsageAccess,
                     theme = theme,
+                    systemPanel = systemPanel,
+                    screenTime = screenTime,
                     focusArea = focusArea,
                     onFocusArea = { focusArea = it },
                     emptyFocus = workspaceFocus,

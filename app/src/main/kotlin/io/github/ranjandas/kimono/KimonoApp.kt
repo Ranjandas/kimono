@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
+import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
@@ -91,6 +92,11 @@ private fun Screens(
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
     val actions = appCallbacks(dependencies, workspaces)
     val theme = ThemeId.fromName(settings.themeName)
+    val screenTime = rememberScreenTimeToday(
+        dependencies.usageHistory,
+        apps,
+        enabled = settings.systemPanel == SystemPanel.Top,
+    )
     // A Home press goes back to the start: the home screen on workspace 1. Everything else (the screen, the
     // workspace) is saved, so it survives the process being killed in the background.
     LaunchedEffect(homePresses) {
@@ -117,6 +123,8 @@ private fun Screens(
                 recents = recents,
                 onRequestUsageAccess = actions.requestUsageAccess,
                 marks = icons.marks,
+                systemPanel = settings.systemPanel,
+                screenTime = screenTime,
                 iconStyles = icons.styles,
                 onChangeIconStyle = actions.changeIconStyle,
             ) {
@@ -159,6 +167,8 @@ private fun Settings(
         onWallpaperToggle = { updateSettings { it.copy(wallpaper = !it.wallpaper) } },
         panels = settings.panels,
         onPanelsChange = { new -> updateSettings { it.copy(panels = new) } },
+        systemPanel = settings.systemPanel,
+        onSystemPanelChange = { new -> updateSettings { it.copy(systemPanel = new) } },
         onClose = onClose,
     )
 }
