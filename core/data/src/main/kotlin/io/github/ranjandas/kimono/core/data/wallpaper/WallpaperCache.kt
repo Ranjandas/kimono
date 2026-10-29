@@ -75,7 +75,7 @@ class WallpaperCache(
     }
 
     private fun prune() {
-        val files = dir.listFiles { it: File -> it.name.endsWith(".webp") }?.toList() ?: return
+        val files = dir.listFiles { file: File -> file.name.endsWith(".webp") }?.toList() ?: return
         oldestBeyond(files, KEPT_ON_DISK, File::lastModified).forEach(File::delete)
     }
 
