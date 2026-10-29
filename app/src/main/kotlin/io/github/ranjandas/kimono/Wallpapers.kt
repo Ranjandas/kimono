@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
 import io.github.ranjandas.kimono.core.data.settings.Panels
 import io.github.ranjandas.kimono.core.data.wallpaper.DrawnWallpaper
+import io.github.ranjandas.kimono.core.data.wallpaper.Wallpaper
 import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.design.component.Backdrop
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
@@ -72,26 +73,35 @@ internal fun wallpaperChoice(settings: LauncherSettings): WallpaperChoice = when
     else -> WallpaperChoice.Theme
 }
 
+/** Every theme's downloaded wallpaper, fetched ahead so that switching theme never waits for the network. */
+internal val themeWallpaperUrls: Collection<String> get() = ThemeWallpapers.values
+
 /** A loaded wallpaper and its blurred copy, ready to draw. */
 internal class WallpaperImages(val image: ImageBitmap, val blurred: ImageBitmap)
 
-/** The images at [url], once they're loaded; null while loading, for no wallpaper, or if it can't be fetched. */
+private fun Wallpaper.toImages() = WallpaperImages(image.asImageBitmap(), blurred.asImageBitmap())
+
+/**
+ * The images at [url], once they're loaded; null for no wallpaper, or if it can't be fetched. One already in
+ * memory shows in the same frame. While another loads, the last one stays, so the screen never flashes bare.
+ */
 @Composable
 internal fun rememberWallpaper(cache: WallpaperCache, url: String?): WallpaperImages? {
-    val wallpaper by produceState<WallpaperImages?>(initialValue = null, url) {
-        val loaded = url?.let { cache.load(it) }
-        value = loaded?.let { WallpaperImages(it.image.asImageBitmap(), it.blurred.asImageBitmap()) }
+    val inMemory = remember(cache, url) { url?.let(cache::peek)?.toImages() }
+    val loaded by produceState(initialValue = inMemory, cache, url) {
+        value = inMemory ?: url?.let { cache.load(it) }?.toImages()
     }
-    return wallpaper
+    return if (url == null) null else inMemory ?: loaded
 }
 
 /**
- * How far [wallpaper] has faded in, from 0 to 1, so it doesn't pop in after the first frame. A function, read
- * while drawing, so the fade doesn't recompose anything.
+ * How far the wallpaper has faded in, from 0 to 1, so the first one doesn't pop in after the first frame. A
+ * switch from one wallpaper to another is at once, like the theme's colours. A function, read while drawing, so
+ * the fade doesn't recompose anything.
  */
 @Composable
 internal fun rememberFadeIn(wallpaper: WallpaperImages?): () -> Float {
-    val visibility = remember(wallpaper) { Animatable(0f) }
+    val visibility = remember(wallpaper != null) { Animatable(0f) }
     LaunchedEffect(visibility) { visibility.animateTo(1f, tween(FADE_IN_MS)) }
     return remember(visibility) { { visibility.value } }
 }
