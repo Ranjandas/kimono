@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -19,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
 import io.github.ranjandas.kimono.core.data.settings.Panels
 import io.github.ranjandas.kimono.core.data.wallpaper.DrawnWallpaper
+import io.github.ranjandas.kimono.core.data.wallpaper.Wallpaper
 import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.design.component.Backdrop
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
@@ -72,26 +74,39 @@ internal fun wallpaperChoice(settings: LauncherSettings): WallpaperChoice = when
     else -> WallpaperChoice.Theme
 }
 
+/**
+ * Every theme's wallpaper, fetched (or for Kimono's, drawn) ahead so that switching theme never waits for the
+ * network or a 2 s draw.
+ */
+internal val themeWallpaperUrls: Collection<String>
+    get() = ThemeWallpapers.values + DrawnWallpaper.entries.map { it.url }
+
 /** A loaded wallpaper and its blurred copy, ready to draw. */
 internal class WallpaperImages(val image: ImageBitmap, val blurred: ImageBitmap)
 
-/** The images at [url], once they're loaded; null while loading, for no wallpaper, or if it can't be fetched. */
+private fun Wallpaper.toImages() = WallpaperImages(image.asImageBitmap(), blurred.asImageBitmap())
+
+/**
+ * The images at [url], once they're loaded; null for no wallpaper, or if it can't be fetched. One already in
+ * memory shows in the same frame. While another loads, the last one stays, so the screen never flashes bare.
+ */
 @Composable
 internal fun rememberWallpaper(cache: WallpaperCache, url: String?): WallpaperImages? {
-    val wallpaper by produceState<WallpaperImages?>(initialValue = null, url) {
-        val loaded = url?.let { cache.load(it) }
-        value = loaded?.let { WallpaperImages(it.image.asImageBitmap(), it.blurred.asImageBitmap()) }
+    val inMemory = remember(cache, url) { url?.let(cache::peek)?.toImages() }
+    val loaded by produceState(initialValue = inMemory, cache, url) {
+        value = inMemory ?: url?.let { cache.load(it) }?.toImages()
     }
-    return wallpaper
+    return if (url == null) null else inMemory ?: loaded
 }
 
 /**
- * How far [wallpaper] has faded in, from 0 to 1, so it doesn't pop in after the first frame. A function, read
- * while drawing, so the fade doesn't recompose anything.
+ * How far the wallpaper has faded in, from 0 to 1, so the first one doesn't pop in after the first frame. A
+ * switch from one wallpaper to another crossfades instead (see [WallpaperBackground]). A function, read while
+ * drawing, so the fade doesn't recompose anything.
  */
 @Composable
 internal fun rememberFadeIn(wallpaper: WallpaperImages?): () -> Float {
-    val visibility = remember(wallpaper) { Animatable(0f) }
+    val visibility = remember(wallpaper != null) { Animatable(0f) }
     LaunchedEffect(visibility) { visibility.animateTo(1f, tween(FADE_IN_MS)) }
     return remember(visibility) { { visibility.value } }
 }
@@ -110,21 +125,28 @@ internal fun rememberBackdrop(wallpaper: WallpaperImages?, panels: Panels, fade:
 
 /**
  * The theme background, with the wallpaper over it under a tint of the same colour, so text on and between the
- * tiles stays readable over a bright image.
+ * tiles stays readable over a bright image. A new wallpaper crossfades in over the last one.
  */
 @Composable
 internal fun WallpaperBackground(wallpaper: WallpaperImages?, fade: () -> Float, modifier: Modifier = Modifier) {
     val background = KimonoTheme.colors.background
     Box(modifier.fillMaxSize().background(background)) {
-        if (wallpaper != null) {
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = fade() }) {
-                Image(
-                    wallpaper.image,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(Modifier.fillMaxSize().background(background.copy(alpha = WALLPAPER_TINT)))
+        Crossfade(
+            targetState = wallpaper,
+            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = fade() },
+            animationSpec = tween(SWITCH_FADE_MS),
+            label = "wallpaper",
+        ) { shown ->
+            if (shown != null) {
+                Box(Modifier.fillMaxSize()) {
+                    Image(
+                        shown.image,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Box(Modifier.fillMaxSize().background(background.copy(alpha = WALLPAPER_TINT)))
+                }
             }
         }
     }
@@ -132,3 +154,4 @@ internal fun WallpaperBackground(wallpaper: WallpaperImages?, fade: () -> Float,
 
 private const val WALLPAPER_TINT = 0.55f
 private const val FADE_IN_MS = 600
+private const val SWITCH_FADE_MS = 400

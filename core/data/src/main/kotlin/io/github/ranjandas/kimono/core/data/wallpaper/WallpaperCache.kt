@@ -10,31 +10,80 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 /**
  * Wallpapers aren't bundled (their artists' rights and trademarks aren't ours to ship), so each one is
- * downloaded the first time it's shown, cropped and scaled to the 1080p screen, and kept on the device. Only the
- * current wallpaper is kept.
+ * downloaded the first time it's needed, cropped and scaled to the 1080p screen, and kept on the device. Every
+ * theme's is kept (Kimono's drawn ones too), up to [KEPT_ON_DISK] images, and the last few shown stay in memory,
+ * so switching theme doesn't wait for the network or a decode.
  */
 class WallpaperCache(
     private val dir: File,
     private val download: (URL) -> ByteArray = ::httpGet,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
+    private val loaded = RecentlyUsed<String, Wallpaper>(KEPT_IN_MEMORY)
+
+    // Loads under way, so a second ask for the same wallpaper waits for the first rather than starting over.
+    // Their own scope, since a decode can't be stopped halfway anyway, and its result is kept for next time.
+    private val loads = CoroutineScope(SupervisorJob() + ioDispatcher)
+    private val inFlight = mutableMapOf<String, Deferred<Wallpaper?>>()
+
+    /** The wallpaper at [url] if it's in memory already, so it can be drawn without waiting a frame. */
+    fun peek(url: String): Wallpaper? = loaded[url]
+
     /**
      * The wallpaper at [url], or null if it can't be downloaded or decoded. A [DrawnWallpaper] link is drawn
-     * instead, each time, since that's quicker than reading it back.
+     * the first time instead, then kept like a download, since drawing one takes the Streamer about 2 s.
      */
-    suspend fun load(url: String): Wallpaper? = withContext(ioDispatcher) {
-        val file = File(dir, "${sha256(url)}.webp")
-        val drawn = DrawnWallpaper.fromUrl(url)
-        val screen = if (drawn != null) drawForScreen(drawn) else cached(file) ?: fetch(url, file)
-        screen?.let { Wallpaper(it, blurred(it)) }
+    suspend fun load(url: String): Wallpaper? = loaded[url] ?: synchronized(inFlight) {
+        inFlight.getOrPut(url) {
+            loads.async {
+                try {
+                    read(url)?.also { loaded[url] = it }
+                } finally {
+                    synchronized(inFlight) { inFlight.remove(url) }
+                }
+            }
+        }
+    }.await()
+
+    /**
+     * Gets each of [urls] onto the device if it isn't yet, one at a time, so a later switch to it is quick:
+     * downloaded, or drawn for a [DrawnWallpaper].
+     */
+    suspend fun prefetch(urls: Collection<String>) = withContext(ioDispatcher) {
+        for (url in urls) {
+            val file = fileFor(url)
+            if (file.exists()) continue
+            val drawn = DrawnWallpaper.fromUrl(url)
+            val screen = if (drawn != null) draw(drawn, file) else fetch(url, file)
+            screen?.recycle()
+        }
     }
 
-    private fun cached(file: File): Bitmap? = if (file.exists()) BitmapFactory.decodeFile(file.path) else null
+    private fun read(url: String): Wallpaper? {
+        val file = fileFor(url)
+        val drawn = DrawnWallpaper.fromUrl(url)
+        val screen = cached(file) ?: if (drawn != null) draw(drawn, file) else fetch(url, file)
+        return screen?.let { Wallpaper(it, blurred(it)) }
+    }
+
+    private fun fileFor(url: String) = File(dir, "${sha256(url)}.webp")
+
+    private fun cached(file: File): Bitmap? = if (file.exists()) {
+        // Marks it as used, so it's the last to be pruned.
+        file.setLastModified(System.currentTimeMillis())
+        BitmapFactory.decodeFile(file.path)
+    } else {
+        null
+    }
 
     private fun fetch(url: String, file: File): Bitmap? {
         val bytes = try {
@@ -42,17 +91,37 @@ class WallpaperCache(
         } catch (_: IOException) {
             null
         }
-        return bytes?.let(::decodeForScreen)?.also { bitmap ->
-            dir.mkdirs()
-            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, WEBP_QUALITY, it) }
-            dir.listFiles()?.filter { it != file }?.forEach(File::delete)
-        }
+        return bytes?.let(::decodeForScreen)?.also { save(it, file, Bitmap.CompressFormat.WEBP_LOSSY) }
+    }
+
+    // Lossless, so the black between the lines stays exactly black (and those pixels off) on an OLED panel.
+    private fun draw(wallpaper: DrawnWallpaper, file: File): Bitmap =
+        drawForScreen(wallpaper).also { save(it, file, Bitmap.CompressFormat.WEBP_LOSSLESS) }
+
+    private fun save(bitmap: Bitmap, file: File, format: Bitmap.CompressFormat) {
+        dir.mkdirs()
+        // Written aside and moved into place, so a load running alongside never reads half a file.
+        val partial = File.createTempFile("wallpaper", ".part", dir)
+        partial.outputStream().use { bitmap.compress(format, WEBP_QUALITY, it) }
+        partial.renameTo(file)
+        prune()
+    }
+
+    private fun prune() {
+        val files = dir.listFiles { file: File -> file.name.endsWith(".webp") }?.toList() ?: return
+        oldestBeyond(files, KEPT_ON_DISK, File::lastModified).forEach(File::delete)
     }
 
     companion object {
         /** The Streamer's output; anything bigger is wasted memory. */
         const val SCREEN_WIDTH = 1920
         const val SCREEN_HEIGHT = 1080
+
+        /** Every theme's, with room for a few of the user's own. About 300 KB each. */
+        const val KEPT_ON_DISK = 16
+
+        // About 8 MB each, at 1080p.
+        private const val KEPT_IN_MEMORY = 3
 
         private const val WEBP_QUALITY = 90
 
