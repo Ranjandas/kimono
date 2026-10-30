@@ -42,7 +42,9 @@ internal object HomeDimens {
     val ScreenPaddingH = 20.dp
     val ScreenPaddingV = 12.dp
     val Gap = 14.dp
-    val TopBarHeight = 34.dp
+
+    /** The top bar strip, flush with the top edge (#122). */
+    val TopBarHeight = 40.dp
     val HintBarHeight = 22.dp
     val SideColumnWidth = 392.dp
     val RecentsHeight = 140.dp
@@ -135,8 +137,10 @@ fun HomeScreen(
 }
 
 /**
- * The top bar over the current workspace's page. Number, channel and menu keys switch workspace from anywhere
- * (see [selectsWorkspace]); Left and Right at the edge of the page do it on any remote (see [WorkspacePages]).
+ * The top bar over the current workspace's page. The bar is a full-width strip in the theme's background colour,
+ * as Omarchy's Waybar is, with its content inset to line up with the tiles below (#122). Number, channel and menu
+ * keys switch workspace from anywhere (see [selectsWorkspace]); Left and Right at the edge of the page do it on any
+ * remote (see [WorkspacePages]).
  */
 @Composable
 private fun HomeLayout(
@@ -150,12 +154,29 @@ private fun HomeLayout(
         modifier = modifier
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
-            .onPreviewKeyEvent { it.selectsWorkspace(workspace, switcher::select) }
-            .padding(horizontal = HomeDimens.ScreenPaddingH, vertical = HomeDimens.ScreenPaddingV),
+            .onPreviewKeyEvent { it.selectsWorkspace(workspace, switcher::select) },
         verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
     ) {
-        topBar(Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight))
-        WorkspacePages(switcher, workspace, Modifier.fillMaxWidth().weight(1f), page)
+        topBar(
+            Modifier
+                .fillMaxWidth()
+                .height(HomeDimens.TopBarHeight)
+                .background(KimonoTheme.colors.bar)
+                .padding(horizontal = HomeDimens.ScreenPaddingH),
+        )
+        WorkspacePages(
+            switcher,
+            workspace,
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(
+                    start = HomeDimens.ScreenPaddingH,
+                    end = HomeDimens.ScreenPaddingH,
+                    bottom = HomeDimens.ScreenPaddingV,
+                ),
+            page,
+        )
     }
 }
 

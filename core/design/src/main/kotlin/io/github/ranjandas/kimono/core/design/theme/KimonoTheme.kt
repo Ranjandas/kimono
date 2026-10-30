@@ -21,6 +21,8 @@ import androidx.tv.material3.lightColorScheme
 data class KimonoColors(
     val isLight: Boolean,
     val background: Color,
+    /** The top bar strip: the theme's background, opaque even over a wallpaper, like Omarchy's Waybar. */
+    val bar: Color,
     val surface: Color,
     val surfaceVariant: Color,
     val text: Color,
@@ -46,6 +48,7 @@ data class KimonoColors(
             return KimonoColors(
                 isLight = palette.isLight,
                 background = palette.background.toColor(),
+                bar = palette.background.toColor(),
                 surface = palette.surface.toColor(),
                 surfaceVariant = palette.surfaceVariant.toColor(),
                 text = palette.foreground.toColor(),
