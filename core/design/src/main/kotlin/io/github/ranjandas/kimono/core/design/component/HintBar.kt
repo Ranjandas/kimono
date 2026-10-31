@@ -12,9 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import kotlinx.coroutines.delay
 
@@ -36,7 +36,7 @@ fun HintBar(hints: List<Hint>, modifier: Modifier = Modifier) {
             alpha = shown.value
             compositingStrategy = CompositingStrategy.ModulateAlpha
         },
-        horizontalArrangement = Arrangement.spacedBy(28.dp),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XXL),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(KimonoIcon.Remote, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)

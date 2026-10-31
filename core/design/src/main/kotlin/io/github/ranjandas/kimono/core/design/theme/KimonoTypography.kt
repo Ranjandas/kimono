@@ -5,6 +5,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import io.github.ranjandas.kimono.core.design.R
 
@@ -14,6 +15,7 @@ import io.github.ranjandas.kimono.core.design.R
  */
 val KimonoFontFamily = FontFamily(
     Font(R.font.kimono_sans_regular, FontWeight.Normal),
+    Font(R.font.kimono_sans_medium, FontWeight.Medium),
     Font(R.font.kimono_sans_bold, FontWeight.Bold),
 )
 
@@ -35,8 +37,10 @@ data class KimonoTypography(
     val title: TextStyle,
     /** List rows and most other text. The 10-foot minimum for reading (PLAN §4). */
     val body: TextStyle,
-    /** Top bar, tile headers, key hints and metadata next to body text. */
+    /** Top bar, key hints and metadata next to body text. */
     val label: TextStyle,
+    /** Tile and section headers: the label size in medium weight, spaced out a little so it reads as a heading. */
+    val section: TextStyle,
 ) {
     /** Every style at [factor] times its size, for the text size setting. Weights and fonts stay the same. */
     fun scaled(factor: Float): KimonoTypography = if (factor == 1f) {
@@ -48,6 +52,7 @@ data class KimonoTypography(
             title = title.scaled(factor),
             body = body.scaled(factor),
             label = label.scaled(factor),
+            section = section.scaled(factor),
         )
     }
 
@@ -58,7 +63,12 @@ data class KimonoTypography(
             title = style(sizeSp = 16, lineHeightSp = 22, weight = FontWeight.Bold),
             body = style(sizeSp = 14, lineHeightSp = 20),
             label = style(sizeSp = 12, lineHeightSp = 16),
+            section = style(sizeSp = 12, lineHeightSp = 16, weight = FontWeight.Medium)
+                .copy(letterSpacing = SECTION_TRACKING.em),
         )
+
+        // Tracking for section labels, in ems: enough to set them apart from body text, not enough to look spaced.
+        private const val SECTION_TRACKING = 0.04f
 
         private fun TextStyle.scaled(factor: Float) =
             copy(fontSize = fontSize * factor, lineHeight = lineHeight * factor)

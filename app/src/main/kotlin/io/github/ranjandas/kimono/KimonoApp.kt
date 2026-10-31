@@ -91,6 +91,8 @@ private fun Screens(
     homePresses: Int,
 ) {
     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
+    // Set when settings closes, so home puts focus back on the gear; a Home press starts over.
+    var backFromSettings by rememberSaveable { mutableStateOf(false) }
     val actions = appCallbacks(dependencies, workspaces)
     val theme = ThemeId.fromName(settings.themeName)
     val screenTime = rememberScreenTimeToday(
@@ -103,6 +105,7 @@ private fun Screens(
     LaunchedEffect(homePresses) {
         if (homePresses > 0) {
             screen = Screen.Home
+            backFromSettings = false
             actions.selectWorkspace(Workspace.Default)
         }
     }
@@ -120,6 +123,7 @@ private fun Screens(
                 onUninstallApp = actions.uninstall,
                 theme = theme,
                 onOpenSettings = { screen = Screen.Settings },
+                startOnSettingsButton = backFromSettings,
                 clockFormat = settings.clockFormat,
                 recents = recents,
                 onRequestUsageAccess = actions.requestUsageAccess,
@@ -141,7 +145,10 @@ private fun Screens(
             }
         }
 
-        Screen.Settings -> Settings(settings, updateSettings, onClose = { screen = Screen.Home })
+        Screen.Settings -> Settings(settings, updateSettings, onClose = {
+            backFromSettings = true
+            screen = Screen.Home
+        })
     }
 }
 

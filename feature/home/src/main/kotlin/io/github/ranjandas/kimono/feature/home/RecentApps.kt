@@ -60,7 +60,7 @@ internal fun LastUsedTile(
         onClick = { app?.let(onLaunchApp) },
         onLongClick = app?.let { { onShowOptions(it) } },
     ) {
-        SectionHeader("~/last used", icon = KimonoIcon.Continue)
+        SectionHeader("last used", icon = KimonoIcon.Continue)
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp),

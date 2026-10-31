@@ -15,8 +15,8 @@ import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * The muted line at the top of a tile or list: an optional [icon], a [title] such as `~/apps`, and optional
- * [trailing] detail.
+ * The muted line at the top of a tile or list: an optional [icon], a [title] such as `apps` in the section style,
+ * and optional [trailing] detail.
  */
 @Composable
 fun SectionHeader(title: String, modifier: Modifier = Modifier, icon: KimonoIcon? = null, trailing: String? = null) {
@@ -29,7 +29,12 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier, icon: KimonoIcon
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (icon != null) Icon(icon, color = colors.textMuted, style = style)
-            Text(title, modifier = Modifier.semantics { heading() }, color = colors.textMuted, style = style)
+            Text(
+                title,
+                modifier = Modifier.semantics { heading() },
+                color = colors.textMuted,
+                style = KimonoTheme.typography.section,
+            )
         }
         if (trailing != null) {
             Text(trailing, color = colors.textMuted, style = style)

@@ -66,7 +66,7 @@ internal fun AppGridPage(
     BackHandler(onBack = actions::onGoHome)
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
         Tile(modifier = Modifier.fillMaxWidth().weight(1f)) {
-            SectionHeader("~/${workspace.label}", icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
+            SectionHeader(workspace.label, icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
             when {
                 !loaded -> Note("loading apps…")
 

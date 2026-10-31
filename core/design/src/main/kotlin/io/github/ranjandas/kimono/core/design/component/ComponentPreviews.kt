@@ -38,7 +38,7 @@ fun ComponentSampler(theme: ThemeId, cornerStyle: CornerStyle, modifier: Modifie
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Tile(modifier = Modifier.width(560.dp)) {
-                SectionHeader("~/continue", trailing = theme.displayName)
+                SectionHeader("continue", trailing = theme.displayName)
                 Text("Severance", style = KimonoTheme.typography.display)
                 Text("s02 · e04 — Woe's Hollow", color = KimonoTheme.colors.textMuted)
                 Row(
@@ -51,7 +51,7 @@ fun ComponentSampler(theme: ThemeId, cornerStyle: CornerStyle, modifier: Modifie
                 }
             }
             Tile(modifier = Modifier.width(560.dp)) {
-                SectionHeader("~/apps", trailing = "3 apps")
+                SectionHeader("apps", trailing = "3 apps")
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     listOf("Jellyfin", "Plex", "YouTube").forEachIndexed { index, label ->
                         ListRow(text = label, onClick = {}, leading = "%02d".format(index + 1))

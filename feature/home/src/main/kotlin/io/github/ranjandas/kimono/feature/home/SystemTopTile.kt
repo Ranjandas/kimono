@@ -32,7 +32,7 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 internal fun SystemTopTile(screenTime: ScreenTimeToday, modifier: Modifier = Modifier) {
     val stats by rememberTopStats()
     Tile(modifier = modifier) {
-        SectionHeader("~/top", icon = KimonoIcon.Activity)
+        SectionHeader("top", icon = KimonoIcon.Activity)
         DeviceLines(stats)
         TodayLines(screenTime)
     }

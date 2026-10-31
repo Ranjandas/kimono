@@ -14,7 +14,7 @@ import io.github.ranjandas.kimono.core.design.text.monogram
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * An app's [monogram] in bold accent letters on an accent-tinted square, so each app has a mark of its own
+ * An app's [monogram] in bold accent letters on a quiet square, so each app has a mark of its own
  * where a category glyph would make many look the same. The letters scale with the square, which takes its size
  * from [modifier]; its corners nest inside a tile's.
  */
@@ -24,7 +24,7 @@ fun Monogram(label: String, modifier: Modifier = Modifier) {
     BoxWithConstraints(
         modifier = modifier
             .aspectRatio(1f)
-            .background(colors.accent.copy(alpha = TINT_ALPHA), KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)),
+            .background(colors.surfaceVariant, KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)),
         contentAlignment = Alignment.Center,
     ) {
         val fontSize = with(LocalDensity.current) { (maxHeight * LETTER_HEIGHT).toSp() }
@@ -41,9 +41,6 @@ fun Monogram(label: String, modifier: Modifier = Modifier) {
         )
     }
 }
-
-// Faint enough that the letters carry the colour, strong enough to read as a square on glass.
-internal const val TINT_ALPHA = 0.16f
 
 // Two capitals fill about two thirds of the width at this height.
 private const val LETTER_HEIGHT = 0.42f
