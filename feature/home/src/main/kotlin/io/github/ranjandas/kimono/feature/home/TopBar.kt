@@ -9,18 +9,23 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -35,10 +40,12 @@ import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import java.time.Clock
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 /**
  * Workspaces on the left, date and time in the middle, network, volume and settings on the right. The theme is
- * changed in settings (#110).
+ * changed in settings (#110). Like Omarchy's Waybar, the right side is icons only (#123): the volume shows its
+ * level only while it changes.
  * Status values update live. [currentWorkspaceFocus] focuses the current workspace's button.
  */
 @Composable
@@ -90,9 +97,8 @@ internal fun TopBar(
         ) {
             NetworkIndicator()
             VolumeIndicator()
-            TopBarButton(
+            IconButton(
                 icon = KimonoIcon.Settings,
-                label = "settings",
                 description = "Settings",
                 onClick = onOpenSettings,
                 modifier = Modifier.tracksFocus(HomeArea.SettingsButton, onFocusArea),
@@ -120,8 +126,8 @@ private fun WorkspaceButton(
                 this.selected = selected
             }
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Tab, onClick = onClick)
-            .background(if (selected) colors.accent else colors.background, shape)
-            .border(TileDefaults.BorderWidth, if (focused) colors.text else colors.background, shape),
+            .background(if (selected) colors.accent else Color.Transparent, shape)
+            .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, shape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -155,54 +161,67 @@ private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Mod
 @Composable
 private fun NetworkIndicator(modifier: Modifier = Modifier) {
     val status by rememberNetworkStatus()
-    StatusItem(status.icon, status.label, modifier)
+    StatusItem(status.icon, label = null, description = "Network, ${status.label}", modifier = modifier)
 }
 
 @Composable
 private fun VolumeIndicator(modifier: Modifier = Modifier) {
     val volume by rememberVolumePercent()
-    volume?.let { StatusItem(if (it == 0) KimonoIcon.VolumeOff else KimonoIcon.Volume, "$it%", modifier) }
+    volume?.let { VolumeLevel(it, modifier) }
+}
+
+/** The volume icon, with [level] beside it for [VOLUME_SHOWN_MS] after it changes. */
+@Composable
+private fun VolumeLevel(level: Int, modifier: Modifier = Modifier) {
+    var last by remember { mutableIntStateOf(level) }
+    var changing by remember { mutableStateOf(false) }
+    LaunchedEffect(level) {
+        if (level != last || changing) {
+            last = level
+            changing = true
+            delay(VOLUME_SHOWN_MS)
+            changing = false
+        }
+    }
+    StatusItem(
+        icon = if (level == 0) KimonoIcon.VolumeOff else KimonoIcon.Volume,
+        label = if (changing) "$level%" else null,
+        description = "Volume $level%",
+        modifier = modifier,
+    )
 }
 
 @Composable
-private fun StatusItem(icon: KimonoIcon, label: String, modifier: Modifier = Modifier) {
+private fun StatusItem(icon: KimonoIcon, label: String?, description: String, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier,
+        modifier = modifier.clearAndSetSemantics { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, style = KimonoTheme.typography.label)
-        Text(label, style = KimonoTheme.typography.label)
+        Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)
+        if (label != null) Text(label, style = KimonoTheme.typography.label)
     }
 }
 
+/** A plain icon that takes focus the same way the workspace numbers do. */
 @Composable
-private fun TopBarButton(
-    icon: KimonoIcon,
-    label: String,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun IconButton(icon: KimonoIcon, description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     val colors = KimonoTheme.colors
     val shape = KimonoTheme.shapes.small
-    Row(
+    Box(
         modifier = modifier
-            .fillMaxHeight()
+            .size(30.dp)
             .semantics { contentDescription = description }
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
-            .background(if (focused) colors.accent else colors.background, shape)
-            .border(TileDefaults.BorderWidth, if (focused) colors.accent else colors.border, shape)
-            .padding(horizontal = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, shape),
+        contentAlignment = Alignment.Center,
     ) {
-        val content = if (focused) colors.onAccent else colors.accent
-        Icon(icon, color = content, style = KimonoTheme.typography.label)
-        Text(label, style = KimonoTheme.typography.label, color = content)
+        Icon(icon, color = if (focused) colors.text else colors.textMuted, style = KimonoTheme.typography.label)
     }
 }
+
+private const val VOLUME_SHOWN_MS = 3_000L
 
 private val DATE = DateTimeFormatter.ofPattern("EEE d MMM")

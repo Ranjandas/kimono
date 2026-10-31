@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.PinChoice
+import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
@@ -42,7 +44,12 @@ internal object HomeDimens {
     val ScreenPaddingH = 20.dp
     val ScreenPaddingV = 12.dp
     val Gap = 14.dp
-    val TopBarHeight = 34.dp
+
+    /** The top bar panel (#122). */
+    val TopBarHeight = 40.dp
+
+    /** The top bar's inset inside its panel, slimmer than a tile's so its buttons fill the height. */
+    val TopBarPaddingH = 12.dp
     val HintBarHeight = 22.dp
     val SideColumnWidth = 392.dp
     val RecentsHeight = 140.dp
@@ -135,8 +142,10 @@ fun HomeScreen(
 }
 
 /**
- * The top bar over the current workspace's page. Number, channel and menu keys switch workspace from anywhere
- * (see [selectsWorkspace]); Left and Right at the edge of the page do it on any remote (see [WorkspacePages]).
+ * The top bar over the current workspace's page. The bar sits in a panel of its own, like Omarchy's Waybar, inset
+ * from the screen edges like the tiles and frosted, clear or solid with them (#122). Number, channel and menu keys
+ * switch workspace from anywhere (see [selectsWorkspace]); Left and Right at the edge of the page do it on any remote
+ * (see [WorkspacePages]).
  */
 @Composable
 private fun HomeLayout(
@@ -154,7 +163,12 @@ private fun HomeLayout(
             .padding(horizontal = HomeDimens.ScreenPaddingH, vertical = HomeDimens.ScreenPaddingV),
         verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
     ) {
-        topBar(Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight))
+        Tile(
+            modifier = Modifier.fillMaxWidth().height(HomeDimens.TopBarHeight),
+            contentPadding = PaddingValues(horizontal = HomeDimens.TopBarPaddingH),
+        ) {
+            topBar(Modifier.fillMaxSize())
+        }
         WorkspacePages(switcher, workspace, Modifier.fillMaxWidth().weight(1f), page)
     }
 }
