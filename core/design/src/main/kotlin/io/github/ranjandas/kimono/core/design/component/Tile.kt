@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,7 +41,8 @@ import kotlin.math.roundToInt
  * is frosted glass.
  *
  * Pass [onClick] for a tile that is a single focus target (a recent app), and [onLongClick] for held OK on it
- * (the app's options). Leave [onClick] null for a tile whose children take focus (the apps list).
+ * (the app's options). Leave [onClick] null for a tile whose children take focus (the apps list). A panel with a
+ * slimmer inset, such as the top bar, passes its own [contentPadding].
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -48,6 +50,7 @@ fun Tile(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues(TileDefaults.PADDING_DP.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var hasFocus by remember { mutableStateOf(false) }
@@ -71,7 +74,7 @@ fun Tile(
             .then(clickable ?: Modifier)
             .then(surface)
             .border(TileDefaults.BorderWidth, if (hasFocus) colors.borderFocused else colors.border, shape)
-            .padding(TileDefaults.PADDING_DP.dp),
+            .padding(contentPadding),
         content = content,
     )
 }

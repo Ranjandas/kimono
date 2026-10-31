@@ -126,8 +126,8 @@ private fun WorkspaceButton(
                 this.selected = selected
             }
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Tab, onClick = onClick)
-            .background(if (selected) colors.accent else colors.background, shape)
-            .border(TileDefaults.BorderWidth, if (focused) colors.text else colors.background, shape),
+            .background(if (selected) colors.accent else Color.Transparent, shape)
+            .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, shape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
