@@ -2,8 +2,8 @@ package io.github.ranjandas.kimono
 
 import android.content.ContentResolver
 import android.database.Cursor
-import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 
 /**
  * Debug builds only: dumps the TV provider's Watch Next and preview rows to logcat, tag `KimonoWatchNext` (#143).
@@ -13,8 +13,8 @@ internal object WatchNextProbe {
     const val TAG = "KimonoWatchNext"
 
     private val tables = listOf(
-        "watch_next_program" to Uri.parse("content://android.media.tv/watch_next_program"),
-        "preview_program" to Uri.parse("content://android.media.tv/preview_program"),
+        "watch_next_program" to "content://android.media.tv/watch_next_program".toUri(),
+        "preview_program" to "content://android.media.tv/preview_program".toUri(),
     )
 
     private val columns = listOf(
