@@ -38,7 +38,8 @@ with that in mind from day one.
 ### Non-goals (for now)
 
 - Phones, tablets or Android Automotive.
-- Reading other apps' "Watch Next" rows (needs a system permission third-party apps can't get).
+- A Watch Next row from other apps. Kimono *can* read them (`READ_TV_LISTINGS`, a runtime permission), but
+  on the Streamer almost nothing is there: see [ADR 0002](adr/0002-continue-watching-sources.md#watch-next-spike-m3-9-2026-11-02).
 - Live TV / tuner inputs, EPG.
 - Being a media player. Kimono launches apps; it does not play content.
 - Cloud accounts or sync of Kimono's own settings.
@@ -208,8 +209,10 @@ The spike records findings in an ADR (`docs/adr/0001-home-takeover.md`) before e
 
 ### 6.8 Continue watching (media sources)
 
-Third-party launchers can't read Google TV's Watch Next data, so Kimono gets this from sources it can reach
-behind a `MediaSource` interface:
+Google TV's own "Continue watching" row lives mostly in the user's Google account (Engage SDK), which
+Kimono can't reach. The on-device TvProvider *is* readable with `READ_TV_LISTINGS`, but the M3-9 spike found
+only one stale Watch Next row on the Streamer ([ADR 0002](adr/0002-continue-watching-sources.md#watch-next-spike-m3-9-2026-11-02)),
+so Kimono gets this from sources behind a `MediaSource` interface:
 
 | Order | Source | Gives | Needs |
 |---|---|---|---|
@@ -217,6 +220,7 @@ behind a `MediaSource` interface:
 | 2 | **Trakt** | Shows and films in progress, up-next episodes, across services | Trakt account; something reporting viewing to Trakt. Device-code login suits a TV. API terms to be checked in M3. |
 | 2b | **TMDB** | Posters, backdrops, metadata | API key; TMDB attribution in the UI |
 | 3 | **Plex / Jellyfin** (later) | Exact resume points from a home server | User runs a server |
+| — | **TvProvider Watch Next** (not planned) | Exact-resume rows, but only from apps that still write them locally | `READ_TV_LISTINGS`; on the Streamer only Prime Video wrote one row (M3-9) |
 
 **Known limitation:** "resume" can usually only open the right app or a details page, not resume playback
 at the exact point, unless that app supports deep links. M3 includes per-app deep-link research and a
@@ -325,6 +329,7 @@ Sizes: **S** ≤ half a day · **M** 1–2 days · **L** 3–5 days. Each item b
 | M3-6 | Continue-watching tile and up-next row UI | M | M3-4, M3-5 |
 | M3-7 | Resume/open: per-app deep-link research, fallback chain | M | M3-6 |
 | M3-8 | Artwork pipeline: palette mapping transformation (shared with M4) | M | M1-1 |
+| M3-9 | Spike: read Android TV Watch Next via `READ_TV_LISTINGS` (done: not worth a source, ADR 0002) | S | — |
 
 ### M4 — Ambient
 | ID | Issue | Size | Depends on |
