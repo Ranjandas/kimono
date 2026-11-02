@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -138,15 +140,15 @@ internal fun WallpaperBackground(wallpaper: WallpaperImages?, fade: () -> Float,
             label = "wallpaper",
         ) { shown ->
             if (shown != null) {
-                Box(Modifier.fillMaxSize()) {
-                    Image(
-                        shown.image,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                    )
-                    Box(Modifier.fillMaxSize().background(background.copy(alpha = WALLPAPER_TINT)))
-                }
+                // The tint goes on as a colour filter, so the image and its tint are one full-screen draw rather
+                // than two. The Streamer's GPU redraws the whole screen on every focus move (#91).
+                Image(
+                    shown.image,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.tint(background.copy(alpha = WALLPAPER_TINT), BlendMode.SrcAtop),
+                )
             }
         }
     }
