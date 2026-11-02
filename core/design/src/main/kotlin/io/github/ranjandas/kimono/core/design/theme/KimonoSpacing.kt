@@ -7,6 +7,9 @@ import androidx.compose.ui.unit.dp
  * rather than a mix of near-equal values.
  */
 object KimonoSpacing {
+    /** Between the rows of a list, so focus fills don't touch. */
+    val XXS = 2.dp
+
     val XS = 4.dp
     val S = 8.dp
     val M = 12.dp

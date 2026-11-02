@@ -16,7 +16,6 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.component.AppMark
 import io.github.ranjandas.kimono.core.design.component.AppMarks
@@ -25,6 +24,7 @@ import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 
@@ -62,12 +62,12 @@ internal fun LastUsedTile(
     ) {
         SectionHeader("last used", icon = KimonoIcon.Continue)
         Row(
-            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = KimonoSpacing.M),
+            horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XXL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (app == null) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XS)) {
                     Text("nothing opened yet", style = KimonoTheme.typography.headline)
                     Text(
                         "the app you open last shows here, one press away",
@@ -77,7 +77,7 @@ internal fun LastUsedTile(
                 }
             } else {
                 AppMark(app.label, marks[app.packageName], Modifier.fillMaxHeight())
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XS)) {
                     Text(app.label, style = HeroNameStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("press ok to open", style = KimonoTheme.typography.body, color = KimonoTheme.colors.textMuted)
                 }
@@ -147,12 +147,13 @@ private fun RecentTile(
 ) {
     Tile(modifier = modifier, onClick = onClick, onLongClick = onLongClick) {
         AppMark(app.label, mark, Modifier.weight(1f))
-        // A quarter-width tile fits about nine characters of body text.
+        // A quarter-width tile fits about nine characters of body text a line, so a longer name takes a second line
+        // rather than being cut off (#131); the logo above gives up the room.
         Text(
             app.label,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = KimonoSpacing.XS),
             style = TileTitleStyle,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
@@ -177,4 +178,4 @@ private fun PlaceholderTile(title: String, detail: String, onClick: () -> Unit, 
 private const val RECENT_SLOTS = 4
 
 // The same gap as between home's other tiles.
-private val TileGap = 14.dp
+private val TileGap = HomeDimens.Gap

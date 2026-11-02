@@ -197,7 +197,7 @@ private fun VolumeLevel(level: Int, modifier: Modifier = Modifier) {
 private fun StatusItem(icon: KimonoIcon, label: String?, description: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)

@@ -1,7 +1,7 @@
 package io.github.ranjandas.kimono.core.design.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -45,42 +46,46 @@ class AppMarks(private val byPackage: Map<String, Mark>) {
 }
 
 /**
- * An app's [mark] in the accent on the same quiet square as a [Monogram], so a tile looks the same either way, or
- * its monogram while there is no mark. The square takes its size from [modifier].
+ * An app's [mark] in the accent, or its monogram while there is no mark. There's no plate behind it: inside a
+ * bordered tile or card a plate made three nested rectangles (#131), so the logo stands on the tile itself and
+ * fills more of it. The square takes its size from [modifier].
  */
 @Composable
 fun AppMark(label: String, mark: Mark?, modifier: Modifier = Modifier) {
     if (mark == null) {
         Monogram(label, modifier)
     } else {
-        val colors = KimonoTheme.colors
-        BoxWithConstraints(
-            modifier = modifier
-                .aspectRatio(1f)
-                .background(colors.surfaceVariant, KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)),
-            contentAlignment = Alignment.Center,
-        ) {
-            when (mark) {
-                is Mark.Picture -> Image(
-                    bitmap = mark.bitmap,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(MARK_SIZE),
-                    contentScale = ContentScale.Fit,
-                    colorFilter = ColorFilter.tint(colors.accent),
-                )
-
-                is Mark.Symbol -> {
-                    val fontSize = with(LocalDensity.current) { (maxHeight * MARK_SIZE).toSp() }
-                    Icon(
-                        mark.icon,
-                        color = colors.accent,
-                        style = TextStyle(fontSize = fontSize, lineHeight = fontSize, textAlign = TextAlign.Center),
-                    )
-                }
-            }
+        Box(modifier = modifier.aspectRatio(1f), contentAlignment = Alignment.Center) {
+            MarkGlyph(mark, KimonoTheme.colors.accent, Modifier.fillMaxSize(MARK_SIZE))
         }
     }
 }
 
-// A little smaller than the square, like a monogram's letters, so a tall logo doesn't touch its edges.
-private const val MARK_SIZE = 0.62f
+/**
+ * [mark] alone in [color], fitted to the size [modifier] gives it: the logo itself, as a list row shows it next to
+ * the app's name (#132) and an [AppMark] at tile size.
+ */
+@Composable
+fun MarkGlyph(mark: Mark, color: Color, modifier: Modifier = Modifier) {
+    when (mark) {
+        is Mark.Picture -> Image(
+            bitmap = mark.bitmap,
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.tint(color),
+        )
+
+        is Mark.Symbol -> BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
+            val fontSize = with(LocalDensity.current) { maxHeight.toSp() }
+            Icon(
+                mark.icon,
+                color = color,
+                style = TextStyle(fontSize = fontSize, lineHeight = fontSize, textAlign = TextAlign.Center),
+            )
+        }
+    }
+}
+
+// Most of the square, leaving a margin so a tall logo doesn't touch the card's edges.
+private const val MARK_SIZE = 0.8f

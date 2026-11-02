@@ -86,23 +86,45 @@ internal fun HomePage(
                         .tracksFocus(HomeArea.Recents, onFocusArea),
                 )
             }
-            Column(
+            SideColumn(
+                apps = apps,
+                actions = actions,
+                systemPanel = systemPanel,
+                theme = theme,
+                screenTime = screenTime,
+                onFocusArea = onFocusArea,
+                appsFocus = focus.apps,
                 modifier = Modifier.width(HomeDimens.SideColumnWidth).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
-            ) {
-                SystemTile(systemPanel, theme, screenTime, Modifier.fillMaxWidth())
-                AppsTile(
-                    apps = apps,
-                    onLaunchApp = actions.onLaunchApp,
-                    onShowOptions = actions.onShowOptions,
-                    workspace = Workspace.Home,
-                    onOpenAllApps = actions::onOpenAllApps,
-                    modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
-                    listFocusRequester = focus.apps,
-                )
-            }
+            )
         }
         HintBar(homeHints(focusArea), Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
+    }
+}
+
+/** Home's right-hand column: system info over the apps list. */
+@Composable
+private fun SideColumn(
+    apps: List<InstalledApp>?,
+    actions: PageActions,
+    systemPanel: SystemPanel,
+    theme: ThemeId,
+    screenTime: ScreenTimeToday,
+    onFocusArea: (HomeArea) -> Unit,
+    appsFocus: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
+        SystemTile(systemPanel, theme, screenTime, Modifier.fillMaxWidth())
+        AppsTile(
+            apps = apps,
+            onLaunchApp = actions.onLaunchApp,
+            onShowOptions = actions.onShowOptions,
+            workspace = Workspace.Home,
+            onOpenAllApps = actions::onOpenAllApps,
+            modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
+            marks = actions.marks,
+            listFocusRequester = appsFocus,
+        )
     }
 }
 

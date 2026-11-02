@@ -1,12 +1,16 @@
 package io.github.ranjandas.kimono.feature.drawer
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
@@ -34,10 +38,14 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.design.component.FocusDefaults
+import io.github.ranjandas.kimono.core.design.component.TileDefaults
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
+import io.github.ranjandas.kimono.core.design.icon.Icon
+import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.text.count
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
@@ -67,7 +75,6 @@ internal fun SearchField(
     val fieldFocus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     val colors = KimonoTheme.colors
-    val style = KimonoTheme.typography.headline
     val focusChange by rememberUpdatedState(onFocusChange)
     LaunchedEffect(focused) { focusChange(focused) }
     LaunchedEffect(typing) {
@@ -88,25 +95,56 @@ internal fun SearchField(
             }
             // After the key handler, so it sees OK while the line itself has focus.
             .focusRequester(focusRequester)
-            .focusable(interactionSource = lineSource)
-            .background(if (focused) colors.surfaceVariant else colors.surface, KimonoTheme.shapes.small)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .focusable(interactionSource = lineSource),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("~/apps ❯", style = style, color = colors.accent)
-        SearchInput(
-            query = query,
-            onQueryChange = onQueryChange,
-            placeholder = placeholder(lineFocused, typing),
-            onSearch = {
-                keyboard?.hide()
-                onDone()
-            },
-            interactionSource = fieldSource,
-            modifier = Modifier.weight(1f).focusRequester(fieldFocus).focusProperties { canFocus = typing },
-        )
+        Text("~/apps ❯", style = KimonoTheme.typography.headline, color = colors.accent)
+        SearchBox(focused, Modifier.weight(1f)) {
+            SearchInput(
+                query = query,
+                onQueryChange = onQueryChange,
+                placeholder = placeholder(lineFocused, typing),
+                onSearch = {
+                    keyboard?.hide()
+                    onDone()
+                },
+                interactionSource = fieldSource,
+                modifier = Modifier.weight(1f).focusRequester(fieldFocus).focusProperties { canFocus = typing },
+            )
+        }
         Text(count(matches, "app"), style = KimonoTheme.typography.label, color = colors.textMuted)
+    }
+}
+
+/**
+ * The field's box: a quiet fill and border with a magnifier, so it reads as somewhere to type rather than a heading
+ * (#133). Focus eases the border to the accent, as on a tile.
+ */
+@Composable
+private fun SearchBox(focused: Boolean, modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
+    val colors = KimonoTheme.colors
+    val shape = KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)
+    val fill by animateColorAsState(
+        if (focused) colors.surfaceVariant else colors.surfaceVariant.copy(alpha = RESTING_FILL_ALPHA),
+        tween(FocusDefaults.DURATION_MS),
+        label = "search fill",
+    )
+    val border by animateColorAsState(
+        if (focused) colors.borderFocused else colors.border.copy(alpha = FocusDefaults.QUIET_BORDER_ALPHA),
+        tween(FocusDefaults.DURATION_MS),
+        label = "search border",
+    )
+    Row(
+        modifier = modifier
+            .background(fill, shape)
+            .border(TileDefaults.BorderWidth, border, shape)
+            .padding(horizontal = KimonoSpacing.M, vertical = KimonoSpacing.S),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(KimonoIcon.Search, color = if (focused) colors.accent else colors.textMuted)
+        content()
     }
 }
 
@@ -120,7 +158,7 @@ private fun SearchInput(
     interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
 ) {
-    val style = KimonoTheme.typography.headline
+    val style = KimonoTheme.typography.body
     BasicTextField(
         value = query,
         onValueChange = onQueryChange,
@@ -143,8 +181,11 @@ private fun SearchInput(
 private fun placeholder(lineFocused: Boolean, typing: Boolean): String = when {
     typing -> "type an app name"
     lineFocused -> "press ok to type"
-    else -> "search"
+    else -> "search apps"
 }
+
+// The field's fill while the line doesn't have focus: there, but quieter than the tile's focused rows.
+private const val RESTING_FILL_ALPHA = 0.5f
 
 // The keys a remote or keyboard sends for OK.
 private val OkKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)

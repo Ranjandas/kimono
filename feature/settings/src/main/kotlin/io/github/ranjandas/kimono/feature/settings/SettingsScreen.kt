@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,9 +12,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -34,8 +37,10 @@ import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
+import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
@@ -75,15 +80,15 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(horizontal = KimonoSpacing.XL, vertical = KimonoSpacing.M),
+        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
     ) {
         Text("settings", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
         Tile(modifier = Modifier.width(SettingsWidth)) {
             SectionHeader("appearance", icon = KimonoIcon.Settings)
             Column(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.padding(top = KimonoSpacing.S),
+                verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS),
             ) {
                 SettingRow(
                     KimonoIcon.Palette,
@@ -122,8 +127,9 @@ fun SettingsScreen(
 }
 
 /**
- * A setting and its value between ‹ ›, which is what Left and Right do: [onStep] gets -1 for Left and 1 for Right,
- * and OK steps forward too.
+ * A setting and its value. On the focused row the value sits between accent arrows, which is what Left and Right
+ * do (#134); elsewhere the arrows keep their room but don't show, so values don't shift as focus moves. [onStep]
+ * gets -1 for Left and 1 for Right, and OK steps forward too.
  */
 @Composable
 private fun SettingRow(
@@ -142,8 +148,23 @@ private fun SettingRow(
             step != null
         },
         icon = icon,
-        trailing = "‹ $value ›",
+        trailingContent = { focused -> SettingValue(value, focused) },
     )
+}
+
+/** [value] between chevrons that show only while the row is [focused]. */
+@Composable
+private fun SettingValue(value: String, focused: Boolean) {
+    val colors = KimonoTheme.colors
+    val arrows = if (focused) colors.accent else Color.Transparent
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XS),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(KimonoIcon.ChevronLeft, color = arrows)
+        Text(value, style = KimonoTheme.typography.label, color = if (focused) colors.text else colors.textMuted)
+        Icon(KimonoIcon.ChevronRight, color = arrows)
+    }
 }
 
 private val SideSteps = mapOf(Key.DirectionLeft to -1, Key.DirectionRight to 1)

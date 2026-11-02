@@ -24,6 +24,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
@@ -62,8 +63,8 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
         ) {
             SectionHeader(title)
             Column(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.padding(top = KimonoSpacing.S),
+                verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS),
             ) {
                 options.forEachIndexed { index, option ->
                     ListRow(
