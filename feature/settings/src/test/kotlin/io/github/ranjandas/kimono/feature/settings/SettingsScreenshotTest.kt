@@ -52,9 +52,8 @@ class SettingsScreenshotTest(private val theme: ThemeId, private val textSize: T
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}")
-        fun parameters(): List<Array<Any>> =
-            listOf(ThemeId.Kimono, ThemeId.RosePine).flatMap { theme ->
-                TextSize.entries.map { arrayOf<Any>(theme, it) }
-            }
+        fun parameters(): List<Array<Any>> = listOf(ThemeId.Kimono, ThemeId.RosePine).flatMap { theme ->
+            TextSize.entries.map { arrayOf<Any>(theme, it) }
+        }
     }
 }
