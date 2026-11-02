@@ -76,15 +76,20 @@ internal fun HomePage(
                     modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.lastUsed)
                         .tracksFocus(HomeArea.LastUsed, onFocusArea),
                 )
-                RecentsRow(
-                    recents = recents,
-                    onLaunchApp = { actions.onLaunchApp(it) },
-                    onShowOptions = actions.onShowOptions,
-                    marks = actions.marks,
-                    onRequestAccess = onRequestUsageAccess,
-                    modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight).focusRequester(focus.recents)
-                        .tracksFocus(HomeArea.Recents, onFocusArea),
-                )
+                // With nothing to show beyond the last used app, the row is left out and last used takes its room
+                // (#135), rather than four "none yet" tiles.
+                if (recents.hasRow) {
+                    RecentsRow(
+                        recents = recents,
+                        onLaunchApp = { actions.onLaunchApp(it) },
+                        onShowOptions = actions.onShowOptions,
+                        marks = actions.marks,
+                        onRequestAccess = onRequestUsageAccess,
+                        modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight)
+                            .focusRequester(focus.recents)
+                            .tracksFocus(HomeArea.Recents, onFocusArea),
+                    )
+                }
             }
             SideColumn(
                 apps = apps,

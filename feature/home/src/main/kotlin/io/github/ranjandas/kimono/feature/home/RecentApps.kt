@@ -38,6 +38,13 @@ sealed interface RecentApps {
     data class Apps(val apps: List<InstalledApp>) : RecentApps
 }
 
+/** Whether home shows the recents row: to ask for access, or for apps beyond the one in the last used tile. */
+internal val RecentApps.hasRow: Boolean
+    get() = when (this) {
+        RecentApps.NeedsAccess -> true
+        is RecentApps.Apps -> apps.size > 1
+    }
+
 /** The newest recent app, the one the last used tile shows. */
 internal val RecentApps.lastUsed: InstalledApp?
     get() = (this as? RecentApps.Apps)?.apps?.firstOrNull()
@@ -88,7 +95,8 @@ internal fun LastUsedTile(
 
 /**
  * The four tiles under last used: the apps opened before it, or a tile asking for usage access when Kimono can't
- * read them and hasn't opened anything itself. Empty slots stay as placeholders so the row keeps its shape.
+ * read them and hasn't opened anything itself. Empty slots are left blank rather than drawn as "none yet" tiles
+ * (#135), and keep their width so the tiles that are there stay the same size.
  */
 @Composable
 internal fun RecentsRow(
@@ -115,7 +123,7 @@ internal fun RecentsRow(
                 app != null ->
                     RecentTile(app, marks[app.packageName], { onLaunchApp(app) }, { onShowOptions(app) }, tileModifier)
 
-                else -> PlaceholderTile("recent", "none yet", {}, tileModifier)
+                else -> Spacer(tileModifier)
             }
         }
     }
