@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
@@ -35,7 +36,7 @@ fun ComponentSampler(theme: ThemeId, cornerStyle: CornerStyle, modifier: Modifie
     KimonoTheme(theme = theme, cornerStyle = cornerStyle) {
         Column(
             modifier = modifier.background(KimonoTheme.colors.background).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXL),
         ) {
             Tile(modifier = Modifier.width(560.dp)) {
                 SectionHeader("continue", trailing = theme.displayName)
@@ -43,7 +44,7 @@ fun ComponentSampler(theme: ThemeId, cornerStyle: CornerStyle, modifier: Modifie
                 Text("s02 · e04 — Woe's Hollow", color = KimonoTheme.colors.textMuted)
                 Row(
                     modifier = Modifier.padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
                 ) {
                     TextButton("resume", onClick = {}, icon = KimonoIcon.Play, primary = true)
                     TextButton("from start", onClick = {})
@@ -52,7 +53,7 @@ fun ComponentSampler(theme: ThemeId, cornerStyle: CornerStyle, modifier: Modifie
             }
             Tile(modifier = Modifier.width(560.dp)) {
                 SectionHeader("apps", trailing = "3 apps")
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS)) {
                     listOf("Jellyfin", "Plex", "YouTube").forEachIndexed { index, label ->
                         ListRow(text = label, onClick = {}, leading = "%02d".format(index + 1))
                     }

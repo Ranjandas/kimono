@@ -26,9 +26,9 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * An app in a grid: its [AppMark] ([mark], or its monogram without one) with the name under it. Focus eases the card
- * onto the variant surface with an accent border and grows it a little (#126); OK is [onClick] and held OK
- * [onLongClick], as on a [ListRow].
+ * An app in a grid: its [AppMark] ([mark], or its monogram without one) with the name under it, on up to two lines.
+ * Focus eases the card onto the variant surface with an accent border and grows it a little (#126); OK is
+ * [onClick] and held OK [onLongClick], as on a [ListRow].
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -73,7 +73,9 @@ fun AppCard(
             style = KimonoTheme.typography.body,
             color = if (focused) colors.text else colors.textMuted,
             textAlign = TextAlign.Center,
-            maxLines = 1,
+            // Two lines, so "Play Movies" isn't cut to "Play Mov…" (#131); always two, so the cards in a row line up.
+            minLines = 2,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }

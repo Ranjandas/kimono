@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -30,9 +31,10 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * A row in a text list: an optional [leading] detail such as a number, an optional [icon], the [text] itself, and
- * optional [trailing] detail. Focus eases in an accent-tinted fill and turns the icon and text to the accent colour,
- * with no movement, so a D-pad move down a list reads as one thing lighting up after another (#126).
+ * A row in a text list: an optional [leading] detail such as a number, an app's [mark] or else an [icon], the [text]
+ * itself, and optional [trailing] detail, or [trailingContent] drawn knowing whether the row has focus. Only the
+ * focused row has a fill (#133): focus eases in an accent-tinted fill and turns the icon and text to the accent
+ * colour, with no movement, so a D-pad move down a list reads as one thing lighting up after another (#126).
  *
  * [onLongClick] is held OK, which opens the row's options.
  */
@@ -44,7 +46,9 @@ fun ListRow(
     modifier: Modifier = Modifier,
     leading: String? = null,
     icon: KimonoIcon? = null,
+    mark: Mark? = null,
     trailing: String? = null,
+    trailingContent: (@Composable (focused: Boolean) -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     shape: Shape = KimonoTheme.shapes.nested(TileDefaults.PADDING_DP),
 ) {
@@ -52,10 +56,8 @@ fun ListRow(
     val focused by interactionSource.collectIsFocusedAsState()
     val heldOk = remember { HeldOk() }
     val colors = KimonoTheme.colors
-    // Over frosted glass an unfocused row is clear, so the glass shows through rather than a solid strip.
-    val restingColor = if (LocalBackdrop.current == null) colors.surface else Color.Transparent
     val focusedColor = colors.accent.copy(alpha = FocusDefaults.ROW_TINT_ALPHA).compositeOver(colors.surface)
-    val fill by animateFocusColor(if (focused) focusedColor else restingColor, label = "row fill")
+    val fill by animateFocusColor(if (focused) focusedColor else Color.Transparent, label = "row fill")
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -76,7 +78,7 @@ fun ListRow(
             )
             .background(fill, shape)
             .padding(horizontal = KimonoSpacing.M),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (leading != null) {
@@ -87,9 +89,7 @@ fun ListRow(
                 color = colors.textMuted.copy(alpha = LEADING_ALPHA),
             )
         }
-        if (icon != null) {
-            Icon(icon, color = if (focused) colors.accent else colors.textMuted)
-        }
+        RowGlyph(mark, icon, if (focused) colors.accent else colors.textMuted)
         Text(
             text,
             modifier = Modifier.weight(1f),
@@ -99,9 +99,19 @@ fun ListRow(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        if (trailing != null) {
-            Text(trailing, style = KimonoTheme.typography.label, color = colors.textMuted)
+        when {
+            trailingContent != null -> trailingContent(focused)
+            trailing != null -> Text(trailing, style = KimonoTheme.typography.label, color = colors.textMuted)
         }
+    }
+}
+
+/** The app's [mark] at icon size, or else the [icon], or nothing. */
+@Composable
+private fun RowGlyph(mark: Mark?, icon: KimonoIcon?, color: Color) {
+    when {
+        mark != null -> MarkGlyph(mark, color, Modifier.size(ListRowDefaults.MarkSize))
+        icon != null -> Icon(icon, color = color)
     }
 }
 
@@ -110,4 +120,7 @@ private const val LEADING_ALPHA = 0.6f
 object ListRowDefaults {
     /** Row height, the same in every list so the apps tile and the drawer scroll at the same rhythm. */
     val Height = 30.dp
+
+    /** An app logo's square in a row: a little taller than the body text beside it, as a logo needs. */
+    val MarkSize = 18.dp
 }

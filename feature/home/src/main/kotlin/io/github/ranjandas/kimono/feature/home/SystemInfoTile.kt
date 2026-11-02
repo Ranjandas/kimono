@@ -15,13 +15,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
@@ -76,8 +76,8 @@ internal fun InfoLine(
     value: @Composable RowScope.() -> Unit,
 ) {
     Row(
-        modifier = modifier.padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier.padding(top = KimonoSpacing.XS),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // A blank icon still takes its width, so the keys stay in a column.

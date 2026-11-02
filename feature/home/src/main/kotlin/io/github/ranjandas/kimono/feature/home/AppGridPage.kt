@@ -3,6 +3,7 @@ package io.github.ranjandas.kimono.feature.home
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.AppCard
@@ -33,6 +33,7 @@ import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.text.count
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
@@ -85,7 +86,7 @@ internal fun AppGridPage(
             unavailable?.let {
                 Text(
                     "${it.label} can't be opened. It may have been uninstalled or disabled.",
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = KimonoSpacing.S),
                     style = KimonoTheme.typography.label,
                     color = KimonoTheme.colors.error,
                 )
@@ -106,9 +107,12 @@ private fun AppGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(GRID_COLUMNS),
         // Coming back to the grid lands on the app that was focused last.
-        modifier = modifier.padding(top = 8.dp).focusRestorer(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.focusRestorer(),
+        // Inside the grid rather than around it: the grid clips its content, so a focused card growing at an edge
+        // (most visibly the top row) needs room within the grid or its border is cut off.
+        contentPadding = PaddingValues(KimonoSpacing.S),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
+        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
     ) {
         items(apps, key = { it.packageName }) { app ->
             AppCard(
@@ -128,8 +132,8 @@ private fun EmptyWorkspace(
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Spacer(Modifier.height(8.dp))
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(KimonoSpacing.M)) {
+        Spacer(Modifier.height(KimonoSpacing.S))
         Note("nothing in ${workspace.label} yet")
         TextButton(
             "all apps",
@@ -145,7 +149,7 @@ private fun EmptyWorkspace(
 private fun Note(text: String) {
     Text(
         text,
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = Modifier.padding(top = KimonoSpacing.S),
         style = KimonoTheme.typography.body,
         color = KimonoTheme.colors.textMuted,
     )

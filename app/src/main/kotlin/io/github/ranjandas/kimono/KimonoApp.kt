@@ -141,6 +141,7 @@ private fun Screens(
                     onOpenAppInfo = actions.openInfo,
                     onUninstallApp = actions.uninstall,
                     onClose = { actions.selectWorkspace(Workspace.Home) },
+                    marks = icons.marks,
                 )
             }
         }
