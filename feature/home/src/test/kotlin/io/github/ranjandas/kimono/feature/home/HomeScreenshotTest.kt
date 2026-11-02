@@ -62,9 +62,9 @@ class HomeScreenshotTest(
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}")
         fun parameters(): List<Array<Any>> =
-            ThemeId.entries.flatMap { theme -> CornerStyle.entries.map { arrayOf(theme, it, TextSize.Default) } } +
+            ThemeId.entries.flatMap { theme -> CornerStyle.entries.map { arrayOf<Any>(theme, it, TextSize.Default) } } +
                 // Large text once, in the default look (#45).
-                listOf(arrayOf(ThemeId.Default, CornerStyle.Default, TextSize.Large))
+                listOf(arrayOf<Any>(ThemeId.Default, CornerStyle.Default, TextSize.Large))
 
         private val FixedClock = Clock.fixed(Instant.parse("2026-10-26T20:30:00Z"), ZoneOffset.UTC)
 

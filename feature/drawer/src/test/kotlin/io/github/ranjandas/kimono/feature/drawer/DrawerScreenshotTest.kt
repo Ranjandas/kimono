@@ -64,9 +64,9 @@ class DrawerScreenshotTest(
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}")
         fun parameters(): List<Array<Any>> =
-            ThemeId.entries.flatMap { theme -> CornerStyle.entries.map { arrayOf(theme, it, TextSize.Default) } } +
+            ThemeId.entries.flatMap { theme -> CornerStyle.entries.map { arrayOf<Any>(theme, it, TextSize.Default) } } +
                 // Large text once, in the default look (#45).
-                listOf(arrayOf(ThemeId.Default, CornerStyle.Default, TextSize.Large))
+                listOf(arrayOf<Any>(ThemeId.Default, CornerStyle.Default, TextSize.Large))
 
         private val SampleApps = listOf(
             InstalledApp("pkg.Jellyfin", "pkg.Jellyfin.Main", "Jellyfin", AppCategory.Video, isTvApp = true),
