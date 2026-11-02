@@ -3,6 +3,7 @@ package io.github.ranjandas.kimono.feature.home
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -106,7 +107,10 @@ private fun AppGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(GRID_COLUMNS),
         // Coming back to the grid lands on the app that was focused last.
-        modifier = modifier.padding(top = KimonoSpacing.S).focusRestorer(),
+        modifier = modifier.focusRestorer(),
+        // Inside the grid rather than around it: the grid clips its content, so a focused card growing at an edge
+        // (most visibly the top row) needs room within the grid or its border is cut off.
+        contentPadding = PaddingValues(KimonoSpacing.S),
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
     ) {
