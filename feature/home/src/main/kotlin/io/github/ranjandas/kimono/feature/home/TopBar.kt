@@ -37,6 +37,7 @@ import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.TileDefaults
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import java.time.Clock
 import java.time.format.DateTimeFormatter
@@ -46,7 +47,7 @@ import kotlinx.coroutines.delay
  * Workspaces on the left, date and time in the middle, network, volume and settings on the right. The theme is
  * changed in settings (#110). Like Omarchy's Waybar, the right side is icons only (#123): the volume shows its
  * level only while it changes.
- * Status values update live. [currentWorkspaceFocus] focuses the current workspace's button.
+ * Status values update live. [currentWorkspaceFocus] focuses the current workspace's button, [settingsFocus] the gear.
  */
 @Composable
 internal fun TopBar(
@@ -57,6 +58,7 @@ internal fun TopBar(
     onFocusArea: (HomeArea) -> Unit,
     clock: Clock,
     currentWorkspaceFocus: FocusRequester,
+    settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -66,7 +68,7 @@ internal fun TopBar(
                 .tracksFocus(HomeArea.Workspaces, onFocusArea)
                 .focusRestorer()
                 .focusGroup(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XS),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Workspace.entries.forEach { candidate ->
@@ -79,7 +81,7 @@ internal fun TopBar(
             }
             Icon(
                 workspace.icon,
-                modifier = Modifier.padding(start = 10.dp),
+                modifier = Modifier.padding(start = KimonoSpacing.M),
                 color = KimonoTheme.colors.textMuted,
                 style = KimonoTheme.typography.label,
             )
@@ -92,7 +94,7 @@ internal fun TopBar(
         DateTime(clockFormat, clock, Modifier.align(Alignment.Center))
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),
-            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             NetworkIndicator()
@@ -101,7 +103,7 @@ internal fun TopBar(
                 icon = KimonoIcon.Settings,
                 description = "Settings",
                 onClick = onOpenSettings,
-                modifier = Modifier.tracksFocus(HomeArea.SettingsButton, onFocusArea),
+                modifier = Modifier.focusRequester(settingsFocus).tracksFocus(HomeArea.SettingsButton, onFocusArea),
             )
         }
     }
@@ -150,7 +152,7 @@ private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Mod
     val time = DateTimeFormatter.ofPattern(if (twentyFourHour) "HH:mm" else "h:mm a")
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(now.format(DATE), style = KimonoTheme.typography.label, color = KimonoTheme.colors.textMuted)
@@ -195,7 +197,7 @@ private fun VolumeLevel(level: Int, modifier: Modifier = Modifier) {
 private fun StatusItem(icon: KimonoIcon, label: String?, description: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)

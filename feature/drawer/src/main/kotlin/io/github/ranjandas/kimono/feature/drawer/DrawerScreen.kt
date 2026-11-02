@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,18 +32,19 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
+import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
-import io.github.ranjandas.kimono.core.design.component.LocalBackdrop
 import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
+import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
@@ -52,13 +52,14 @@ import io.github.ranjandas.kimono.data.apps.LaunchResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val Gap = 14.dp
+private val Gap = KimonoSpacing.L
 
 /**
  * The all apps page: every installed app as text, grouped into watch, listen, play and system, with search. Up
  * from the list reaches the search field, where OK brings up the on-screen keyboard (or the phone remote's).
  * Letters and digits typed on a hardware keyboard narrow the list from anywhere, Del deletes a character, and
- * Back clears the search before it calls [onClose]. It fills the page it's given; the launcher draws the top bar
+ * Back clears the search before it calls [onClose]. Each app shows its logo from [marks], the same one as its tile
+ * (#132), or else its brand or group icon. It fills the page it's given; the launcher draws the top bar
  * and padding around it.
  */
 @Composable
@@ -71,6 +72,7 @@ fun DrawerScreen(
     onUninstallApp: (InstalledApp) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    marks: AppMarks = AppMarks.None,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
@@ -128,6 +130,7 @@ fun DrawerScreen(
             onShowOptions = { options = it },
             unavailable = unavailable,
             focus = focus,
+            marks = marks,
         )
         options?.let { app ->
             val choices = workspaces.pinChoices(app.packageName)
@@ -178,6 +181,7 @@ private fun DrawerContent(
     onShowOptions: (InstalledApp) -> Unit,
     unavailable: InstalledApp?,
     focus: DrawerFocus,
+    marks: AppMarks,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -194,21 +198,23 @@ private fun DrawerContent(
             .focusable(),
         verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
-        SearchField(
-            query = query,
-            onQueryChange = onQueryChange,
-            matches = sections.sumOf { it.apps.size },
-            onFocusChange = { focus.searching = it },
-            // Done typing: back to the list to pick a result.
-            onDone = { runCatching { focus.list.requestFocus() } },
-            focusRequester = focus.search,
-        )
-        // The list isn't on a frosted tile, so its rows keep their own fill to stay readable over a wallpaper.
-        CompositionLocalProvider(LocalBackdrop provides null) {
+        // Search and the list share one tile, a window like home's, so the rows need no fill of their own to stay
+        // readable over a wallpaper: only the focused one has one (#133).
+        Tile(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            SearchField(
+                query = query,
+                onQueryChange = onQueryChange,
+                matches = sections.sumOf { it.apps.size },
+                onFocusChange = { focus.searching = it },
+                // Done typing: back to the list to pick a result.
+                onDone = { runCatching { focus.list.requestFocus() } },
+                focusRequester = focus.search,
+            )
             DrawerList(
                 sections = sections,
                 pinned = pinned,
                 query = query,
+                marks = marks,
                 onClickApp = onClickApp,
                 onShowOptions = onShowOptions,
                 modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.list).focusRestorer(),
@@ -231,16 +237,17 @@ private fun DrawerList(
     sections: List<DrawerSection>,
     pinned: Set<String>,
     query: String,
+    marks: AppMarks,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS)) {
         sections.forEach { section ->
             item(key = "group:${section.group.name}") {
                 SectionHeader(
-                    "~/${section.group.label}",
-                    modifier = Modifier.padding(top = Gap, bottom = 4.dp),
+                    section.group.label,
+                    modifier = Modifier.padding(top = Gap, bottom = KimonoSpacing.XS),
                     icon = section.group.icon,
                     trailing = "${section.apps.size}",
                 )
@@ -250,6 +257,7 @@ private fun DrawerList(
                     text = app.label,
                     onClick = { onClickApp(app) },
                     icon = app.icon(section.group),
+                    mark = marks[app.packageName],
                     trailing = when {
                         app.packageName in pinned -> "pinned"
                         !app.isTvApp -> "phone app"

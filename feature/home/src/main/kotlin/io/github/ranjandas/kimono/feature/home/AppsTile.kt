@@ -18,15 +18,16 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
+import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.ListRowDefaults
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.text.count
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
@@ -34,7 +35,8 @@ import kotlinx.coroutines.delay
 
 /**
  * The numbered app list on the home screen, holding the current workspace's apps. OK opens the focused app and
- * held OK its options; if it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of
+ * held OK its options. Each row shows the app's logo from [marks], the same one as its tile, or else its brand or
+ * category icon (#132). If it can't be opened (uninstalled or disabled meanwhile), the tile says so instead of
  * crashing. [apps] is null while the list is still loading.
  *
  * It shows the first [MAX_APPS] apps, then a last row that opens all apps, which lists them all.
@@ -47,6 +49,7 @@ fun AppsTile(
     workspace: Workspace,
     onOpenAllApps: () -> Unit,
     modifier: Modifier = Modifier,
+    marks: AppMarks = AppMarks.None,
     listFocusRequester: FocusRequester = remember { FocusRequester() },
 ) {
     var status by remember { mutableStateOf<LaunchStatus?>(null) }
@@ -57,7 +60,7 @@ fun AppsTile(
         }
     }
     Tile(modifier = modifier) {
-        SectionHeader("~/${workspace.label}", icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
+        SectionHeader(workspace.label, icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
         // A different workspace is a different list, so it starts again: at the top, and with focus coming back to
         // its first row rather than to whichever app had focus before. That app may still be in the new list (Home
         // switches workspace after the list has taken focus), and the focus restorer would land on it.
@@ -67,7 +70,7 @@ fun AppsTile(
                 state = listState,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(top = 8.dp)
+                    .padding(top = KimonoSpacing.S)
                     .wholeRows()
                     // Coming back to the list lands on the row that was focused last.
                     .focusRequester(listFocusRequester)
@@ -84,6 +87,7 @@ fun AppsTile(
                         },
                         leading = "%02d".format(index + 1),
                         icon = app.icon,
+                        mark = marks[app.packageName],
                         onLongClick = { onShowOptions(app) },
                         // The list is the right edge of the screen, so Right switches workspace (see
                         // WorkspaceSwitcher) instead of jumping to the top bar.
@@ -139,7 +143,7 @@ private fun AppsNotes(apps: List<InstalledApp>?, status: LaunchStatus?) {
         emptyText?.let {
             Text(
                 it,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = KimonoSpacing.S),
                 style = KimonoTheme.typography.body,
                 color = KimonoTheme.colors.textMuted,
             )
@@ -147,7 +151,7 @@ private fun AppsNotes(apps: List<InstalledApp>?, status: LaunchStatus?) {
         (status as? LaunchStatus.Unavailable)?.let {
             Text(
                 "${it.app.label} can't be opened. It may have been uninstalled or disabled.",
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = KimonoSpacing.S),
                 style = KimonoTheme.typography.label,
                 color = KimonoTheme.colors.error,
             )

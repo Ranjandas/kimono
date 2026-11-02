@@ -21,6 +21,7 @@ import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
@@ -32,7 +33,7 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 internal fun SystemTopTile(screenTime: ScreenTimeToday, modifier: Modifier = Modifier) {
     val stats by rememberTopStats()
     Tile(modifier = modifier) {
-        SectionHeader("~/top", icon = KimonoIcon.Activity)
+        SectionHeader("top", icon = KimonoIcon.Activity)
         DeviceLines(stats)
         TodayLines(screenTime)
     }
@@ -113,7 +114,7 @@ private fun Meter(fraction: Float, value: String, modifier: Modifier = Modifier)
     val style = KimonoTheme.typography.body
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(

@@ -40,6 +40,7 @@ internal fun HomePage(
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
     emptyFocus: FocusRequester,
+    settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     val focus = remember { HomeFocus() }
@@ -47,10 +48,11 @@ internal fun HomePage(
     val loaded = apps != null
     // Start on the apps list, the one tile that always has something to do. When the options panel closes, go back
     // to the tile it was opened from (the panel sits outside every area, so focusArea still names it), so focus is
-    // never left on whatever the system picks first.
+    // never left on whatever the system picks first. Back from settings, focus goes back to the gear.
     LaunchedEffect(hasApps, loaded, actions.panelOpen) {
         when {
             actions.panelOpen || !loaded -> Unit
+            focusArea == HomeArea.SettingsButton -> settingsFocus.requestFocusWhenLaidOut()
             hasApps -> focus.of(focusArea).requestFocusWhenLaidOut()
             else -> emptyFocus.requestFocusWhenLaidOut()
         }
@@ -74,33 +76,60 @@ internal fun HomePage(
                     modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.lastUsed)
                         .tracksFocus(HomeArea.LastUsed, onFocusArea),
                 )
-                RecentsRow(
-                    recents = recents,
-                    onLaunchApp = { actions.onLaunchApp(it) },
-                    onShowOptions = actions.onShowOptions,
-                    marks = actions.marks,
-                    onRequestAccess = onRequestUsageAccess,
-                    modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight).focusRequester(focus.recents)
-                        .tracksFocus(HomeArea.Recents, onFocusArea),
-                )
+                // With nothing to show beyond the last used app, the row is left out and last used takes its room
+                // (#135), rather than four "none yet" tiles.
+                if (recents.hasRow) {
+                    RecentsRow(
+                        recents = recents,
+                        onLaunchApp = { actions.onLaunchApp(it) },
+                        onShowOptions = actions.onShowOptions,
+                        marks = actions.marks,
+                        onRequestAccess = onRequestUsageAccess,
+                        modifier = Modifier.fillMaxWidth().height(HomeDimens.RecentsHeight)
+                            .focusRequester(focus.recents)
+                            .tracksFocus(HomeArea.Recents, onFocusArea),
+                    )
+                }
             }
-            Column(
+            SideColumn(
+                apps = apps,
+                actions = actions,
+                systemPanel = systemPanel,
+                theme = theme,
+                screenTime = screenTime,
+                onFocusArea = onFocusArea,
+                appsFocus = focus.apps,
                 modifier = Modifier.width(HomeDimens.SideColumnWidth).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap),
-            ) {
-                SystemTile(systemPanel, theme, screenTime, Modifier.fillMaxWidth())
-                AppsTile(
-                    apps = apps,
-                    onLaunchApp = actions.onLaunchApp,
-                    onShowOptions = actions.onShowOptions,
-                    workspace = Workspace.Home,
-                    onOpenAllApps = actions::onOpenAllApps,
-                    modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
-                    listFocusRequester = focus.apps,
-                )
-            }
+            )
         }
         HintBar(homeHints(focusArea), Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
+    }
+}
+
+/** Home's right-hand column: system info over the apps list. */
+@Composable
+private fun SideColumn(
+    apps: List<InstalledApp>?,
+    actions: PageActions,
+    systemPanel: SystemPanel,
+    theme: ThemeId,
+    screenTime: ScreenTimeToday,
+    onFocusArea: (HomeArea) -> Unit,
+    appsFocus: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
+        SystemTile(systemPanel, theme, screenTime, Modifier.fillMaxWidth())
+        AppsTile(
+            apps = apps,
+            onLaunchApp = actions.onLaunchApp,
+            onShowOptions = actions.onShowOptions,
+            workspace = Workspace.Home,
+            onOpenAllApps = actions::onOpenAllApps,
+            modifier = Modifier.fillMaxWidth().weight(1f).tracksFocus(HomeArea.Apps, onFocusArea),
+            marks = actions.marks,
+            listFocusRequester = appsFocus,
+        )
     }
 }
 

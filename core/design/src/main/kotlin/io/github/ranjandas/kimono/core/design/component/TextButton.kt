@@ -1,7 +1,6 @@
 package io.github.ranjandas.kimono.core.design.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -20,11 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * A bordered text button, optionally led by an icon. It fills with the accent colour while focused.
- * A [primary] button (the one action a tile is mostly for, such as resume) shows the accent unfocused too.
+ * A text button, optionally led by an icon: a quiet fill at rest, with no outline, since only tiles carry borders
+ * (#125). It eases to the accent colour while focused. A [primary] button (the one action a tile is mostly for, such
+ * as resume) has accent text unfocused too.
  *
  * The default [shape] assumes the button sits inside a [Tile], so its radius is the tile's minus the padding.
  */
@@ -45,18 +46,14 @@ fun TextButton(
         primary -> colors.accent
         else -> colors.text
     }
+    val fill by animateFocusColor(if (focused) colors.accent else colors.surfaceVariant, label = "button fill")
     Row(
         modifier = modifier
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
-            .background(if (focused) colors.accent else colors.surface, shape)
-            .border(
-                TileDefaults.BorderWidth,
-                if (focused || primary) colors.accent else colors.border,
-                shape,
-            )
+            .background(fill, shape)
             .heightIn(min = 44.dp)
-            .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = KimonoSpacing.XXL),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {

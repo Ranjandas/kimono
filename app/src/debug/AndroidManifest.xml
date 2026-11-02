@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Debug builds only: the Watch Next spike (#143) reads other apps' Watch Next rows. -->
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
+
     <application>
         <!-- Debug builds only: compares themed app icon styles (#114). Open with
              adb shell am start -n io.github.ranjandas.kimono/.IconLabActivity -->
         <activity
             android:name=".IconLabActivity"
             android:exported="true" />
+
+        <!-- Debug builds only: dumps Watch Next and preview rows to logcat (#143). -->
+        <activity
+            android:name=".WatchNextProbeActivity"
+            android:exported="true" />
+        <!-- Only senders holding DUMP, such as adb shell, can trigger it. -->
+        <receiver
+            android:name=".WatchNextProbeReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
     </application>
 </manifest>

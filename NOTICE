@@ -11,7 +11,7 @@ Fonts
 
 The app bundles these fonts (core/design/fonts):
 
-- Noto Sans 2.015, Regular and Bold, for all text:
+- Noto Sans 2.015, Regular, Medium and Bold, for all text:
   https://github.com/notofonts/latin-greek-cyrillic
   SIL Open Font License 1.1 (core/design/fonts/OFL.txt),
   Copyright 2022 The Noto Project Authors

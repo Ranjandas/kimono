@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono.core.design.theme
 
+import androidx.compose.ui.text.font.FontWeight
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -14,7 +15,7 @@ class KimonoTypographyTest {
 
     @Test
     fun `nothing is smaller than 12 sp, 24 px at 1080p`() {
-        val smallest = listOf(type.display, type.headline, type.title, type.body, type.label).minOf {
+        val smallest = listOf(type.display, type.headline, type.title, type.body, type.label, type.section).minOf {
             it.fontSize.value
         }
         assertTrue(smallest >= 12f, "smallest is $smallest sp")
@@ -29,8 +30,14 @@ class KimonoTypographyTest {
 
     @Test
     fun `every style uses the bundled font`() {
-        listOf(type.display, type.headline, type.title, type.body, type.label).forEach {
+        listOf(type.display, type.headline, type.title, type.body, type.label, type.section).forEach {
             assertEquals(KimonoFontFamily, it.fontFamily)
         }
+    }
+
+    @Test
+    fun `section labels are the label size, set apart by weight`() {
+        assertEquals(type.label.fontSize, type.section.fontSize)
+        assertEquals(FontWeight.Medium, type.section.fontWeight)
     }
 }

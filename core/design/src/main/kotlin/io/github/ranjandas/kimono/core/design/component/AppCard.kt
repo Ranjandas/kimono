@@ -16,17 +16,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * An app in a grid: its [AppMark] ([mark], or its monogram without one) with the name under it. Focus lifts the card
- * onto the variant surface with an accent border; OK is [onClick] and held OK [onLongClick], as on a [ListRow].
+ * An app in a grid: its [AppMark] ([mark], or its monogram without one) with the name under it, on up to two lines.
+ * Focus eases the card onto the variant surface with an accent border and grows it a little (#126); OK is
+ * [onClick] and held OK [onLongClick], as on a [ListRow].
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -42,8 +44,15 @@ fun AppCard(
     val heldOk = remember { HeldOk() }
     val colors = KimonoTheme.colors
     val shape = KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)
+    val fill by animateFocusColor(if (focused) colors.surfaceVariant else Color.Transparent, label = "card fill")
+    val border by animateFocusColor(if (focused) colors.borderFocused else Color.Transparent, label = "card border")
+    val scale by animateFocusScale(focused, FocusDefaults.CARD_SCALE, label = "card scale")
     Column(
         modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .onPreviewKeyEvent { heldOk.onKey(it, onLongClick) }
             .combinedClickable(
                 interactionSource = interactionSource,
@@ -52,10 +61,10 @@ fun AppCard(
                 onLongClick = onLongClick,
                 onClick = onClick,
             )
-            .background(if (focused) colors.surfaceVariant else Color.Transparent, shape)
-            .border(TileDefaults.BorderWidth, if (focused) colors.borderFocused else Color.Transparent, shape)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .background(fill, shape)
+            .border(TileDefaults.BorderWidth, border, shape)
+            .padding(KimonoSpacing.M),
+        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AppMark(label, mark, Modifier.fillMaxWidth())
@@ -64,7 +73,9 @@ fun AppCard(
             style = KimonoTheme.typography.body,
             color = if (focused) colors.text else colors.textMuted,
             textAlign = TextAlign.Center,
-            maxLines = 1,
+            // Two lines, so "Play Movies" isn't cut to "Play Mov…" (#131); always two, so the cards in a row line up.
+            minLines = 2,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }

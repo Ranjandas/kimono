@@ -16,7 +16,6 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.component.AppMark
 import io.github.ranjandas.kimono.core.design.component.AppMarks
@@ -25,6 +24,7 @@ import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 
@@ -37,6 +37,13 @@ sealed interface RecentApps {
     @Immutable
     data class Apps(val apps: List<InstalledApp>) : RecentApps
 }
+
+/** Whether home shows the recents row: to ask for access, or for apps beyond the one in the last used tile. */
+internal val RecentApps.hasRow: Boolean
+    get() = when (this) {
+        RecentApps.NeedsAccess -> true
+        is RecentApps.Apps -> apps.size > 1
+    }
 
 /** The newest recent app, the one the last used tile shows. */
 internal val RecentApps.lastUsed: InstalledApp?
@@ -60,14 +67,14 @@ internal fun LastUsedTile(
         onClick = { app?.let(onLaunchApp) },
         onLongClick = app?.let { { onShowOptions(it) } },
     ) {
-        SectionHeader("~/last used", icon = KimonoIcon.Continue)
+        SectionHeader("last used", icon = KimonoIcon.Continue)
         Row(
-            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = KimonoSpacing.M),
+            horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XXL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (app == null) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XS)) {
                     Text("nothing opened yet", style = KimonoTheme.typography.headline)
                     Text(
                         "the app you open last shows here, one press away",
@@ -77,7 +84,7 @@ internal fun LastUsedTile(
                 }
             } else {
                 AppMark(app.label, marks[app.packageName], Modifier.fillMaxHeight())
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XS)) {
                     Text(app.label, style = HeroNameStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("press ok to open", style = KimonoTheme.typography.body, color = KimonoTheme.colors.textMuted)
                 }
@@ -88,7 +95,8 @@ internal fun LastUsedTile(
 
 /**
  * The four tiles under last used: the apps opened before it, or a tile asking for usage access when Kimono can't
- * read them and hasn't opened anything itself. Empty slots stay as placeholders so the row keeps its shape.
+ * read them and hasn't opened anything itself. Empty slots are left blank rather than drawn as "none yet" tiles
+ * (#135), and keep their width so the tiles that are there stay the same size.
  */
 @Composable
 internal fun RecentsRow(
@@ -115,7 +123,7 @@ internal fun RecentsRow(
                 app != null ->
                     RecentTile(app, marks[app.packageName], { onLaunchApp(app) }, { onShowOptions(app) }, tileModifier)
 
-                else -> PlaceholderTile("recent", "none yet", {}, tileModifier)
+                else -> Spacer(tileModifier)
             }
         }
     }
@@ -147,12 +155,13 @@ private fun RecentTile(
 ) {
     Tile(modifier = modifier, onClick = onClick, onLongClick = onLongClick) {
         AppMark(app.label, mark, Modifier.weight(1f))
-        // A quarter-width tile fits about nine characters of body text.
+        // A quarter-width tile fits about nine characters of body text a line, so a longer name takes a second line
+        // rather than being cut off (#131); the logo above gives up the room.
         Text(
             app.label,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = KimonoSpacing.XS),
             style = TileTitleStyle,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
@@ -177,4 +186,4 @@ private fun PlaceholderTile(title: String, detail: String, onClick: () -> Unit, 
 private const val RECENT_SLOTS = 4
 
 // The same gap as between home's other tiles.
-private val TileGap = 14.dp
+private val TileGap = HomeDimens.Gap
