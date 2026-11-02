@@ -7,7 +7,7 @@ this stops at the review, the privacy policy draft and a listing draft.
 
 | item | status | notes |
 |---|---|---|
-| `INTERNET`, `ACCESS_NETWORK_STATE` | Fine | Wallpaper downloads only. |
+| `INTERNET`, `ACCESS_NETWORK_STATE` | Fine | Wallpaper downloads, and the top bar's online indicator. |
 | `PACKAGE_USAGE_STATS` | Fine with disclosure | A special permission the user grants in Settings. Used for recents and screen time; disclosed in the privacy policy. The app works without it. |
 | `REQUEST_DELETE_PACKAGES` | Fine | Uninstall from an app's options, a core launcher feature; the system confirms each one. Check the current Play form at submission. |
 | Package visibility | Fine | `<queries>` limited to `LEANBACK_LAUNCHER` and `LAUNCHER` activities; no `QUERY_ALL_PACKAGES`. |

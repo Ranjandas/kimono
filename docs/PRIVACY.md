@@ -26,7 +26,7 @@ nothing about you. Kimono's own theme draws its wallpapers on the TV and downloa
 
 | permission | why |
 |---|---|
-| Internet, network state | Downloading wallpapers, and waiting for a connection before trying |
+| Internet, network state | Downloading wallpapers, and showing in the top bar whether the TV is online |
 | Usage access (optional, you turn it on) | Recent apps and screen time on home |
 | Request to delete apps | "Uninstall" in an app's options; Android asks you to confirm every time |
 | See installed apps (launcher apps only) | Showing and opening your apps |
