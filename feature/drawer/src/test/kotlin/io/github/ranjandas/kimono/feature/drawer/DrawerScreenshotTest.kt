@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
+import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
@@ -21,15 +22,23 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
-/** The app drawer in every theme × corner style. See docs/DEVELOPING.md for recording new screenshots. */
+/**
+ * The app drawer in every theme × corner style, and once with large text. See docs/DEVELOPING.md for recording new
+ * screenshots.
+ */
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = "w960dp-h540dp-land-xhdpi")
-class DrawerScreenshotTest(private val theme: ThemeId, private val cornerStyle: CornerStyle) {
+class DrawerScreenshotTest(
+    private val theme: ThemeId,
+    private val cornerStyle: CornerStyle,
+    private val textSize: TextSize,
+) {
     @Test
     fun drawer() {
-        captureRoboImage("src/test/screenshots/drawer/${theme.name}-${cornerStyle.name}.png") {
-            KimonoTheme(theme = theme, cornerStyle = cornerStyle) {
+        val suffix = if (textSize == TextSize.Default) "" else "-${textSize.name}"
+        captureRoboImage("src/test/screenshots/drawer/${theme.name}-${cornerStyle.name}$suffix.png") {
+            KimonoTheme(theme = theme, cornerStyle = cornerStyle, textScale = textSize.scale) {
                 // The launcher draws the background and padding around the all apps page.
                 Box(
                     Modifier
@@ -53,9 +62,11 @@ class DrawerScreenshotTest(private val theme: ThemeId, private val cornerStyle: 
 
     companion object {
         @JvmStatic
-        @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}")
+        @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}")
         fun parameters(): List<Array<Any>> =
-            ThemeId.entries.flatMap { theme -> CornerStyle.entries.map { arrayOf(theme, it) } }
+            ThemeId.entries.flatMap { theme -> CornerStyle.entries.map { arrayOf(theme, it, TextSize.Default) } } +
+                // Large text once, in the default look (#45).
+                listOf(arrayOf(ThemeId.Default, CornerStyle.Default, TextSize.Large))
 
         private val SampleApps = listOf(
             InstalledApp("pkg.Jellyfin", "pkg.Jellyfin.Main", "Jellyfin", AppCategory.Video, isTvApp = true),

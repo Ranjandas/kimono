@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -56,8 +55,7 @@ fun ListRow(
     val focused by interactionSource.collectIsFocusedAsState()
     val heldOk = remember { HeldOk() }
     val colors = KimonoTheme.colors
-    val focusedColor = colors.accent.copy(alpha = FocusDefaults.ROW_TINT_ALPHA).compositeOver(colors.surface)
-    val fill by animateFocusColor(if (focused) focusedColor else Color.Transparent, label = "row fill")
+    val fill by animateFocusColor(if (focused) colors.rowFocused else Color.Transparent, label = "row fill")
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -101,7 +99,12 @@ fun ListRow(
         )
         when {
             trailingContent != null -> trailingContent(focused)
-            trailing != null -> Text(trailing, style = KimonoTheme.typography.label, color = colors.textMuted)
+
+            trailing != null -> Text(
+                trailing,
+                style = KimonoTheme.typography.label,
+                color = if (focused) colors.textMutedFocused else colors.textMuted,
+            )
         }
     }
 }

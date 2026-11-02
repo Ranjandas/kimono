@@ -80,9 +80,34 @@ fun Rgb.nudgedTowards(target: Rgb, passes: (Rgb) -> Boolean): Rgb {
 
 /**
  * The palette's accent, nudged towards its foreground where needed so that it works as a focus border on tiles
- * and the screen ([MIN_UI_CONTRAST]) and as a fill under [Palette.background]-coloured text ([MIN_TEXT_CONTRAST]).
+ * and the screen ([MIN_UI_CONTRAST]), as the label of a focused row over its own tint (large text, also
+ * [MIN_UI_CONTRAST]), and as a fill under [Palette.background]-coloured text ([MIN_TEXT_CONTRAST]).
  */
 fun legibleAccent(palette: Palette): Rgb = palette.accent.nudgedTowards(palette.foreground) {
     contrastRatio(it, palette.surface) >= MIN_UI_CONTRAST &&
+        contrastRatio(it, focusedRowFill(palette.surface, it)) >= MIN_UI_CONTRAST &&
         contrastRatio(it, palette.background) >= MIN_TEXT_CONTRAST
+}
+
+/** How much of the accent tints a focused row's fill. */
+const val FOCUSED_ROW_TINT = 0.16
+
+/** A focused row's fill: the tile colour with a little of the [accent] in it. */
+fun focusedRowFill(surface: Rgb, accent: Rgb): Rgb = surface.mix(accent, FOCUSED_ROW_TINT)
+
+/**
+ * Muted text for the fills focus and input boxes use (a focused row, [Palette.surfaceVariant]): the louder of what
+ * each needs, so it stays legible on both.
+ */
+fun mutedOnFills(palette: Palette): Rgb {
+    val fills = listOf(focusedRowFill(palette.surface, legibleAccent(palette)), palette.surfaceVariant)
+    return fills.map { quietestLegible(palette.foreground, it) }.minBy { contrastRatio(it, palette.foreground) }
+}
+
+/**
+ * The palette's secondary accent, nudged towards its foreground where needed so that it reads as text on tiles
+ * ([MIN_TEXT_CONTRAST] on [Palette.surface]). Several Omarchy palettes pick a magenta that's too dark for that.
+ */
+fun legibleAccentSecondary(palette: Palette): Rgb = palette.accent2.nudgedTowards(palette.foreground) {
+    contrastRatio(it, palette.surface) >= MIN_TEXT_CONTRAST
 }

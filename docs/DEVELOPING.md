@@ -52,8 +52,10 @@ Kimono reads recents again each time it comes back to the front.
 
 ## Screenshot tests
 
-Roborazzi renders the home screen and the drawer under Robolectric in every theme × corner style, and compares
-them with the PNGs committed under `feature/*/src/test/screenshots/`. CI fails when a screen changes.
+Roborazzi renders the home screen and the drawer under Robolectric in every theme × corner style (plus once with
+large text), and settings at each text size, and compares them with the PNGs committed under
+`feature/*/src/test/screenshots/`. CI fails when a screen changes. `AccessibilityTest` in `app` checks what TalkBack
+gets from each screen; see [ACCESSIBILITY.md](ACCESSIBILITY.md).
 
 ```sh
 ./gradlew verifyRoborazziDebug   # compare with the committed screenshots, as CI does
