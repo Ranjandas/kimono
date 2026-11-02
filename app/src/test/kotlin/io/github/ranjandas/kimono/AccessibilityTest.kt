@@ -1,5 +1,7 @@
 package io.github.ranjandas.kimono
 
+import android.content.ComponentName
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
@@ -30,8 +32,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.rules.TestRule
+import org.junit.runner.Description
 import org.junit.runner.RunWith
+import org.junit.runners.model.Statement
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -41,8 +49,12 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "w960dp-h540dp-land-xhdpi")
 class AccessibilityTest {
-    @get:Rule
     val compose = createComposeRule()
+
+    // The compose rule hosts its content in an empty ComponentActivity, which the app's manifest doesn't declare,
+    // so it's registered with Robolectric before the rule starts.
+    @get:Rule
+    val rules: RuleChain = RuleChain.outerRule(RegisterHostActivity).around(compose)
 
     @Test
     fun `home names everything it can focus`() = assertAccessible {
@@ -150,6 +162,16 @@ class AccessibilityTest {
             "Retro" to AppCategory.Game,
             "Files" to AppCategory.Other,
         ).map { (label, category) -> InstalledApp("pkg.$label", "pkg.$label.Main", label, category, isTvApp = true) }
+    }
+}
+
+private object RegisterHostActivity : TestRule {
+    override fun apply(base: Statement, description: Description): Statement = object : Statement() {
+        override fun evaluate() {
+            val app = RuntimeEnvironment.getApplication()
+            shadowOf(app.packageManager).addActivityIfNotPresent(ComponentName(app, ComponentActivity::class.java))
+            base.evaluate()
+        }
     }
 }
 

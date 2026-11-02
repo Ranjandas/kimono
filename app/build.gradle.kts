@@ -86,8 +86,6 @@ dependencies {
 
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
-    // Registers the empty activity the compose test rule hosts its content in.
-    testImplementation(libs.androidx.compose.ui.test.manifest)
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)
     // Robolectric runs on JUnit 4, so its tests run through the vintage engine.
