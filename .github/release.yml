@@ -1,0 +1,15 @@
+# Groups the notes GitHub generates for a release (gh release create --generate-notes) by the PRs' type labels.
+changelog:
+  exclude:
+    labels: [type:chore]
+  categories:
+    - title: New
+      labels: [type:feature, enhancement, feature]
+    - title: Fixes
+      labels: [type:bug, bug]
+    - title: Accessibility
+      labels: [accessibility]
+    - title: Docs
+      labels: [type:docs, documentation]
+    - title: Other changes
+      labels: ["*"]
