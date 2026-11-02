@@ -2,6 +2,7 @@ package io.github.ranjandas.kimono.feature.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -39,9 +40,9 @@ import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
 
 /**
- * A workspace that is just its apps, watch or play: a grid of their logos (or monograms) filling the page, pins
- * first. OK opens one and held OK its options; Back goes home. An empty workspace offers all apps instead, so
- * there's always something to press. [apps] is null while the app list is still loading.
+ * A workspace that is just its apps, watch or play: a grid of their logos (or monograms) in a panel as tall as it
+ * needs, pins first. OK opens one and held OK its options; Back goes home. An empty workspace offers all apps
+ * instead, so there's always something to press. [apps] is null while the app list is still loading.
  */
 @Composable
 internal fun AppGridPage(
@@ -52,7 +53,6 @@ internal fun AppGridPage(
 ) {
     val gridFocus = remember { FocusRequester() }
     val emptyFocus = remember { FocusRequester() }
-    var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
     val hasApps = !apps.isNullOrEmpty()
     val loaded = apps != null
     // Also when the page's apps change: an app unpinned from a page it doesn't belong on leaves it, and focus would
@@ -66,33 +66,53 @@ internal fun AppGridPage(
     }
     BackHandler(onBack = actions::onGoHome)
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
-        Tile(modifier = Modifier.fillMaxWidth().weight(1f)) {
-            SectionHeader(workspace.label, icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
-            when {
-                !loaded -> Note("loading apps…")
-
-                hasApps -> AppGrid(
-                    apps = apps.orEmpty(),
-                    onClickApp = { app ->
-                        unavailable = app.takeIf { actions.onLaunchApp(it) is LaunchResult.Unavailable }
-                    },
-                    onShowOptions = actions.onShowOptions,
-                    marks = actions.marks,
-                    modifier = Modifier.weight(1f).focusRequester(gridFocus),
-                )
-
-                else -> EmptyWorkspace(workspace, actions::onOpenAllApps, emptyFocus)
-            }
-            unavailable?.let {
-                Text(
-                    "${it.label} can't be opened. It may have been uninstalled or disabled.",
-                    modifier = Modifier.padding(top = KimonoSpacing.S),
-                    style = KimonoTheme.typography.label,
-                    color = KimonoTheme.colors.error,
-                )
-            }
+        // The panel is only as tall as its apps (#135): two apps get a short panel, not a screenful of empty
+        // space. A full workspace still fills the page and scrolls. The hints stay at the bottom either way.
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            GridPanel(workspace, apps, actions, gridFocus, emptyFocus)
         }
         HintBar(GridHints, Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
+    }
+}
+
+/** The workspace's tile: its header, then the grid, a loading note or the empty state, sized to what it holds. */
+@Composable
+private fun GridPanel(
+    workspace: Workspace,
+    apps: List<InstalledApp>?,
+    actions: PageActions,
+    gridFocus: FocusRequester,
+    emptyFocus: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
+    var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
+    val hasApps = !apps.isNullOrEmpty()
+    val loaded = apps != null
+    Tile(modifier = modifier.fillMaxWidth()) {
+        SectionHeader(workspace.label, icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
+        when {
+            !loaded -> Note("loading apps…")
+
+            hasApps -> AppGrid(
+                apps = apps.orEmpty(),
+                onClickApp = { app ->
+                    unavailable = app.takeIf { actions.onLaunchApp(it) is LaunchResult.Unavailable }
+                },
+                onShowOptions = actions.onShowOptions,
+                marks = actions.marks,
+                modifier = Modifier.weight(1f, fill = false).focusRequester(gridFocus),
+            )
+
+            else -> EmptyWorkspace(workspace, actions::onOpenAllApps, emptyFocus)
+        }
+        unavailable?.let {
+            Text(
+                "${it.label} can't be opened. It may have been uninstalled or disabled.",
+                modifier = Modifier.padding(top = KimonoSpacing.S),
+                style = KimonoTheme.typography.label,
+                color = KimonoTheme.colors.error,
+            )
+        }
     }
 }
 
