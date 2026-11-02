@@ -78,7 +78,7 @@ fun SettingsScreen(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text("~/settings", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
+        Text("settings", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
         Tile(modifier = Modifier.width(SettingsWidth)) {
             SectionHeader("appearance", icon = KimonoIcon.Settings)
             Column(

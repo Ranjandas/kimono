@@ -239,7 +239,7 @@ private fun DrawerList(
         sections.forEach { section ->
             item(key = "group:${section.group.name}") {
                 SectionHeader(
-                    "~/${section.group.label}",
+                    section.group.label,
                     modifier = Modifier.padding(top = Gap, bottom = 4.dp),
                     icon = section.group.icon,
                     trailing = "${section.apps.size}",

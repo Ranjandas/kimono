@@ -57,7 +57,7 @@ fun AppsTile(
         }
     }
     Tile(modifier = modifier) {
-        SectionHeader("~/${workspace.label}", icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
+        SectionHeader(workspace.label, icon = workspace.icon, trailing = apps?.let { count(it.size, "app") })
         // A different workspace is a different list, so it starts again: at the top, and with focus coming back to
         // its first row rather than to whichever app had focus before. That app may still be in the new list (Home
         // switches workspace after the list has taken focus), and the focus restorer would land on it.

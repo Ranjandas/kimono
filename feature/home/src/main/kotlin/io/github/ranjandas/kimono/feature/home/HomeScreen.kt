@@ -31,6 +31,7 @@ import io.github.ranjandas.kimono.core.design.component.AppMarks
 import io.github.ranjandas.kimono.core.design.component.AppOptionsPanel
 import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.component.Tile
+import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
@@ -41,15 +42,15 @@ import java.time.Clock
 
 /** Layout sizes, in dp on the 960 × 540 canvas. They scale the mockup by the same 1.4 × as the type scale. */
 internal object HomeDimens {
-    val ScreenPaddingH = 20.dp
-    val ScreenPaddingV = 12.dp
-    val Gap = 14.dp
+    val ScreenPaddingH = KimonoSpacing.XL
+    val ScreenPaddingV = KimonoSpacing.M
+    val Gap = KimonoSpacing.L
 
     /** The top bar panel (#122). */
     val TopBarHeight = 40.dp
 
     /** The top bar's inset inside its panel, slimmer than a tile's so its buttons fill the height. */
-    val TopBarPaddingH = 12.dp
+    val TopBarPaddingH = KimonoSpacing.M
     val HintBarHeight = 22.dp
     val SideColumnWidth = 392.dp
     val RecentsHeight = 140.dp
@@ -59,7 +60,8 @@ internal object HomeDimens {
  * The launcher's main screen: the top bar, and under it the current workspace as a page of its own (#98). Home is
  * the grid from the mockup, watch and play are grids of their apps, and all apps is the [allApps] page, the
  * drawer. Left and Right at the edge of a page switch workspace, sliding the next page in. [apps] is null while
- * the app list is still loading. The top bar reads the time from [clock], which tests fix.
+ * the app list is still loading. The top bar reads the time from [clock], which tests fix. Coming back from settings,
+ * [startOnSettingsButton] puts focus back on the gear it was opened from.
  */
 @Composable
 fun HomeScreen(
@@ -83,13 +85,15 @@ fun HomeScreen(
     iconStyles: Map<String, IconStyle> = emptyMap(),
     onChangeIconStyle: ((InstalledApp, IconStyle) -> Unit)? = null,
     clock: Clock = Clock.systemDefaultZone(),
+    startOnSettingsButton: Boolean = false,
     allApps: @Composable () -> Unit,
 ) {
     val workspace = workspaces.current
     val switcher = rememberWorkspaceSwitcher(workspace, onSelectWorkspace)
     val workspaceFocus = remember { FocusRequester() }
+    val settingsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
-    var focusArea by remember { mutableStateOf(HomeArea.Apps) }
+    var focusArea by remember { mutableStateOf(if (startOnSettingsButton) HomeArea.SettingsButton else HomeArea.Apps) }
     val pageActions =
         PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen = options != null, marks)
     Box(modifier = modifier.fillMaxSize()) {
@@ -102,6 +106,7 @@ fun HomeScreen(
                 onFocusArea = { focusArea = it },
                 clock = clock,
                 currentWorkspaceFocus = workspaceFocus,
+                settingsFocus = settingsFocus,
                 modifier = barModifier,
             )
         }) { page ->
@@ -118,6 +123,7 @@ fun HomeScreen(
                     focusArea = focusArea,
                     onFocusArea = { focusArea = it },
                     emptyFocus = workspaceFocus,
+                    settingsFocus = settingsFocus,
                 )
 
                 Workspace.Watch, Workspace.Play -> AppGridPage(page, pageApps, pageActions)

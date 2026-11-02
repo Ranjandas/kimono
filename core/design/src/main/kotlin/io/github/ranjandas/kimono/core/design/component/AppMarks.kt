@@ -45,7 +45,7 @@ class AppMarks(private val byPackage: Map<String, Mark>) {
 }
 
 /**
- * An app's [mark] in the accent on the same tinted square as a [Monogram], so a tile looks the same either way, or
+ * An app's [mark] in the accent on the same quiet square as a [Monogram], so a tile looks the same either way, or
  * its monogram while there is no mark. The square takes its size from [modifier].
  */
 @Composable
@@ -57,7 +57,7 @@ fun AppMark(label: String, mark: Mark?, modifier: Modifier = Modifier) {
         BoxWithConstraints(
             modifier = modifier
                 .aspectRatio(1f)
-                .background(colors.accent.copy(alpha = TINT_ALPHA), KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)),
+                .background(colors.surfaceVariant, KimonoTheme.shapes.nested(TileDefaults.PADDING_DP)),
             contentAlignment = Alignment.Center,
         ) {
             when (mark) {

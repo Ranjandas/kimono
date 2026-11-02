@@ -46,7 +46,7 @@ internal fun SystemInfoTile(theme: ThemeId, modifier: Modifier = Modifier) {
     val storage by rememberStorage()
     val network by rememberNetworkStatus()
     Tile(modifier = modifier) {
-        SectionHeader("~/system", icon = KimonoIcon.Info)
+        SectionHeader("system", icon = KimonoIcon.Info)
         InfoLine(KimonoIcon.Device, "device", Build.MODEL)
         InfoLine(KimonoIcon.Os, "os", "Android ${Build.VERSION.RELEASE}")
         InfoLine(KimonoIcon.Uptime, "uptime", formatUptime(uptime))

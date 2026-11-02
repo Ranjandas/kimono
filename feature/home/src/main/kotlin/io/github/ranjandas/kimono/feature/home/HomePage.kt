@@ -40,6 +40,7 @@ internal fun HomePage(
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
     emptyFocus: FocusRequester,
+    settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     val focus = remember { HomeFocus() }
@@ -47,10 +48,11 @@ internal fun HomePage(
     val loaded = apps != null
     // Start on the apps list, the one tile that always has something to do. When the options panel closes, go back
     // to the tile it was opened from (the panel sits outside every area, so focusArea still names it), so focus is
-    // never left on whatever the system picks first.
+    // never left on whatever the system picks first. Back from settings, focus goes back to the gear.
     LaunchedEffect(hasApps, loaded, actions.panelOpen) {
         when {
             actions.panelOpen || !loaded -> Unit
+            focusArea == HomeArea.SettingsButton -> settingsFocus.requestFocusWhenLaidOut()
             hasApps -> focus.of(focusArea).requestFocusWhenLaidOut()
             else -> emptyFocus.requestFocusWhenLaidOut()
         }

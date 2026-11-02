@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -36,9 +37,9 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import kotlin.math.roundToInt
 
 /**
- * A home-screen tile: a surface with a border that turns to the accent colour while the tile, or anything
- * inside it, has focus. The border follows the corner style. Over a wallpaper ([LocalBackdrop]) the surface
- * is frosted glass.
+ * A home-screen tile: a surface with a quiet border that eases to the accent colour while the tile, or anything
+ * inside it, has focus (#125, #126). A tile that is itself one focus target also grows a little. The border follows
+ * the corner style. Over a wallpaper ([LocalBackdrop]) the surface is frosted glass.
  *
  * Pass [onClick] for a tile that is a single focus target (a recent app), and [onLongClick] for held OK on it
  * (the app's options). Leave [onClick] null for a tile whose children take focus (the apps list). A panel with a
@@ -63,6 +64,11 @@ fun Tile(
     }
     val backdrop = LocalBackdrop.current
     val glass = remember { GlassPosition() }
+    val border by animateFocusColor(
+        if (hasFocus) colors.borderFocused else colors.border.copy(alpha = FocusDefaults.QUIET_BORDER_ALPHA),
+        label = "tile border",
+    )
+    val scale by animateFocusScale(hasFocus && onClick != null, FocusDefaults.TILE_SCALE, label = "tile scale")
     val surface = if (backdrop == null) {
         Modifier.background(colors.surface, shape)
     } else {
@@ -70,10 +76,14 @@ fun Tile(
     }
     Column(
         modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .onFocusChanged { hasFocus = it.hasFocus }
             .then(clickable ?: Modifier)
             .then(surface)
-            .border(TileDefaults.BorderWidth, if (hasFocus) colors.borderFocused else colors.border, shape)
+            .border(TileDefaults.BorderWidth, border, shape)
             .padding(contentPadding),
         content = content,
     )
