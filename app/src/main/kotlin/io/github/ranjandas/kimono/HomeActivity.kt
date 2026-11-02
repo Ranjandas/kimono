@@ -2,7 +2,9 @@ package io.github.ranjandas.kimono
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -50,6 +52,7 @@ class HomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        diag("onCreate restored=${savedInstanceState != null} intent=$intent")
         // Android keeps home activities in their own task, so the first Home press after Kimono was opened some
         // other way (from the apps row, or adb) starts a second instance rather than reaching this one. Treat that
         // start as a Home press too. A restore after process death keeps its state instead.
@@ -79,8 +82,27 @@ class HomeActivity : ComponentActivity() {
     // Activity.dispatchKeyEvent is public API; lint only objects because androidx.core's ComponentActivity
     // re-declares it as restricted.
     @SuppressLint("RestrictedApi")
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
-        idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN) || super.dispatchKeyEvent(event)
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val woke = idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN)
+        val handled = woke || super.dispatchKeyEvent(event)
+        diag("key ${KeyEvent.keyCodeToString(event.keyCode)} action=${event.action} woke=$woke handled=$handled")
+        return handled
+    }
+
+    // DIAGNOSTIC for #75, not for merge.
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        diag("windowFocus=$hasFocus")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        diag("resumed")
+    }
+
+    private fun diag(message: String) {
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) Log.d("KimonoDiag", message)
+    }
 
     // Sets a wallpaper of the user's own, since typing a URL with a remote is painful (docs/DEVELOPING.md). An
     // empty value goes back to the theme's. Only https links are taken, and the kimono: links of the wallpapers
