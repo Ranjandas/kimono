@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 android {
@@ -57,6 +58,9 @@ android {
         }
     }
 
+    // The plugin only wires this up for release, and the benchmark build measured on the TV should carry what ships.
+    sourceSets.getByName("main").baselineProfiles.directories.add("src/main/generated/baselineProfiles")
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -83,7 +87,23 @@ android {
     }
 }
 
+baselineProfile {
+    mergeIntoMain = true
+}
+
+// The build types the baseline profile plugin adds also take the debug key, so generating a profile installs over
+// a debug build in place and keeps settings.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        if (variant.name.startsWith("nonMinified") || variant.name.startsWith("benchmark")) {
+            variant.signingConfig.setConfig(android.signingConfigs.getByName("debug"))
+        }
+    }
+}
+
 dependencies {
+    baselineProfile(project(":baselineprofile"))
+
     implementation(project(":core:design"))
     implementation(project(":core:data"))
     implementation(project(":feature:home"))
@@ -95,6 +115,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.profileinstaller)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
