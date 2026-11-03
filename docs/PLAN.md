@@ -48,7 +48,7 @@ with that in mind from day one.
 
 | # | Decision | Choice | Notes |
 |---|---|---|---|
-| D1 | Name | **Kimono** (device label), **Kimono TV** / **Kimono Launcher** in store listings | Bare "kimono" is a generic word; a qualifier helps search and avoids claiming the word itself. Trademark/store search before any Play release (M5). |
+| D1 | Name | **Kimono** (device label), **Kimono Launcher** in store listings and release titles (Ranjan, 2026-11-02) | Bare "kimono" is a generic word; a qualifier helps search and avoids claiming the word itself. A quick search found no TV launcher called Kimono; a formal trademark check is still to do before any Play release (M5). |
 | D2 | Package ID | `io.github.ranjandas.kimono` | Permanent once published on Play. |
 | D3 | First device | Google TV Streamer (Google TV, Android TV 14) | Other Google TV / Android TV devices later. |
 | D4 | Distribution | Sideload first; Play Store later | Sideload builds come from GitHub Releases. |

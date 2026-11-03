@@ -11,8 +11,9 @@ android {
         applicationId = "io.github.ranjandas.kimono"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "0.1.0"
+        // A tagged release passes its own (see .github/workflows/release.yml).
+        versionCode = providers.gradleProperty("kimono.versionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("kimono.versionName").orNull ?: "0.1.0"
     }
 
     signingConfigs {
@@ -26,18 +27,32 @@ android {
         }
     }
 
+    // The release key lives outside the repo: CI decodes it from secrets for a tagged release, and anyone can
+    // build a signed release locally by setting the same variables (docs/DEVELOPING.md). Without them, release
+    // builds come out unsigned.
+    val releaseKeystore = providers.environmentVariable("KIMONO_RELEASE_KEYSTORE").orNull
+    if (releaseKeystore != null) {
+        signingConfigs.create("release") {
+            storeFile = file(releaseKeystore)
+            storePassword = providers.environmentVariable("KIMONO_RELEASE_STORE_PASSWORD").get()
+            keyAlias = providers.environmentVariable("KIMONO_RELEASE_KEY_ALIAS").get()
+            keyPassword = providers.environmentVariable("KIMONO_RELEASE_KEY_PASSWORD").get()
+        }
+    }
+
     buildTypes {
+        // Optimised and shrunk like the benchmark build that's measured on the TV, so what ships is what was timed.
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.findByName("release")
         }
         // A release build for measuring speed on the TV: optimised and not debuggable, but signed with the
         // debug key so it installs over a debug build in place and keeps settings (docs/DEVELOPING.md).
         create("benchmark") {
             initWith(getByName("release"))
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
             matchingFallbacks += "release"
         }
     }

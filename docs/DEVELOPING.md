@@ -38,6 +38,40 @@ gh run download <run-id> -n kimono-debug-apk -D /tmp/kimono
 Debug builds from CI and from every machine are signed with the same committed key (`app/debug.keystore`),
 so they install over each other. It is a debug key only and never signs a release.
 
+## Release
+
+Push a version tag and CI does the rest (`.github/workflows/release.yml`): it builds a signed, minified release
+APK, checks its signature and publishes it to GitHub Releases as **Kimono Launcher x.y.z**, with notes generated from
+the merged PRs and grouped by their `type:` labels (`.github/release.yml`). A tag with a suffix, such as
+`v0.2.0-rc1`, is marked as a pre-release.
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+The tag sets the version: `v1.2.3` builds versionName `1.2.3` and versionCode `10203`.
+
+The release key never goes in the repo. Make it once and keep a backup somewhere safe; losing it means a later
+release can't update an installed one:
+
+```sh
+keytool -genkeypair -v -keystore kimono-release.jks -alias kimono -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Then add these repository secrets (Settings > Secrets and variables > Actions), or with `gh secret set`:
+
+| secret | value |
+|---|---|
+| `KIMONO_RELEASE_KEYSTORE_BASE64` | `base64 -i kimono-release.jks` |
+| `KIMONO_RELEASE_STORE_PASSWORD` | the keystore password |
+| `KIMONO_RELEASE_KEY_ALIAS` | `kimono` |
+| `KIMONO_RELEASE_KEY_PASSWORD` | the key password |
+
+To build a signed release locally, set `KIMONO_RELEASE_KEYSTORE` to the file's path and the other three as
+environment variables with the same names, then `./gradlew assembleRelease`. Without them, release builds come out
+unsigned. A release-signed APK won't install over a debug one (different key): uninstall Kimono first, which resets
+its settings.
+
 ## Recent apps
 
 Home's last used tile and recents row show the apps opened from Kimono, which it remembers itself. With usage
