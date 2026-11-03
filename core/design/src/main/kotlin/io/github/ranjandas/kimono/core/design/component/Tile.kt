@@ -18,8 +18,10 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.FilterQuality.Companion.Low
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.addOutline
@@ -115,15 +117,15 @@ private fun Modifier.frosted(backdrop: Backdrop, position: GlassPosition, color:
             val tint = backdrop.tint.copy(alpha = backdrop.tint.alpha * visibility)
             val overlay = color.copy(alpha = 1f - visibility * (1f - backdrop.opacity)).compositeOver(tint)
             clipPath(outline) {
-                drawImage(
-                    image,
-                    srcOffset,
-                    srcSize,
-                    dstSize = dstSize,
-                    alpha = visibility,
-                    filterQuality = FilterQuality.Low,
-                )
-                drawRect(overlay)
+                if (visibility < 1f) {
+                    // Fading in, the image is see-through, and the tile colour has to cover the gaps.
+                    drawImage(image, srcOffset, srcSize, dstSize = dstSize, alpha = visibility, filterQuality = Low)
+                    drawRect(overlay)
+                } else {
+                    // Once the wallpaper is in, the overlay goes on as a colour filter: one draw per tile (#91).
+                    val filter = ColorFilter.tint(overlay, BlendMode.SrcAtop)
+                    drawImage(image, srcOffset, srcSize, dstSize = dstSize, filterQuality = Low, colorFilter = filter)
+                }
             }
         }
     }

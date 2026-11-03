@@ -22,6 +22,11 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -142,11 +147,23 @@ private fun SettingRow(
     ListRow(
         text = name,
         onClick = { onStep(1) },
-        modifier = modifier.onPreviewKeyEvent { event ->
-            val step = SideSteps[event.key]
-            if (step != null && event.type == KeyEventType.KeyDown) onStep(step)
-            step != null
-        },
+        modifier = modifier
+            .onPreviewKeyEvent { event ->
+                val step = SideSteps[event.key]
+                if (step != null && event.type == KeyEventType.KeyDown) onStep(step)
+                step != null
+            }
+            // TalkBack reads "theme, kimono" with the value as the row's state, and offers Left and Right as its
+            // "previous value" and "next value" actions (#45).
+            .semantics {
+                stateDescription = value
+                customActions = SideSteps.values.map { step ->
+                    CustomAccessibilityAction(if (step < 0) "previous value" else "next value") {
+                        onStep(step)
+                        true
+                    }
+                }
+            },
         icon = icon,
         trailingContent = { focused -> SettingValue(value, focused) },
     )
@@ -162,7 +179,13 @@ private fun SettingValue(value: String, focused: Boolean) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(KimonoIcon.ChevronLeft, color = arrows)
-        Text(value, style = KimonoTheme.typography.label, color = if (focused) colors.text else colors.textMuted)
+        Text(
+            value,
+            // Read as the row's state instead.
+            modifier = Modifier.clearAndSetSemantics {},
+            style = KimonoTheme.typography.label,
+            color = if (focused) colors.text else colors.textMuted,
+        )
         Icon(KimonoIcon.ChevronRight, color = arrows)
     }
 }

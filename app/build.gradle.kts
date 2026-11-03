@@ -51,6 +51,14 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests {
+            // The accessibility test renders real screens, the theme fonts among them.
+            isIncludeAndroidResources = true
+            all { it.useJUnitPlatform() }
+        }
+    }
+
     lint {
         baseline = file("lint-baseline.xml")
         warningsAsErrors = true
@@ -75,4 +83,13 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
+    // Robolectric runs on JUnit 4, so its tests run through the vintage engine.
+    testRuntimeOnly(platform(libs.junit.bom))
+    testRuntimeOnly(libs.junit.vintage.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }

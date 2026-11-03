@@ -26,6 +26,10 @@ data class KimonoColors(
     val text: Color,
     /** Secondary text: as quiet as the palette allows while keeping 4.5:1 on [surface]. */
     val textMuted: Color,
+    /** [textMuted] on a focused row ([rowFocused]) or an input box ([surfaceVariant]), a little brighter. */
+    val textMutedFocused: Color,
+    /** A focused row's fill: the tile colour tinted with a little of the [accent]. */
+    val rowFocused: Color,
     val border: Color,
     val borderFocused: Color,
     /**
@@ -33,6 +37,7 @@ data class KimonoColors(
      * 4.5:1 under [onAccent] text.
      */
     val accent: Color,
+    /** Headers and keys in text: the palette's second accent, nudged where needed to keep 4.5:1 on [surface]. */
     val accentSecondary: Color,
     /** Text and icons drawn on an [accent] fill. */
     val onAccent: Color,
@@ -50,10 +55,12 @@ data class KimonoColors(
                 surfaceVariant = palette.surfaceVariant.toColor(),
                 text = palette.foreground.toColor(),
                 textMuted = quietestLegible(palette.foreground, palette.surface).toColor(),
+                textMutedFocused = mutedOnFills(palette).toColor(),
+                rowFocused = focusedRowFill(palette.surface, legibleAccent(palette)).toColor(),
                 border = palette.line.toColor(),
                 borderFocused = accent,
                 accent = accent,
-                accentSecondary = palette.accent2.toColor(),
+                accentSecondary = legibleAccentSecondary(palette).toColor(),
                 onAccent = palette.background.toColor(),
                 error = palette.red.toColor(),
                 warning = palette.yellow.toColor(),

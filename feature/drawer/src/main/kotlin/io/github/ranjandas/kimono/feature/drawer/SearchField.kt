@@ -171,7 +171,8 @@ private fun SearchInput(
         interactionSource = interactionSource,
         decorationBox = { field ->
             Box {
-                if (query.isEmpty()) Text(placeholder, style = style, color = KimonoTheme.colors.textMuted)
+                // The box always has a fill, so the hint uses the muted colour tuned for one.
+                if (query.isEmpty()) Text(placeholder, style = style, color = KimonoTheme.colors.textMutedFocused)
                 field()
             }
         },

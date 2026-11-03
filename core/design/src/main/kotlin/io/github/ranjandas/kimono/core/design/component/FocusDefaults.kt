@@ -22,9 +22,6 @@ object FocusDefaults {
     /** A focused tile grows less, since tiles are larger. */
     const val TILE_SCALE = 1.015f
 
-    /** The accent's strength in a focused row's fill. */
-    const val ROW_TINT_ALPHA = 0.16f
-
     /** An unfocused tile border's strength, so tiles read as windows without outlining the whole screen. */
     const val QUIET_BORDER_ALPHA = 0.55f
 }

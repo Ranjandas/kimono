@@ -26,6 +26,33 @@ class PaletteTest {
 
     @ParameterizedTest
     @EnumSource(ThemeId::class)
+    fun `text stays legible on a focused row and in an input box`(theme: ThemeId) {
+        val p = theme.palette
+        val row = focusedRowFill(p.surface, legibleAccent(p))
+        val muted = mutedOnFills(p)
+        assertLegible(p.foreground, row, "foreground on a focused row")
+        assertLegible(muted, row, "muted text on a focused row")
+        assertLegible(p.foreground, p.surfaceVariant, "foreground in an input box")
+        assertLegible(muted, p.surfaceVariant, "muted text in an input box")
+        // A focused row's label is the accent in bold at 14 sp (28 px), large text in WCAG terms.
+        assertContrast(legibleAccent(p), row, MIN_UI_CONTRAST, "accent label on a focused row")
+    }
+
+    @ParameterizedTest
+    @EnumSource(ThemeId::class)
+    fun `secondary accent is legible as text on tiles`(theme: ThemeId) {
+        val p = theme.palette
+        assertLegible(legibleAccentSecondary(p), p.surface, "secondary accent on surface")
+    }
+
+    @Test
+    fun `secondary accent is only nudged where the palette needs it`() {
+        assertEquals(ThemeId.Kimono.palette.accent2, legibleAccentSecondary(ThemeId.Kimono.palette))
+        assertTrue(ThemeId.Nord.palette.accent2 != legibleAccentSecondary(ThemeId.Nord.palette))
+    }
+
+    @ParameterizedTest
+    @EnumSource(ThemeId::class)
     fun `muted text is quieter than body text`(theme: ThemeId) {
         val p = theme.palette
         val muted = quietestLegible(p.foreground, p.surface)
