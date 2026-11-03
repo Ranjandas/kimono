@@ -167,6 +167,30 @@ adb shell dumpsys gfxinfo io.github.ranjandas.kimono                     # janky
 
 `run-as` doesn't work on it, since it isn't debuggable; install a debug build again for that.
 
+### Baseline profile
+
+`app/src/main/generated/baselineProfiles/baseline-prof.txt` tells the device which code to compile ahead of time, and
+ships in release and benchmark builds. Regenerate it after big changes to home or the drawer, with the TV awake and
+nothing playing:
+
+```bash
+./gradlew :app:generateBaselineProfile -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true
+```
+
+**Keep that flag.** Connected tests uninstall the app when they finish, which wipes settings; the flag stops that. The
+test APK stays behind, so remove it afterwards with `adb uninstall io.github.ranjandas.kimono.baselineprofile`, and
+`adb install -r` a debug build to get `run-as` back. The generator never presses OK or opens settings.
+
+The task can report "There were failing tests" even though the test passed (it did on the Streamer with AGP 9.4.1,
+which is why the first profile was copied in by hand). If it does, check
+`baselineprofile/build/outputs/androidTest-results/connected/nonMinifiedRelease/`, then copy
+`BaselineProfileGenerator_generate-baseline-prof.txt` from
+`baselineprofile/build/outputs/connected_android_test_additional_output/` over the file above.
+
+To compare cold starts with and without the profile, run
+`./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest` with the same flag. Results are under
+`baselineprofile/build/outputs/connected_android_test_additional_output/`.
+
 ### Wallpaper
 
 Each theme has a default wallpaper that Kimono downloads on the TV the first time it's shown and keeps
