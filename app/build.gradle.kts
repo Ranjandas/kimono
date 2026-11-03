@@ -96,7 +96,7 @@ baselineProfile {
 androidComponents {
     onVariants(selector().all()) { variant ->
         if (variant.name.startsWith("nonMinified") || variant.name.startsWith("benchmark")) {
-            variant.signingConfig.setConfig(android.signingConfigs.getByName("debug"))
+            variant.signingConfig.from(android.signingConfigs.getByName("debug"))
         }
     }
 }

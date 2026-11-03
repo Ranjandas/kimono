@@ -181,6 +181,12 @@ nothing playing:
 test APK stays behind, so remove it afterwards with `adb uninstall io.github.ranjandas.kimono.baselineprofile`, and
 `adb install -r` a debug build to get `run-as` back. The generator never presses OK or opens settings.
 
+The task can report "There were failing tests" even though the test passed (it did on the Streamer with AGP 9.4.1,
+which is why the first profile was copied in by hand). If it does, check
+`baselineprofile/build/outputs/androidTest-results/connected/nonMinifiedRelease/`, then copy
+`BaselineProfileGenerator_generate-baseline-prof.txt` from
+`baselineprofile/build/outputs/connected_android_test_additional_output/` over the file above.
+
 To compare cold starts with and without the profile, run
 `./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest` with the same flag. Results are under
 `baselineprofile/build/outputs/connected_android_test_additional_output/`.
