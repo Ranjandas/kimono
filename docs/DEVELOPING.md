@@ -65,7 +65,7 @@ Then add these repository secrets (Settings > Secrets and variables > Actions), 
 | `KIMONO_RELEASE_KEYSTORE_BASE64` | `base64 -i kimono-release.jks` |
 | `KIMONO_RELEASE_STORE_PASSWORD` | the keystore password |
 | `KIMONO_RELEASE_KEY_ALIAS` | `kimono` |
-| `KIMONO_RELEASE_KEY_PASSWORD` | the key password |
+| `KIMONO_RELEASE_KEY_PASSWORD` | the key password (the same as the keystore password: keytool's default PKCS12 format asks for only one) |
 
 To build a signed release locally, set `KIMONO_RELEASE_KEYSTORE` to the file's path and the other three as
 environment variables with the same names, then `./gradlew assembleRelease`. Without them, release builds come out
