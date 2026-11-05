@@ -41,7 +41,7 @@ so they install over each other. It is a debug key only and never signs a releas
 ## Release
 
 Push a version tag and CI does the rest (`.github/workflows/release.yml`): it builds a signed, minified release
-APK, checks its signature and publishes it to GitHub Releases as **Kimono Launcher x.y.z**, with notes generated from
+APK and app bundle (the `.aab` is what Play takes), checks the signatures and 16 KB alignment, and publishes them to GitHub Releases as **Kimono Launcher x.y.z**, with notes generated from
 the merged PRs and grouped by their `type:` labels (`.github/release.yml`). A tag with a suffix, such as
 `v0.2.0-rc1`, is marked as a pre-release.
 

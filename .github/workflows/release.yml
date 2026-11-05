@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag like v0.2.0 to build a signed release APK and publish it to GitHub Releases, with notes generated
+# Push a tag like v0.2.0 to build a signed release APK and app bundle and publish them to GitHub Releases, with notes generated
 # from the merged PRs (.github/release.yml groups them). See docs/DEVELOPING.md.
 on:
   push:
@@ -47,28 +47,44 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
 
-      - name: Build the signed release APK
+      - name: Build the signed release APK and app bundle
         env:
           KIMONO_RELEASE_KEYSTORE: ${{ runner.temp }}/release.jks
           KIMONO_RELEASE_STORE_PASSWORD: ${{ secrets.KIMONO_RELEASE_STORE_PASSWORD }}
           KIMONO_RELEASE_KEY_ALIAS: ${{ secrets.KIMONO_RELEASE_KEY_ALIAS }}
           KIMONO_RELEASE_KEY_PASSWORD: ${{ secrets.KIMONO_RELEASE_KEY_PASSWORD }}
         run: >
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew assembleRelease bundleRelease --stacktrace
           -Pkimono.versionName=${{ steps.version.outputs.name }}
           -Pkimono.versionCode=${{ steps.version.outputs.code }}
 
-      - name: Check the signature
+      # Play needs an app bundle (the .aab); the APK is for sideloading. Since August 2026, TV apps must also
+      # support 16 KB memory pages, so every native library has to be 16 KB aligned.
+      - name: Check the signatures and 16 KB alignment
         run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)"
           apk=$(ls app/build/outputs/apk/release/*.apk)
-          "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)/apksigner verify --print-certs "$apk"
+          aab=$(ls app/build/outputs/bundle/release/*.aab)
+          "$tools"/apksigner verify --print-certs "$apk"
+          jarsigner -verify "$aab" | tail -1
+          "$tools"/zipalign -c -P 16 -v 4 "$apk" | tail -1
+          mkdir -p "$RUNNER_TEMP/lib" && unzip -q -o "$apk" 'lib/*' -d "$RUNNER_TEMP/lib" || true
+          bad=0
+          for so in $(find "$RUNNER_TEMP/lib" -name '*.so'); do
+            case "$so" in */arm64-v8a/*|*/x86_64/*) ;; *) continue ;; esac
+            align=$(objdump -p "$so" | awk '/LOAD/ { print $NF; exit }')
+            if [ $((align)) -lt 16384 ]; then echo "::error::$so is aligned to $align, not 16 KB"; bad=1; fi
+          done
+          [ "$bad" -eq 0 ]
           cp "$apk" "kimono-${{ steps.version.outputs.name }}.apk"
+          cp "$aab" "kimono-${{ steps.version.outputs.name }}.aab"
 
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "$GITHUB_REF_NAME" "kimono-${{ steps.version.outputs.name }}.apk"
+          gh release create "$GITHUB_REF_NAME"
+          "kimono-${{ steps.version.outputs.name }}.apk" "kimono-${{ steps.version.outputs.name }}.aab"
           --title "Kimono Launcher ${{ steps.version.outputs.name }}"
           --generate-notes
           ${{ contains(steps.version.outputs.name, '-') && '--prerelease' || '' }}
