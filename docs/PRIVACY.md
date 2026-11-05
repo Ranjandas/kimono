@@ -1,6 +1,6 @@
 # Kimono Launcher privacy policy
 
-*Draft for the Play listing (#48). Last updated 2026-11-02.*
+*Last updated 2026-11-05.*
 
 Kimono Launcher is a home screen for Android TV and Google TV. It has no account, no analytics, no ads and no
 crash reporting, and it sends nothing about you or your TV anywhere.

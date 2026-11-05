@@ -1,7 +1,7 @@
 # Play Store readiness
 
-Where Kimono Launcher stands for a Play Store release (#48). There's no Play Console account yet (2026-11-02), so
-this stops at the review, the privacy policy draft and a listing draft.
+Where Kimono Launcher stands for a Play Store release (#48). The Play Console account exists (2026-11-05); the
+step-by-step walkthrough lives in the project's release doc.
 
 ## Policy review
 
@@ -17,12 +17,12 @@ this stops at the review, the privacy policy draft and a listing draft.
 | Brand logos | Check at submission | Other apps' logos only next to the app they open (plan risks table). |
 | Data safety form | Ready to fill | No data collected or shared; see the privacy policy. |
 | Target SDK | Fine | targetSdk 37. |
-| TV quality | To check | Banner 320×180 (exists), D-pad only, no touch required, leanback launcher intent. |
+| TV quality | To check | App icon and banner (640×360 px in drawable-xhdpi, 320×180 dp), D-pad only, no touch required, leanback launcher intent. |
 
 ## Privacy policy
 
-Drafted in [PRIVACY.md](PRIVACY.md). Play needs it at a public URL. The repo is private, so it has to be published
-somewhere public first (GitHub Pages from a public repo, or a gist).
+[PRIVACY.md](PRIVACY.md), published at https://gist.github.com/Ranjandas/effdee2510f62f3bb81f66630712b4e1 until the
+repo goes public. Use that URL in Play Console.
 
 ## Listing draft
 
@@ -51,4 +51,7 @@ somewhere public first (GitHub Pages from a public repo, or a gist).
 **Screenshots:** 1920×1080 captures from the Streamer: home (Kimono theme), watch workspace, all apps, settings,
 one Omarchy theme with a wallpaper. Take them with `adb exec-out screencap -p` once the look is final.
 
-**Still needed:** the final icon and banner (#47), a Play Console account, and the privacy policy's public URL.
+**Graphics:** in [store/](store/): the 512×512 icon, the 1024×500 feature graphic and the 1280×720 TV banner. The
+mark is a vermilion name seal (hanko) with a carved K. `node scripts/store-art/render.js` redraws them and the
+launcher banner from `scripts/store-art/art.html`; the app icon itself is the vector in
+`app/src/main/res/drawable/ic_launcher_foreground.xml`.

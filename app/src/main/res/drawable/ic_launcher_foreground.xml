@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kimono's mark: a vermilion name seal (hanko) with a carved K. The seal's corners stay inside the 66 dp safe
+     zone, so no launcher mask clips them. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#F2543D"
+        android:pathData="M37,28 H71 A9,9 0 0 1 80,37 V71 A9,9 0 0 1 71,80 H37 A9,9 0 0 1 28,71 V37 A9,9 0 0 1 37,28 Z" />
+    <path
+        android:pathData="M44.7,39.1 V68.9 M48,53.8 L64.2,39.1 M52.1,50.3 L65.1,68.9"
+        android:strokeWidth="6.5"
+        android:strokeColor="#000000"
+        android:strokeLineCap="square" />
+</vector>

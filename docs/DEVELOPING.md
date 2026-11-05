@@ -49,7 +49,8 @@ the merged PRs and grouped by their `type:` labels (`.github/release.yml`). A ta
 git tag v0.2.0 && git push origin v0.2.0
 ```
 
-The tag sets the version: `v1.2.3` builds versionName `1.2.3` and versionCode `10203`.
+The tag sets the version: `v1.2.3` builds versionName `1.2.3` and versionCode `1020399`, and `v1.2.3-rc4` builds
+`1020304`, so a release candidate always numbers below its release. (`v0.1.0-rc1` was built as `100`, before this scheme.)
 
 The release key never goes in the repo. Make it once and keep a backup somewhere safe; losing it means a later
 release can't update an installed one:

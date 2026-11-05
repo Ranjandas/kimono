@@ -28,14 +28,23 @@ jobs:
         with:
           cache-read-only: true
 
-      # v1.2.3 becomes versionName 1.2.3 and versionCode 10203.
+      # v1.2.3 becomes versionName 1.2.3 and versionCode 1020399; v1.2.3-rc4 becomes 1020304. A release candidate
+      # always numbers below its final release, since Play never takes the same versionCode twice.
       - name: Version from the tag
         id: version
         run: |
           name="${GITHUB_REF_NAME#v}"
           IFS=. read -r major minor patch <<< "${name%%-*}"
+          build=99
+          if [[ "$name" == *-* ]]; then
+            build="${name##*[!0-9]}"
+            if [ -z "$build" ] || [ "$build" -ge 99 ]; then
+              echo "::error::a pre-release tag must end in a number below 99, such as v1.2.3-rc1"
+              exit 1
+            fi
+          fi
           echo "name=$name" >> "$GITHUB_OUTPUT"
-          echo "code=$((major * 10000 + minor * 100 + patch))" >> "$GITHUB_OUTPUT"
+          echo "code=$(((major * 10000 + minor * 100 + patch) * 100 + build))" >> "$GITHUB_OUTPUT"
 
       - name: Decode the release key
         env:
