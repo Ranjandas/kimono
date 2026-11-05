@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- A kimono, in the Kimono theme's dyes. The wearer's left panel lies on top, so on screen the top collar runs
+       from upper right to lower left; the other way round is how the dead are dressed. Keep in step with
+       app/src/main/res/drawable/ic_launcher_foreground.xml. -->
+  <polygon fill="#f2543d" points="27,36 81,36 81,54 68,54 68,81 40,81 40,54 27,54"/>
+  <polygon fill="#ffe9d6" points="44,36 50,36 58,50 54,56"/>
+  <polygon fill="#000000" points="64,36 58,36 44,58 50,58"/>
+  <rect fill="#e6b84a" x="40" y="58" width="28" height="8"/>
+</svg>

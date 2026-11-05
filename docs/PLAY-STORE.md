@@ -17,7 +17,7 @@ this stops at the review, the privacy policy draft and a listing draft.
 | Brand logos | Check at submission | Other apps' logos only next to the app they open (plan risks table). |
 | Data safety form | Ready to fill | No data collected or shared; see the privacy policy. |
 | Target SDK | Fine | targetSdk 37. |
-| TV quality | To check | Banner 320×180 (exists), D-pad only, no touch required, leanback launcher intent. |
+| TV quality | To check | Adaptive icon and 16:9 banner with no border (docs/brand), D-pad only, no touch required, leanback launcher intent. |
 
 ## Privacy policy
 
@@ -51,4 +51,8 @@ somewhere public first (GitHub Pages from a public repo, or a gist).
 **Screenshots:** 1920×1080 captures from the Streamer: home (Kimono theme), watch workspace, all apps, settings,
 one Omarchy theme with a wallpaper. Take them with `adb exec-out screencap -p` once the look is final.
 
-**Still needed:** the final icon and banner (#47), a Play Console account, and the privacy policy's public URL.
+**Graphics:** in [docs/brand](brand), rendered from `mark.svg` by `scripts/brand-assets.sh`: the 512×512 icon, the
+1024×500 feature graphic and the 1280×720 TV banner. The launcher banner in the app comes from the same script.
+
+**Still needed:** the name and trademark check (#47), and a contact in the privacy policy that works while the repo is
+private.
