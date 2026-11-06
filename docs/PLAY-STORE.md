@@ -52,6 +52,6 @@ repo goes public. Use that URL in Play Console.
 one Omarchy theme with a wallpaper. Take them with `adb exec-out screencap -p` once the look is final.
 
 **Graphics:** in [store/](store/): the 512×512 icon, the 1024×500 feature graphic and the 1280×720 TV banner. The
-mark is a vermilion name seal (hanko) with a carved K. `node scripts/store-art/render.js` redraws them and the
+mark is a vermilion kimono with a gold obi, its collar crossed left over right. `node scripts/store-art/render.js` redraws them and the
 launcher banner from `scripts/store-art/art.html`; the app icon itself is the vector in
 `app/src/main/res/drawable/ic_launcher_foreground.xml`.

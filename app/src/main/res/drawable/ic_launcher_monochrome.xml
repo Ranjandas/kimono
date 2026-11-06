@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The seal as an outline for themed icons, which keep only the alpha and tint it. -->
+<!-- The kimono as a line drawing for themed icons, which keep only the alpha and tint it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:pathData="M37,30 H71 A7,7 0 0 1 78,37 V71 A7,7 0 0 1 71,78 H37 A7,7 0 0 1 30,71 V37 A7,7 0 0 1 37,30 Z"
-        android:strokeWidth="4"
-        android:strokeColor="#FFFFFF" />
-    <path
-        android:pathData="M44.7,39.1 V68.9 M48,53.8 L64.2,39.1 M52.1,50.3 L65.1,68.9"
-        android:strokeWidth="6.5"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="square" />
+    <group
+        android:pivotX="54"
+        android:pivotY="55"
+        android:scaleX="0.88"
+        android:scaleY="0.88">
+        <path
+            android:pathData="M45,25 L63,25 L83,32 Q86,33 86,36 L86,57 Q86,62 81,62 L72,62 Q69,62 69,59 L69,46 L71.5,86 L36.5,86 L39,46 L39,59 Q39,62 36,62 L27,62 Q22,62 22,57 L22,36 Q22,33 25,32 Z"
+            android:strokeWidth="3"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M46,25 L54.5,42 M61.5,25 L44,58"
+            android:strokeWidth="3.6"
+            android:strokeColor="#FFFFFF" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M38.2,57 H69.8 V67 H38.2 Z" />
+    </group>
 </vector>

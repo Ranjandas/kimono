@@ -1,17 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Kimono's mark: a vermilion name seal (hanko) with a carved K. The seal's corners stay inside the 66 dp safe
-     zone, so no launcher mask clips them. -->
+<!-- Kimono's mark: a kimono in vermilion, the collar crossed left over right (the wearer's left panel on top, as
+     the living wear it), with the neck, armholes and front edge cut in black and a gold obi. Scaled so every
+     corner stays inside the 66 dp safe zone. Keep in step with scripts/store-art/art.html. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#F2543D"
-        android:pathData="M37,28 H71 A9,9 0 0 1 80,37 V71 A9,9 0 0 1 71,80 H37 A9,9 0 0 1 28,71 V37 A9,9 0 0 1 37,28 Z" />
-    <path
-        android:pathData="M44.7,39.1 V68.9 M48,53.8 L64.2,39.1 M52.1,50.3 L65.1,68.9"
-        android:strokeWidth="6.5"
-        android:strokeColor="#000000"
-        android:strokeLineCap="square" />
+    <group
+        android:pivotX="54"
+        android:pivotY="55"
+        android:scaleX="0.88"
+        android:scaleY="0.88">
+        <path
+            android:fillColor="#F2543D"
+            android:pathData="M45,25 L63,25 L83,32 Q86,33 86,36 L86,57 Q86,62 81,62 L72,62 Q69,62 69,59 L69,46 L71.5,86 L36.5,86 L39,46 L39,59 Q39,62 36,62 L27,62 Q22,62 22,57 L22,36 Q22,33 25,32 Z" />
+        <path
+            android:pathData="M39,44 L39,60 M69,44 L69,60 M45,67 L44,86"
+            android:strokeWidth="2"
+            android:strokeColor="#000000" />
+        <path
+            android:fillColor="#000000"
+            android:pathData="M47,25 L61,25 L54,41 Z" />
+        <path
+            android:pathData="M60.5,25 L43.5,58"
+            android:strokeWidth="3"
+            android:strokeColor="#000000" />
+        <path
+            android:fillColor="#E6B84A"
+            android:pathData="M38.2,57 H69.8 V67 H38.2 Z" />
+    </group>
 </vector>
