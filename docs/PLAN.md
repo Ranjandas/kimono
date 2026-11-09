@@ -56,7 +56,7 @@ with that in mind from day one.
 | D6 | Stack | Kotlin, Jetpack Compose for TV (`androidx.tv:tv-material`), single activity | See §6. |
 | D7 | Repo / codename | `kimono` | The "omatv" name in early mockups is retired. |
 | D8 | Icons | Glyphs from **Symbols Nerd Font** (includes Font Awesome Free, Material Design Icons and more), subset at build time | Icons are text, so they line up with labels and take theme colours automatically. Nerd Fonts is MIT/OFL, Font Awesome Free icons are CC BY 4.0, all credited in `NOTICE`. |
-| D10 | Text font | **Noto Sans** everywhere (decided 2026-10-27, replacing JetBrains Mono) | Monospace read as too "dev" for everyday viewers and is harder to read from the sofa. Noto covers most scripts app names use. OFL. |
+| D10 | Text font | **Noto Sans** for app names, titles and body text; **JetBrains Mono** for section labels, values, numbers, the clock and the system tile (decided 2026-11-09, #152; was Noto everywhere from 2026-10-27) | Monospace everywhere read as too "dev" for everyday viewers, but in small uppercase labels and numbers it gives the Omarchy texture. Noto covers most scripts app names use. Both OFL. |
 | D9 | Corner style | User setting, independent of colour theme: **square** (default) · **soft** (~6 dp) · **round** (~12 dp) | One shape token drives every component. |
 
 ### Decisions still open
@@ -77,7 +77,9 @@ Taken from the mockups; these settle arguments during implementation.
 1. **Text first.** App names over logos. Artwork only where it carries information (media).
 2. **Tiles with gaps.** One 2 px border per tile: accent colour when focused, line colour otherwise.
    Corners are square by default and configurable (square / soft / round) through one shape setting.
-3. **One plain typeface.** Noto Sans, bundled (D10); the Omarchy feel comes from the tiles, colours and `~/` labels.
+3. **Two typefaces, one job each.** Noto Sans for what people read (app names, titles); JetBrains Mono, in small
+   uppercase section labels and for values and numbers, for the Omarchy feel (D10). Labels are UPPERCASE, titles
+   and names keep their own case.
 4. **Icons accompany text, never replace it.** Every icon sits next to a label; icons are muted by default
    and take the accent colour with focus. One icon family per context.
 5. **Themes are data.** A theme is a palette plus a few semantic tokens; no screen hard-codes a colour or a radius.

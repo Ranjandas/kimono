@@ -83,7 +83,7 @@ fun ListRow(
             // Numbers are a quiet guide, not something to read.
             Text(
                 leading,
-                style = KimonoTheme.typography.label,
+                style = KimonoTheme.typography.value,
                 color = colors.textMuted.copy(alpha = LEADING_ALPHA),
             )
         }
@@ -102,7 +102,7 @@ fun ListRow(
 
             trailing != null -> Text(
                 trailing,
-                style = KimonoTheme.typography.label,
+                style = KimonoTheme.typography.value,
                 color = if (focused) colors.textMutedFocused else colors.textMuted,
             )
         }

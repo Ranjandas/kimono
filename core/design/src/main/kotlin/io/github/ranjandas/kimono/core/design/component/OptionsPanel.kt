@@ -61,7 +61,8 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
                     event.key == Key.Back || okGate.swallows(event)
                 },
         ) {
-            SectionHeader(title)
+            // The title is an app's name, so it keeps its own case.
+            SectionHeader(title, caps = false)
             Column(
                 modifier = Modifier.padding(top = KimonoSpacing.S),
                 verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS),

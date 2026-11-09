@@ -9,7 +9,7 @@ A text-first, tiling Android TV launcher inspired by [Omarchy](https://omarchy.o
 
 ## What it will be
 
-- Text-first home screen with tiles, numbered workspaces and Nerd Font icons, set in Noto Sans
+- Text-first home screen with tiles, numbered workspaces and Nerd Font icons, set in Noto Sans with JetBrains Mono labels
 - Kimono's own true-black theme for OLED panels, plus themes ported from Omarchy's palettes (Tokyo Night,
   Catppuccin, Gruvbox, Rosé Pine, Nord, Kanagawa, Everforest), with square, soft or round corners
 - Continue watching, recent apps and a system-info tile

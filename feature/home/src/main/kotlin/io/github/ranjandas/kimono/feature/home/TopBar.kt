@@ -86,8 +86,9 @@ internal fun TopBar(
                 style = KimonoTheme.typography.label,
             )
             Text(
-                workspace.label,
-                style = KimonoTheme.typography.label,
+                workspace.label.uppercase(),
+                modifier = Modifier.semantics { contentDescription = workspace.label },
+                style = KimonoTheme.typography.section,
                 color = KimonoTheme.colors.textMuted,
             )
         }
@@ -134,7 +135,7 @@ private fun WorkspaceButton(
     ) {
         Text(
             workspace.number.toString(),
-            style = KimonoTheme.typography.label,
+            style = KimonoTheme.typography.value,
             color = if (selected) colors.onAccent else colors.textMuted,
             fontWeight = FontWeight.Bold,
         )
@@ -155,8 +156,8 @@ private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Mod
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(now.format(DATE), style = KimonoTheme.typography.label, color = KimonoTheme.colors.textMuted)
-        Text(now.format(time), style = KimonoTheme.typography.label, fontWeight = FontWeight.Bold)
+        Text(now.format(DATE), style = KimonoTheme.typography.value, color = KimonoTheme.colors.textMuted)
+        Text(now.format(time), style = KimonoTheme.typography.value, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -201,7 +202,7 @@ private fun StatusItem(icon: KimonoIcon, label: String?, description: String, mo
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)
-        if (label != null) Text(label, style = KimonoTheme.typography.label)
+        if (label != null) Text(label, style = KimonoTheme.typography.value)
     }
 }
 

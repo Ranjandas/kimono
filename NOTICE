@@ -11,10 +11,14 @@ Fonts
 
 The app bundles these fonts (core/design/fonts):
 
-- Noto Sans 2.015, Regular, Medium and Bold, for all text:
+- Noto Sans 2.015, Regular, Medium and Bold, for app names, titles and body text:
   https://github.com/notofonts/latin-greek-cyrillic
   SIL Open Font License 1.1 (core/design/fonts/OFL.txt),
   Copyright 2022 The Noto Project Authors
+- JetBrains Mono 2.304, Regular and Bold, for labels, values and numbers:
+  https://github.com/JetBrains/JetBrainsMono
+  SIL Open Font License 1.1 (core/design/fonts/JetBrainsMono-OFL.txt),
+  Copyright 2020 The JetBrains Mono Project Authors
 - Symbols Nerd Font 3.5.1, cut down at build time to the icons Kimono uses:
   https://github.com/ryanoasis/nerd-fonts
   Patched fonts under the SIL Open Font License 1.1, the Nerd Fonts project
