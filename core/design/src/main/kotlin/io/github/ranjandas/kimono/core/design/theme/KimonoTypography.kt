@@ -81,7 +81,7 @@ data class KimonoTypography(
             title = style(sizeSp = 16, lineHeightSp = 22, weight = FontWeight.Bold),
             body = style(sizeSp = 14, lineHeightSp = 20),
             label = style(sizeSp = 12, lineHeightSp = 16),
-            section = style(sizeSp = 11, lineHeightSp = 16, family = KimonoMonoFontFamily)
+            section = style(sizeSp = 12, lineHeightSp = 16, family = KimonoMonoFontFamily)
                 .copy(letterSpacing = SECTION_TRACKING.em),
             value = style(sizeSp = 12, lineHeightSp = 16, family = KimonoMonoFontFamily),
             data = style(sizeSp = 13, lineHeightSp = 20, family = KimonoMonoFontFamily),
