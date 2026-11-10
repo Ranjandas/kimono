@@ -133,7 +133,7 @@ internal fun ValueText(value: String, focused: Boolean, modifier: Modifier = Mod
 internal fun Rule(modifier: Modifier = Modifier) {
     Box(
         modifier
-            .padding(vertical = KimonoSpacing.M)
+            .padding(vertical = KimonoSpacing.S)
             .fillMaxWidth()
             .height(1.dp)
             .background(KimonoTheme.colors.border),

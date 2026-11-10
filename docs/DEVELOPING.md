@@ -195,9 +195,11 @@ To compare cold starts with and without the profile, run
 ### Wallpaper
 
 Each theme has a default wallpaper that Kimono downloads on the TV the first time it's shown and keeps
-(scaled to 1080p) in its own storage; none are bundled in the app. The Kimono Sumi theme instead draws its own on
-the TV, a different one each day: `kimono:moon`, `kimono:seigaiha` and `kimono:asanoha`. To use your own, pass an
-https URL, or one of those links to keep it under any theme:
+(scaled to 1080p) in its own storage; none are bundled in the app. Kimono's own two themes instead draw theirs
+on the TV: the dusk Kimono draws the Yūgure landscape for the hour (`kimono:yuguredawn`, `kimono:yugureday`,
+`kimono:yuguredusk` and `kimono:yugurenight`), and Kimono Sumi a different pattern each day (`kimono:moon`,
+`kimono:seigaiha` and `kimono:asanoha`). To use your own, pass an https URL, or one of those links to keep it
+under any theme:
 
 ```sh
 adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper https://example.com/wall.jpg
