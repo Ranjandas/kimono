@@ -47,7 +47,7 @@ class PaletteTest {
 
     @Test
     fun `secondary accent is only nudged where the palette needs it`() {
-        assertEquals(ThemeId.Kimono.palette.accent2, legibleAccentSecondary(ThemeId.Kimono.palette))
+        assertEquals(ThemeId.KimonoSumi.palette.accent2, legibleAccentSecondary(ThemeId.KimonoSumi.palette))
         assertTrue(ThemeId.Nord.palette.accent2 != legibleAccentSecondary(ThemeId.Nord.palette))
     }
 
@@ -76,17 +76,34 @@ class PaletteTest {
     }
 
     @Test
-    fun `ships Kimono's own palette and the seven Omarchy ones, with Kimono as default`() {
+    fun `ships Kimono's own two palettes and the seven Omarchy ones, with Kimono Sumi as default`() {
         assertEquals(
-            listOf("Kimono", "Tokyo Night", "Catppuccin", "Gruvbox", "Rosé Pine", "Nord", "Kanagawa", "Everforest"),
+            listOf(
+                "Kimono",
+                "Kimono Sumi",
+                "Tokyo Night",
+                "Catppuccin",
+                "Gruvbox",
+                "Rosé Pine",
+                "Nord",
+                "Kanagawa",
+                "Everforest",
+            ),
             ThemeId.entries.map { it.displayName },
         )
-        assertEquals(ThemeId.Kimono, ThemeId.Default)
+        assertEquals(ThemeId.KimonoSumi, ThemeId.Default)
     }
 
     @Test
-    fun `Kimono keeps OLED pixels off behind everything and its tiles only just lit`() {
+    fun `Kimono's dusk keeps its accents as given, with no legibility nudge`() {
         val p = ThemeId.Kimono.palette
+        assertEquals(p.accent, legibleAccent(p))
+        assertEquals(p.accent2, legibleAccentSecondary(p))
+    }
+
+    @Test
+    fun `Kimono Sumi keeps OLED pixels off behind everything and its tiles only just lit`() {
+        val p = ThemeId.KimonoSumi.palette
         assertEquals(Rgb.of("#000000"), p.background)
         assertTrue(p.surface.luminance < MAX_OLED_SURFACE_LUMINANCE, "surface ${p.surface} is too bright")
         assertTrue(p.foreground.luminance < 1.0, "text should be off-white, not white")

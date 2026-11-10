@@ -195,7 +195,7 @@ To compare cold starts with and without the profile, run
 ### Wallpaper
 
 Each theme has a default wallpaper that Kimono downloads on the TV the first time it's shown and keeps
-(scaled to 1080p) in its own storage; none are bundled in the app. The Kimono theme instead draws its own on
+(scaled to 1080p) in its own storage; none are bundled in the app. The Kimono Sumi theme instead draws its own on
 the TV, a different one each day: `kimono:moon`, `kimono:seigaiha` and `kimono:asanoha`. To use your own, pass an
 https URL, or one of those links to keep it under any theme:
 

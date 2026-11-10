@@ -64,9 +64,12 @@ internal fun wallpaperUrl(settings: LauncherSettings, theme: ThemeId, today: Loc
 internal fun artworkUrl(settings: LauncherSettings, theme: ThemeId, today: LocalDate = LocalDate.now()): String? =
     settings.wallpaperUrl ?: themeWallpaper(theme, today)
 
-/** Kimono's own theme draws its wallpapers, a different one each day; the others download theirs. */
+/**
+ * Kimono Sumi draws its wallpapers, a different one each day; the Omarchy themes download theirs. Kimono's dusk
+ * theme has none until its drawn landscape lands (#170).
+ */
 private fun themeWallpaper(theme: ThemeId, today: LocalDate): String? = when (theme) {
-    ThemeId.Kimono -> DrawnWallpaper.forDay(today.toEpochDay()).url
+    ThemeId.KimonoSumi -> DrawnWallpaper.forDay(today.toEpochDay()).url
     else -> ThemeWallpapers[theme]
 }
 
