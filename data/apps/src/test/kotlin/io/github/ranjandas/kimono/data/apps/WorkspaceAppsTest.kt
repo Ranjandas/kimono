@@ -22,8 +22,8 @@ class WorkspaceAppsTest {
     }
 
     @Test
-    fun `watch and play list their categories`() {
-        assertEquals(listOf(plex, spotify), apps.forWorkspace(Workspace.Watch, WorkspaceState()))
+    fun `watch lists video apps only, and play lists games`() {
+        assertEquals(listOf(plex), apps.forWorkspace(Workspace.Watch, WorkspaceState()))
         assertEquals(listOf(retro), apps.forWorkspace(Workspace.Play, WorkspaceState()))
     }
 

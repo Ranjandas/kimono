@@ -16,6 +16,7 @@ fun List<InstalledApp>.forWorkspace(workspace: Workspace, state: WorkspaceState)
 /** The apps a workspace shows without any pins. */
 private fun Workspace.lists(category: AppCategory): Boolean = when (this) {
     Workspace.Home, Workspace.AllApps -> true
-    Workspace.Watch -> category == AppCategory.Video || category == AppCategory.Audio
+    // Video only, like the drawer's Watch group, so both count the same apps; music sits under Listen (#165).
+    Workspace.Watch -> category == AppCategory.Video
     Workspace.Play -> category == AppCategory.Game
 }
