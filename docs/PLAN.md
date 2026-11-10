@@ -96,7 +96,7 @@ Taken from the mockups; these settle arguments during implementation.
 | Home tiles | Last used app, recent apps as monograms, system info ("fetch" tile), numbered app list (#105, #108) | M1–M3 |
 | App drawer | Full-screen text list grouped by category (watch / listen / play / system) with type-to-filter | M1 |
 | App options | Long-press OK: pin to workspace, app info, uninstall | M1 |
-| Themes | Kimono (default, true black for OLED), Tokyo Night, Catppuccin, Gruvbox, Rosé Pine, Nord, Kanagawa, Everforest | M1 |
+| Themes | Kimono (default, dusk), Kimono Sumi (true black for OLED), Tokyo Night, Catppuccin, Gruvbox, Rosé Pine, Nord, Kanagawa, Everforest | M1 |
 | Corner style | Square (default), soft or round corners on every element, independent of theme | M1 |
 | Icons | Nerd Font icons in the top bar, workspaces, app list and drawer (brand icon or category fallback), tile headers, system info, hints and settings | M1 |
 | Home takeover | Kimono comes back on Home and after reboot | M2 |

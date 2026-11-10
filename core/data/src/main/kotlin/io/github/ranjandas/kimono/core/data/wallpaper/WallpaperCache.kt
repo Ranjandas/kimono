@@ -94,9 +94,12 @@ class WallpaperCache(
         return bytes?.let(::decodeForScreen)?.also { save(it, file, Bitmap.CompressFormat.WEBP_LOSSY) }
     }
 
-    // Lossless, so the black between the lines stays exactly black (and those pixels off) on an OLED panel.
-    private fun draw(wallpaper: DrawnWallpaper, file: File): Bitmap =
-        drawForScreen(wallpaper).also { save(it, file, Bitmap.CompressFormat.WEBP_LOSSLESS) }
+    // Kimono Sumi's are lossless, so the black between the lines stays exactly black (and those pixels off) on an
+    // OLED panel. Yūgure's dithered sky costs the Streamer many seconds to encode losslessly, so it's kept lossy.
+    private fun draw(wallpaper: DrawnWallpaper, file: File): Bitmap {
+        val format = if (wallpaper.oled) Bitmap.CompressFormat.WEBP_LOSSLESS else Bitmap.CompressFormat.WEBP_LOSSY
+        return drawForScreen(wallpaper).also { save(it, file, format) }
+    }
 
     private fun save(bitmap: Bitmap, file: File, format: Bitmap.CompressFormat) {
         dir.mkdirs()

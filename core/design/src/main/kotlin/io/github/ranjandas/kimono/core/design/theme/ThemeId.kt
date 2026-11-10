@@ -202,8 +202,8 @@ enum class ThemeId(val displayName: String, val palette: Palette) {
     ;
 
     companion object {
-        /** Kimono Sumi until the dusk theme has its own wallpaper (#171). */
-        val Default = KimonoSumi
+        /** The dusk Kimono, with its Yūgure wallpaper, for new installs (#171). */
+        val Default = Kimono
 
         /** The entry stored as [name], or [Default] when nothing is stored or the name no longer exists. */
         fun fromName(name: String?): ThemeId = entries.find { it.name == name } ?: Default

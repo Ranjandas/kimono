@@ -39,7 +39,8 @@ repo goes public. Use that URL in Play Console.
 >   with the number keys.
 > - Pin any app to any workspace and put pins in your own order.
 > - Your recent apps, a clock and a small system panel.
-> - Eight colour themes, including Kimono's own true-black theme made for OLED TVs, with matching wallpapers.
+> - Nine colour themes with matching wallpapers, including Kimono's dusk landscape that follows the time of day
+>   and a true-black theme made for OLED TVs.
 > - Frosted, clear or solid panels, three corner styles and a larger text size.
 > - Gentle on OLED panels: the screen dims when idle, pixels shift slowly, and the screensaver keeps moving.
 > - Works with the Google TV phone remote: everything is D-pad, OK and Back.

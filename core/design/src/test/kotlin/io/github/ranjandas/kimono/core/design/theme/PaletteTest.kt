@@ -76,7 +76,7 @@ class PaletteTest {
     }
 
     @Test
-    fun `ships Kimono's own two palettes and the seven Omarchy ones, with Kimono Sumi as default`() {
+    fun `ships Kimono's own two palettes and the seven Omarchy ones, with the dusk Kimono as default`() {
         assertEquals(
             listOf(
                 "Kimono",
@@ -91,7 +91,7 @@ class PaletteTest {
             ),
             ThemeId.entries.map { it.displayName },
         )
-        assertEquals(ThemeId.KimonoSumi, ThemeId.Default)
+        assertEquals(ThemeId.Kimono, ThemeId.Default)
     }
 
     @Test

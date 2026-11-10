@@ -7,9 +7,9 @@ import io.github.ranjandas.kimono.core.data.wallpaper.WallpaperCache
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
 /**
- * Gets wallpapers ready before they're needed, so a theme switch shows its wallpaper in the same frame: every
- * theme's is downloaded ahead, and once [wallpaper] shows, the themes either side of [theme] (one step left or
- * right on the settings row) are decoded into memory too, since decoding one takes a few frames.
+ * Gets wallpapers ready before they're needed, so a theme switch shows its wallpaper in the same frame: once
+ * [wallpaper] shows, every theme's is downloaded (or drawn) ahead, and the themes either side of [theme] (one step
+ * left or right on the settings row) are decoded into memory too, since decoding one takes a few frames.
  */
 @Composable
 internal fun WarmWallpapers(
@@ -18,8 +18,11 @@ internal fun WarmWallpapers(
     theme: ThemeId,
     wallpaper: WallpaperImages?,
 ) {
-    LaunchedEffect(cache, settings.wallpaper) {
-        if (settings.wallpaper) cache.prefetch(themeWallpaperUrls)
+    // Only once the current wallpaper shows, so a first launch draws or downloads that one without the others
+    // competing for the CPU (#176).
+    val shown = wallpaper != null
+    LaunchedEffect(cache, settings.wallpaper, shown) {
+        if (settings.wallpaper && shown) cache.prefetch(themeWallpaperUrls)
     }
     LaunchedEffect(cache, wallpaper) {
         if (wallpaper == null) return@LaunchedEffect

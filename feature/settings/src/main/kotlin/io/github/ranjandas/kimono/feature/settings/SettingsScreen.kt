@@ -90,15 +90,17 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(KimonoTheme.colors.background)
             .padding(horizontal = KimonoSpacing.XL, vertical = KimonoSpacing.M),
-        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
+        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
     ) {
         SettingsTitle(subtitle)
         // One panel split by rules, like Omarchy's (#155). The box takes all the height down to the hint bar, so
         // the panel grows to fit its rows and only scrolls when they don't fit (a large text size); focus brings
-        // the row into view.
+        // the row into view. While there are rows past an edge, that edge fades out, so a cut row reads as more to
+        // scroll to rather than as a glitch (#165).
         Box(Modifier.weight(1f)) {
             Tile(modifier = Modifier.width(SettingsWidth)) {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
+                val scroll = rememberScrollState()
+                Column(Modifier.fadingEdges(scroll).verticalScroll(scroll)) {
                     LookSection(
                         theme, onThemeChange, cornerStyle, onCornerStyleChange, textSize, onTextSizeChange, panels,
                         onPanelsChange, firstRow,
