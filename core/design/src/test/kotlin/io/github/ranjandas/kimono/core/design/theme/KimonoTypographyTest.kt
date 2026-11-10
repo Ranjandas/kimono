@@ -15,9 +15,16 @@ class KimonoTypographyTest {
 
     @Test
     fun `nothing is smaller than 12 sp, 24 px at 1080p`() {
-        val smallest = listOf(type.display, type.headline, type.title, type.body, type.label, type.section).minOf {
-            it.fontSize.value
-        }
+        val smallest = listOf(
+            type.display,
+            type.headline,
+            type.title,
+            type.body,
+            type.label,
+            type.section,
+            type.value,
+            type.data,
+        ).minOf { it.fontSize.value }
         assertTrue(smallest >= 12f, "smallest is $smallest sp")
     }
 
@@ -29,15 +36,19 @@ class KimonoTypographyTest {
     }
 
     @Test
-    fun `every style uses the bundled font`() {
-        listOf(type.display, type.headline, type.title, type.body, type.label, type.section).forEach {
+    fun `text styles use Noto Sans, labels and values use the bundled mono`() {
+        listOf(type.display, type.headline, type.title, type.body, type.label).forEach {
             assertEquals(KimonoFontFamily, it.fontFamily)
+        }
+        listOf(type.section, type.value, type.data).forEach {
+            assertEquals(KimonoMonoFontFamily, it.fontFamily)
         }
     }
 
     @Test
-    fun `section labels are the label size, set apart by weight`() {
+    fun `section labels are the label size, set apart by mono and spacing`() {
         assertEquals(type.label.fontSize, type.section.fontSize)
-        assertEquals(FontWeight.Medium, type.section.fontWeight)
+        assertEquals(FontWeight.Normal, type.section.fontWeight)
+        assertTrue(type.section.letterSpacing.value > 0f, "section tracking is ${type.section.letterSpacing}")
     }
 }

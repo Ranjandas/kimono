@@ -93,6 +93,8 @@ androidComponents {
                     "NotoSans-Regular.ttf" to "kimono_sans_regular",
                     "NotoSans-Medium.ttf" to "kimono_sans_medium",
                     "NotoSans-Bold.ttf" to "kimono_sans_bold",
+                    "JetBrainsMono-Regular.ttf" to "kimono_mono_regular",
+                    "JetBrainsMono-Bold.ttf" to "kimono_mono_bold",
                     "SymbolsNerdFont-Regular.ttf" to "kimono_icons",
                 ),
             )

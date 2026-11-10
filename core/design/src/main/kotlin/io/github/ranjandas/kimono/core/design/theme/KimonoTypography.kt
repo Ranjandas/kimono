@@ -10,13 +10,22 @@ import androidx.compose.ui.unit.sp
 import io.github.ranjandas.kimono.core.design.R
 
 /**
- * Noto Sans for all text: easy to read from the sofa, and it covers most scripts an app name might use. Others
- * fall back to the system's fonts.
+ * Noto Sans for what people read: app names, titles and body text. It's easy to read from the sofa, and it covers
+ * most scripts an app name might use. Others fall back to the system's fonts.
  */
 val KimonoFontFamily = FontFamily(
     Font(R.font.kimono_sans_regular, FontWeight.Normal),
     Font(R.font.kimono_sans_medium, FontWeight.Medium),
     Font(R.font.kimono_sans_bold, FontWeight.Bold),
+)
+
+/**
+ * JetBrains Mono, Omarchy's own face, for the small things around the names (#152): section labels, values,
+ * counts, the clock and the system tile. Never for app names, which stay in [KimonoFontFamily].
+ */
+val KimonoMonoFontFamily = FontFamily(
+    Font(R.font.kimono_mono_regular, FontWeight.Normal),
+    Font(R.font.kimono_mono_bold, FontWeight.Bold),
 )
 
 /** The Nerd Fonts symbols, cut down at build time to the icons Kimono uses. Only [Icon] draws with it. */
@@ -39,8 +48,15 @@ data class KimonoTypography(
     val body: TextStyle,
     /** Top bar, key hints and metadata next to body text. */
     val label: TextStyle,
-    /** Tile and section headers: the label size in medium weight, spaced out a little so it reads as a heading. */
+    /**
+     * Tile and section headers: the label size in mono, spaced out, and drawn in UPPERCASE by `SectionHeader`, the
+     * way Omarchy's panels label their sections.
+     */
     val section: TextStyle,
+    /** Values, counts and the clock beside label-size text, in mono. */
+    val value: TextStyle,
+    /** Body-size mono, for the fetch-style system tile. */
+    val data: TextStyle,
 ) {
     /** Every style at [factor] times its size, for the text size setting. Weights and fonts stay the same. */
     fun scaled(factor: Float): KimonoTypography = if (factor == 1f) {
@@ -53,6 +69,8 @@ data class KimonoTypography(
             body = body.scaled(factor),
             label = label.scaled(factor),
             section = section.scaled(factor),
+            value = value.scaled(factor),
+            data = data.scaled(factor),
         )
     }
 
@@ -63,18 +81,25 @@ data class KimonoTypography(
             title = style(sizeSp = 16, lineHeightSp = 22, weight = FontWeight.Bold),
             body = style(sizeSp = 14, lineHeightSp = 20),
             label = style(sizeSp = 12, lineHeightSp = 16),
-            section = style(sizeSp = 12, lineHeightSp = 16, weight = FontWeight.Medium)
+            section = style(sizeSp = 12, lineHeightSp = 16, family = KimonoMonoFontFamily)
                 .copy(letterSpacing = SECTION_TRACKING.em),
+            value = style(sizeSp = 12, lineHeightSp = 16, family = KimonoMonoFontFamily),
+            data = style(sizeSp = 13, lineHeightSp = 20, family = KimonoMonoFontFamily),
         )
 
-        // Tracking for section labels, in ems: enough to set them apart from body text, not enough to look spaced.
-        private const val SECTION_TRACKING = 0.04f
+        // Tracking for uppercase section labels, in ems: capitals set tight read as shouting, spaced as a label.
+        private const val SECTION_TRACKING = 0.12f
 
         private fun TextStyle.scaled(factor: Float) =
             copy(fontSize = fontSize * factor, lineHeight = lineHeight * factor)
 
-        private fun style(sizeSp: Int, lineHeightSp: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
-            fontFamily = KimonoFontFamily,
+        private fun style(
+            sizeSp: Int,
+            lineHeightSp: Int,
+            weight: FontWeight = FontWeight.Normal,
+            family: FontFamily = KimonoFontFamily,
+        ) = TextStyle(
+            fontFamily = family,
             fontWeight = weight,
             fontSize = sizeSp.sp,
             lineHeight = lineHeightSp.sp,

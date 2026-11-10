@@ -108,11 +108,11 @@ class AccessibilityTest {
     @Test
     fun `settings name everything they can focus, with each value as its state`() {
         assertAccessible { Settings() }
-        val theme = clickable().single { it.label() == "theme" }
+        val theme = clickable().single { it.label() == "Theme" }
         assertEquals("kimono", theme.config.getOrNull(SemanticsProperties.StateDescription))
         val actions = theme.config.getOrNull(SemanticsActions.CustomActions).orEmpty().map { it.label }
         assertEquals(listOf("previous value", "next value"), actions)
-        assertEquals("theme", theme.label())
+        assertEquals("Theme", theme.label())
     }
 
     private fun assertAccessible(content: @Composable () -> Unit) {

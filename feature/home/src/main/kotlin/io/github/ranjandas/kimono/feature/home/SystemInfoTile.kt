@@ -53,14 +53,14 @@ internal fun SystemInfoTile(theme: ThemeId, modifier: Modifier = Modifier) {
         InfoLine(KimonoIcon.Storage, "storage", storage?.let(::formatStorage) ?: "…")
         InfoLine(network.icon, "network", network.label)
         InfoLine(KimonoIcon.Palette, "theme", theme.displayName.lowercase())
-        InfoLine(KimonoIcon.Font, "font", "Noto Sans")
+        InfoLine(KimonoIcon.Font, "font", "Noto Sans + JetBrains Mono")
     }
 }
 
 @Composable
 internal fun InfoLine(icon: KimonoIcon, key: String, value: String, modifier: Modifier = Modifier) {
     InfoLine(icon, key, modifier) {
-        Text(value, style = KimonoTheme.typography.body, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(value, style = KimonoTheme.typography.data, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -82,7 +82,7 @@ internal fun InfoLine(
     ) {
         // A blank icon still takes its width, so the keys stay in a column.
         Icon(icon ?: KimonoIcon.Info, color = if (icon == null) Color.Transparent else KimonoTheme.colors.textMuted)
-        val style = KimonoTheme.typography.body
+        val style = KimonoTheme.typography.data
         // A column wide enough for the longest key, in ems so it grows with the text size setting.
         Text(
             key,

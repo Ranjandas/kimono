@@ -113,7 +113,7 @@ internal fun SearchField(
                 modifier = Modifier.weight(1f).focusRequester(fieldFocus).focusProperties { canFocus = typing },
             )
         }
-        Text(count(matches, "app"), style = KimonoTheme.typography.label, color = colors.textMuted)
+        Text(count(matches, "app"), style = KimonoTheme.typography.value, color = colors.textMuted)
     }
 }
 

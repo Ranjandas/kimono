@@ -3,30 +3,31 @@ package io.github.ranjandas.kimono.feature.settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,7 +40,6 @@ import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.design.component.Hint
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
-import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.icon.Icon
@@ -50,7 +50,8 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
 /**
- * Kimono's settings: one row per setting, showing its value. Left and Right step a setting back and forward
+ * Kimono's settings: one panel of rows in three sections, each row drawing its value as chips, a switch or a stepped
+ * bar, after Omarchy's panels (#155, #156). Left and Right step a setting back and forward
  * (OK steps forward too), and the change applies at once, so the screen itself is the preview. The theme lives
  * here rather than on home's top bar, where one stray press changed it (#110). Back returns home.
  */
@@ -88,61 +89,61 @@ fun SettingsScreen(
             .padding(horizontal = KimonoSpacing.XL, vertical = KimonoSpacing.M),
         verticalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
     ) {
-        Text("settings", style = KimonoTheme.typography.headline, color = KimonoTheme.colors.accent)
-        Tile(modifier = Modifier.width(SettingsWidth)) {
-            SectionHeader("appearance", icon = KimonoIcon.Settings)
-            Column(
-                modifier = Modifier.padding(top = KimonoSpacing.S),
-                verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS),
-            ) {
-                SettingRow(
-                    KimonoIcon.Palette,
-                    "theme",
-                    theme.displayName.lowercase(),
-                    onStep = { onThemeChange(theme.step(it)) },
-                    modifier = Modifier.focusRequester(firstRow),
-                )
-                SettingRow(KimonoIcon.Corners, "corners", cornerStyle.name.lowercase(), onStep = {
-                    onCornerStyleChange(cornerStyle.step(it))
-                })
-                SettingRow(KimonoIcon.TextSize, "text size", textSize.label, onStep = {
-                    onTextSizeChange(textSize.step(it))
-                })
-                SettingRow(KimonoIcon.Clock, "clock", clockFormat.label, onStep = {
-                    onClockFormatChange(clockFormat.step(it))
-                })
-                SettingRow(KimonoIcon.Idle, "dim after", idleTimeout.label, onStep = {
-                    onIdleTimeoutChange(idleTimeout.step(it))
-                })
-                // Two values each way, so either direction toggles.
-                SettingRow(KimonoIcon.Device, "shift pixels", if (pixelShift) "on" else "off", onStep = {
-                    onPixelShiftChange(!pixelShift)
-                })
-                SettingRow(KimonoIcon.Wallpaper, "wallpaper", wallpaper.label, onStep = { onWallpaperToggle() })
-                SettingRow(KimonoIcon.Glass, "panels", panels.label, onStep = { onPanelsChange(panels.step(it)) })
-                SettingRow(KimonoIcon.Activity, "system tile", systemPanel.label, onStep = {
-                    onSystemPanelChange(systemPanel.step(it))
-                })
+        SettingsTitle()
+        // One panel split by rules, like Omarchy's (#155). The box takes all the height down to the hint bar, so
+        // the panel grows to fit its rows and only scrolls when they don't fit (a large text size); focus brings
+        // the row into view.
+        Box(Modifier.weight(1f)) {
+            Tile(modifier = Modifier.width(SettingsWidth)) {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    LookSection(
+                        theme, onThemeChange, cornerStyle, onCornerStyleChange, textSize, onTextSizeChange, panels,
+                        onPanelsChange, firstRow,
+                    )
+                    Rule()
+                    ScreenCareSection(idleTimeout, onIdleTimeoutChange, pixelShift, onPixelShiftChange)
+                    Rule()
+                    HomeSection(
+                        wallpaper,
+                        onWallpaperToggle,
+                        clockFormat,
+                        onClockFormatChange,
+                        systemPanel,
+                        onSystemPanelChange,
+                    )
+                }
             }
         }
-        // Pinned to the bottom, where home and the drawer keep theirs.
-        Spacer(Modifier.weight(1f))
         HintBar(SettingsHints)
     }
 }
 
+/** The screen's title: the settings icon in the accent and a bold title, like the head of an Omarchy panel. */
+@Composable
+private fun SettingsTitle(modifier: Modifier = Modifier) {
+    val style = KimonoTheme.typography.headline
+    Row(
+        modifier = modifier.semantics(mergeDescendants = true) { heading() },
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(KimonoIcon.Settings, color = KimonoTheme.colors.accent, style = style)
+        Text("Settings", style = style, fontWeight = FontWeight.Bold, color = KimonoTheme.colors.text)
+    }
+}
+
 /**
- * A setting and its value. On the focused row the value sits between accent arrows, which is what Left and Right
- * do (#134); elsewhere the arrows keep their room but don't show, so values don't shift as focus moves. [onStep]
+ * A setting, its [value] for TalkBack and a [control] that draws it, knowing whether the row has focus. [onStep]
  * gets -1 for Left and 1 for Right, and OK steps forward too.
  */
 @Composable
-private fun SettingRow(
+internal fun SettingRow(
     icon: KimonoIcon,
     name: String,
     value: String,
     onStep: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    control: @Composable (focused: Boolean) -> Unit,
 ) {
     ListRow(
         text = name,
@@ -153,7 +154,7 @@ private fun SettingRow(
                 if (step != null && event.type == KeyEventType.KeyDown) onStep(step)
                 step != null
             }
-            // TalkBack reads "theme, kimono" with the value as the row's state, and offers Left and Right as its
+            // TalkBack reads "Theme, kimono" with the value as the row's state, and offers Left and Right as its
             // "previous value" and "next value" actions (#45).
             .semantics {
                 stateDescription = value
@@ -165,35 +166,14 @@ private fun SettingRow(
                 }
             },
         icon = icon,
-        trailingContent = { focused -> SettingValue(value, focused) },
+        trailingContent = control,
     )
-}
-
-/** [value] between chevrons that show only while the row is [focused]. */
-@Composable
-private fun SettingValue(value: String, focused: Boolean) {
-    val colors = KimonoTheme.colors
-    val arrows = if (focused) colors.accent else Color.Transparent
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XS),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(KimonoIcon.ChevronLeft, color = arrows)
-        Text(
-            value,
-            // Read as the row's state instead.
-            modifier = Modifier.clearAndSetSemantics {},
-            style = KimonoTheme.typography.label,
-            color = if (focused) colors.text else colors.textMuted,
-        )
-        Icon(KimonoIcon.ChevronRight, color = arrows)
-    }
 }
 
 private val SideSteps = mapOf(Key.DirectionLeft to -1, Key.DirectionRight to 1)
 
 /** The entry [by] places on, wrapping round, so either direction reaches every value of a setting. */
-private inline fun <reified T : Enum<T>> T.step(by: Int): T {
+internal inline fun <reified T : Enum<T>> T.step(by: Int): T {
     val values = enumValues<T>()
     return values[(ordinal + by).mod(values.size)]
 }

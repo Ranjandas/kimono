@@ -75,7 +75,7 @@ private fun HeatValue(heat: Heat, modifier: Modifier = Modifier) {
         Heat.Warm -> colors.warning
         Heat.Hot -> colors.error
     }
-    Text(heat.label, modifier = modifier, style = KimonoTheme.typography.body, color = color, maxLines = 1)
+    Text(heat.label, modifier = modifier, style = KimonoTheme.typography.data, color = color, maxLines = 1)
 }
 
 /** Up to [TODAY_APPS] apps, each on its own line under one `today` key. */
@@ -87,7 +87,7 @@ private fun TodayLines(screenTime: ScreenTimeToday, modifier: Modifier = Modifie
         if (apps.isEmpty()) {
             val note = if (screenTime == ScreenTimeToday.NeedsAccess) "needs usage access" else "nothing yet"
             InfoLine(KimonoIcon.Recent, "today") {
-                Text(note, style = KimonoTheme.typography.body, color = muted, maxLines = 1)
+                Text(note, style = KimonoTheme.typography.data, color = muted, maxLines = 1)
             }
         }
         apps.forEachIndexed { index, (app, time) ->
@@ -96,11 +96,12 @@ private fun TodayLines(screenTime: ScreenTimeToday, modifier: Modifier = Modifie
                 Text(
                     app.label,
                     modifier = Modifier.weight(1f),
+                    // An app's name, so the text face rather than mono.
                     style = KimonoTheme.typography.body,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(formatScreenTime(time), style = KimonoTheme.typography.body, color = muted, maxLines = 1)
+                Text(formatScreenTime(time), style = KimonoTheme.typography.data, color = muted, maxLines = 1)
             }
         }
     }
@@ -111,7 +112,7 @@ private fun TodayLines(screenTime: ScreenTimeToday, modifier: Modifier = Modifie
 private fun Meter(fraction: Float, value: String, modifier: Modifier = Modifier) {
     val colors = KimonoTheme.colors
     val fill = if (fraction >= METER_HIGH) colors.warning else colors.accent
-    val style = KimonoTheme.typography.body
+    val style = KimonoTheme.typography.data
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
@@ -138,4 +139,6 @@ private fun Meter(fraction: Float, value: String, modifier: Modifier = Modifier)
 
 private const val TODAY_APPS = 3
 private const val METER_HIGH = 0.85f
-private const val METER_VALUE_EMS = 6.5f
+
+// Mono figures are 0.6 em each, so "1.2 of 2.0 GB" needs about 8 ems.
+private const val METER_VALUE_EMS = 8f
