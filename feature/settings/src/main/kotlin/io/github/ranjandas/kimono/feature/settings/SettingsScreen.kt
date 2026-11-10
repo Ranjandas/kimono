@@ -23,6 +23,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -48,6 +49,7 @@ import io.github.ranjandas.kimono.core.design.theme.CornerStyle
 import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
+import java.time.LocalDate
 
 /**
  * Kimono's settings: one panel of rows in three sections, each row drawing its value as chips, a switch or a stepped
@@ -77,6 +79,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     systemPanel: SystemPanel = SystemPanel.Default,
     onSystemPanelChange: (SystemPanel) -> Unit = {},
+    subtitle: String = PanelSubtitle.forDay(LocalDate.now()),
 ) {
     val firstRow = remember { FocusRequester() }
     // Retried like home and the drawer, in case the screen draws before it can take focus.
@@ -89,7 +92,7 @@ fun SettingsScreen(
             .padding(horizontal = KimonoSpacing.XL, vertical = KimonoSpacing.M),
         verticalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
     ) {
-        SettingsTitle()
+        SettingsTitle(subtitle)
         // One panel split by rules, like Omarchy's (#155). The box takes all the height down to the hint bar, so
         // the panel grows to fit its rows and only scrolls when they don't fit (a large text size); focus brings
         // the row into view.
@@ -118,17 +121,30 @@ fun SettingsScreen(
     }
 }
 
-/** The screen's title: the settings icon in the accent and a bold title, like the head of an Omarchy panel. */
+/**
+ * The screen's head, like an Omarchy panel's: the settings icon in the accent, a bold title and under it the day's
+ * [subtitle] in small caps (#157). TalkBack reads the subtitle as written, not letter by letter.
+ */
 @Composable
-private fun SettingsTitle(modifier: Modifier = Modifier) {
+private fun SettingsTitle(subtitle: String, modifier: Modifier = Modifier) {
     val style = KimonoTheme.typography.headline
+    val colors = KimonoTheme.colors
     Row(
         modifier = modifier.semantics(mergeDescendants = true) { heading() },
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(KimonoIcon.Settings, color = KimonoTheme.colors.accent, style = style)
-        Text("Settings", style = style, fontWeight = FontWeight.Bold, color = KimonoTheme.colors.text)
+        Icon(KimonoIcon.Settings, color = colors.accent, style = style)
+        Column {
+            Text("Settings", style = style, fontWeight = FontWeight.Bold, color = colors.text)
+            Text(
+                subtitle.uppercase(),
+                modifier = Modifier.semantics { contentDescription = subtitle },
+                style = KimonoTheme.typography.section,
+                color = colors.accentSecondary,
+                maxLines = 1,
+            )
+        }
     }
 }
 

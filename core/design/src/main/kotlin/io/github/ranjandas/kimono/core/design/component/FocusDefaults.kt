@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /**
@@ -24,7 +25,16 @@ object FocusDefaults {
 
     /** An unfocused tile border's strength, so tiles read as windows without outlining the whole screen. */
     const val QUIET_BORDER_ALPHA = 0.55f
+
+    /** An app's mark on a tile or card without focus: the accent, softer, so it comes up to full strength on focus. */
+    const val RESTING_MARK_ALPHA = 0.6f
 }
+
+/**
+ * Whether the tile or card around a mark has focus, for an [AppMark] to show its accent at full strength (#159).
+ * Outside a tile it counts as focused, so a mark on its own keeps the full accent.
+ */
+internal val LocalMarkFocused = compositionLocalOf { true }
 
 /** [target] eased over the focus duration. */
 @Composable

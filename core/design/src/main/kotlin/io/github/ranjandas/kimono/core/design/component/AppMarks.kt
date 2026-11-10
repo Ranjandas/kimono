@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,11 +53,17 @@ class AppMarks(private val byPackage: Map<String, Mark>) {
  */
 @Composable
 fun AppMark(label: String, mark: Mark?, modifier: Modifier = Modifier) {
+    // Omarchy keeps its accent small and sparing (#159): a resting tile's mark is softer and comes up on focus.
+    val accent = KimonoTheme.colors.accent
+    val color by animateFocusColor(
+        if (LocalMarkFocused.current) accent else accent.copy(alpha = FocusDefaults.RESTING_MARK_ALPHA),
+        label = "mark color",
+    )
     if (mark == null) {
-        Monogram(label, modifier)
+        Monogram(label, modifier, color)
     } else {
         Box(modifier = modifier.aspectRatio(1f), contentAlignment = Alignment.Center) {
-            MarkGlyph(mark, KimonoTheme.colors.accent, Modifier.fillMaxSize(MARK_SIZE))
+            MarkGlyph(mark, color, Modifier.fillMaxSize(MARK_SIZE))
         }
     }
 }

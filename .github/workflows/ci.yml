@@ -37,6 +37,9 @@ jobs:
           name: kimono-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          # Artifacts count against the account's storage, which ran out once (#160); a build's APKs are only
+          # wanted for the device check that follows it.
+          retention-days: 14
 
       - name: Upload benchmark APK
         uses: actions/upload-artifact@v7
@@ -44,6 +47,7 @@ jobs:
           name: kimono-benchmark-apk
           path: app/build/outputs/apk/benchmark/*.apk
           if-no-files-found: error
+          retention-days: 14
 
       # Fresh screenshots to commit when a screen changed on purpose (docs/DEVELOPING.md).
       - name: Record screenshots
@@ -57,6 +61,7 @@ jobs:
           name: screenshots
           path: feature/*/src/test/screenshots/
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload check reports
         if: failure()
@@ -68,3 +73,4 @@ jobs:
             **/build/reports/detekt/
             **/build/outputs/roborazzi/
           if-no-files-found: ignore
+          retention-days: 7

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -67,7 +68,7 @@ fun AppCard(
         verticalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        AppMark(label, mark, Modifier.fillMaxWidth())
+        CompositionLocalProvider(LocalMarkFocused provides focused) { AppMark(label, mark, Modifier.fillMaxWidth()) }
         Text(
             label,
             style = KimonoTheme.typography.body,
