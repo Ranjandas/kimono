@@ -28,7 +28,7 @@ import io.github.ranjandas.kimono.core.design.component.Backdrop
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.feature.settings.WallpaperChoice
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Each theme's wallpaper, downloaded on first use rather than shipped (see [WallpaperCache]). Links are pinned
@@ -51,25 +51,29 @@ private fun omarchyWallpaper(path: String) =
     "https://raw.githubusercontent.com/omacom/omarchy/097c733fc6f24cd437028e0233910b7143fe83f7/themes/$path"
 
 /** The wallpaper to show for these settings, or null for none. */
-internal fun wallpaperUrl(settings: LauncherSettings, theme: ThemeId, today: LocalDate = LocalDate.now()): String? =
-    when {
-        !settings.wallpaper -> null
-        else -> artworkUrl(settings, theme, today)
-    }
+internal fun wallpaperUrl(
+    settings: LauncherSettings,
+    theme: ThemeId,
+    now: LocalDateTime = LocalDateTime.now(),
+): String? = when {
+    !settings.wallpaper -> null
+    else -> artworkUrl(settings, theme, now)
+}
 
 /**
  * The image the pixel art is made from: the wallpaper, even with it switched off on home, since choosing Kimono
  * as the screensaver is asking for the art. Null if the theme has none and no image of the user's is set.
  */
-internal fun artworkUrl(settings: LauncherSettings, theme: ThemeId, today: LocalDate = LocalDate.now()): String? =
-    settings.wallpaperUrl ?: themeWallpaper(theme, today)
+internal fun artworkUrl(settings: LauncherSettings, theme: ThemeId, now: LocalDateTime = LocalDateTime.now()): String? =
+    settings.wallpaperUrl ?: themeWallpaper(theme, now)
 
 /**
- * Kimono Sumi draws its wallpapers, a different one each day; the Omarchy themes download theirs. Kimono's dusk
- * theme has none until its drawn landscape lands (#170).
+ * Kimono's own themes draw their wallpapers: Kimono's Yūgure landscape follows the time of day, and Kimono Sumi
+ * shows a different pattern each day. The Omarchy themes download theirs.
  */
-private fun themeWallpaper(theme: ThemeId, today: LocalDate): String? = when (theme) {
-    ThemeId.KimonoSumi -> DrawnWallpaper.forDay(today.toEpochDay()).url
+private fun themeWallpaper(theme: ThemeId, now: LocalDateTime): String? = when (theme) {
+    ThemeId.Kimono -> DrawnWallpaper.yugureAt(now.hour).url
+    ThemeId.KimonoSumi -> DrawnWallpaper.forDay(now.toLocalDate().toEpochDay()).url
     else -> ThemeWallpapers[theme]
 }
 

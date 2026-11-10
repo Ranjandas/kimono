@@ -58,7 +58,8 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     }
     val theme = ThemeId.fromName(loadedSettings.themeName)
     val cornerStyle = CornerStyle.fromName(loadedSettings.cornerStyleName)
-    val wallpaper = rememberWallpaper(dependencies.wallpapers, wallpaperUrl(loadedSettings, theme))
+    val now = rememberHourlyClock()
+    val wallpaper = rememberWallpaper(dependencies.wallpapers, wallpaperUrl(loadedSettings, theme, now))
     WarmWallpapers(dependencies.wallpapers, loadedSettings, theme, wallpaper)
     val shift = rememberPixelShift(isIdle && loadedSettings.pixelShift)
     KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale) {
