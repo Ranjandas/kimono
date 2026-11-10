@@ -12,7 +12,10 @@ data class InstalledApp(
     val isTvApp: Boolean,
 )
 
-/** Drawer groups, from the category an app declares in its manifest (`ApplicationInfo.category`). */
+/**
+ * Drawer groups, from the category an app declares in its manifest (`ApplicationInfo.category`), or from
+ * [KnownCategories] when it declares none that Kimono groups by.
+ */
 enum class AppCategory {
     Video,
     Audio,
@@ -23,6 +26,10 @@ enum class AppCategory {
     ;
 
     companion object {
+        /** The group for an app that declares [category], falling back to what Kimono knows of [packageName]. */
+        fun of(category: Int, packageName: String): AppCategory =
+            fromApplicationInfo(category).takeUnless { it == Other } ?: KnownCategories.of(packageName) ?: Other
+
         fun fromApplicationInfo(category: Int): AppCategory = when (category) {
             ApplicationInfo.CATEGORY_VIDEO -> Video
             ApplicationInfo.CATEGORY_AUDIO -> Audio

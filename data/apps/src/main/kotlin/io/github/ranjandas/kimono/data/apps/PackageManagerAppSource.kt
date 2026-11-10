@@ -73,7 +73,7 @@ internal class PackageManagerAppSource(context: Context) : AppSource {
         packageName = activityInfo.packageName,
         activityName = activityInfo.name,
         label = loadLabel(packageManager).toString(),
-        category = AppCategory.fromApplicationInfo(activityInfo.applicationInfo.category),
+        category = AppCategory.of(activityInfo.applicationInfo.category, activityInfo.packageName),
         isTvApp = isTvApp,
     )
 }
