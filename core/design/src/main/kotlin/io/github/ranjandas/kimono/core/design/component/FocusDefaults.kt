@@ -26,12 +26,12 @@ object FocusDefaults {
     /** An unfocused tile border's strength, so tiles read as windows without outlining the whole screen. */
     const val QUIET_BORDER_ALPHA = 0.55f
 
-    /** An app's mark on a tile or card without focus: the accent, softer, so it comes up to full strength on focus. */
-    const val RESTING_MARK_ALPHA = 0.6f
+    /** A mark on a tile or card without focus: the text colour, a little softer, until focus brings the accent. */
+    const val RESTING_MARK_ALPHA = 0.72f
 }
 
 /**
- * Whether the tile or card around a mark has focus, for an [AppMark] to show its accent at full strength (#159).
+ * Whether the tile or card around a mark has focus, for an [AppMark] to take the accent (#159, #169).
  * Outside a tile it counts as focused, so a mark on its own keeps the full accent.
  */
 internal val LocalMarkFocused = compositionLocalOf { true }
