@@ -47,16 +47,17 @@ class AppMarks(private val byPackage: Map<String, Mark>) {
 }
 
 /**
- * An app's [mark] in the accent, or its monogram while there is no mark. There's no plate behind it: inside a
- * bordered tile or card a plate made three nested rectangles (#131), so the logo stands on the tile itself and
- * fills more of it. The square takes its size from [modifier].
+ * An app's [mark], or its monogram while there is no mark: in the text colour at rest, and in the accent once its
+ * tile has focus (#169), so the accent always means focus and logos keep their shape. There's no plate behind it:
+ * inside a bordered tile or card a plate made three nested rectangles (#131), so the logo stands on the tile itself
+ * and fills more of it. The square takes its size from [modifier].
  */
 @Composable
 fun AppMark(label: String, mark: Mark?, modifier: Modifier = Modifier) {
-    // Omarchy keeps its accent small and sparing (#159): a resting tile's mark is softer and comes up on focus.
-    val accent = KimonoTheme.colors.accent
+    // Omarchy keeps its accent small and sparing (#159): a resting mark is quiet text and takes the accent on focus.
+    val colors = KimonoTheme.colors
     val color by animateFocusColor(
-        if (LocalMarkFocused.current) accent else accent.copy(alpha = FocusDefaults.RESTING_MARK_ALPHA),
+        if (LocalMarkFocused.current) colors.accent else colors.text.copy(alpha = FocusDefaults.RESTING_MARK_ALPHA),
         label = "mark color",
     )
     if (mark == null) {
