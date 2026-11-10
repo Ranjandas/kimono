@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,8 +88,9 @@ fun Tile(
             .then(surface)
             .border(TileDefaults.BorderWidth, border, shape)
             .padding(contentPadding),
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(LocalMarkFocused provides hasFocus) { content() }
+    }
 }
 
 /** Where a tile sits in the window, kept as state so the glass redraws when the tile moves. */

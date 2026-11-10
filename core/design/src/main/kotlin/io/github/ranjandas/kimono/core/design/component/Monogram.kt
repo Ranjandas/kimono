@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -13,13 +14,12 @@ import io.github.ranjandas.kimono.core.design.text.monogram
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * An app's [monogram] in bold accent letters, so each app has a mark of its own where a category glyph would make
- * many look the same. Like a logo it has no plate behind it (#131). The letters scale with the square, which takes
- * its size from [modifier].
+ * An app's [monogram] in bold letters, in [color] (the accent by default), so each app has a mark of its own where a
+ * category glyph would make many look the same. Like a logo it has no plate behind it (#131). The letters scale with
+ * the square, which takes its size from [modifier].
  */
 @Composable
-fun Monogram(label: String, modifier: Modifier = Modifier) {
-    val colors = KimonoTheme.colors
+fun Monogram(label: String, modifier: Modifier = Modifier, color: Color = KimonoTheme.colors.accent) {
     BoxWithConstraints(
         modifier = modifier.aspectRatio(1f),
         contentAlignment = Alignment.Center,
@@ -32,7 +32,7 @@ fun Monogram(label: String, modifier: Modifier = Modifier) {
                 lineHeight = fontSize,
                 fontWeight = FontWeight.Bold,
             ),
-            color = colors.accent,
+            color = color,
             textAlign = TextAlign.Center,
             maxLines = 1,
         )

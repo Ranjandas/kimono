@@ -32,8 +32,9 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 /**
  * A row in a text list: an optional [leading] detail such as a number, an app's [mark] or else an [icon], the [text]
  * itself, and optional [trailing] detail, or [trailingContent] drawn knowing whether the row has focus. Only the
- * focused row has a fill (#133): focus eases in an accent-tinted fill and turns the icon and text to the accent
- * colour, with no movement, so a D-pad move down a list reads as one thing lighting up after another (#126).
+ * focused row has a fill (#133): focus eases in a lightly tinted fill, turns the icon to the accent and sets the text
+ * in bold, as Omarchy marks its selected row (#158). Nothing moves, so a D-pad move down a list reads as one thing
+ * lighting up after another (#126).
  *
  * [onLongClick] is held OK, which opens the row's options.
  */
@@ -92,7 +93,7 @@ fun ListRow(
             text,
             modifier = Modifier.weight(1f),
             style = KimonoTheme.typography.body,
-            color = if (focused) colors.accent else colors.text,
+            color = colors.text,
             fontWeight = if (focused) FontWeight.Bold else FontWeight.Normal,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

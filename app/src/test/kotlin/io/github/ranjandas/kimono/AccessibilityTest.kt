@@ -152,6 +152,7 @@ class AccessibilityTest {
         panels = Panels.Default,
         onPanelsChange = {},
         onClose = {},
+        subtitle = "quiet tatami",
     )
 
     private companion object {

@@ -17,7 +17,7 @@ val ktlintSettings =
         "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
         "ktlint_standard_chain-method-continuation" to "disabled",
         "compose_allowed_composition_locals" to
-            "LocalKimonoColors,LocalKimonoShapes,LocalKimonoTypography,LocalBackdrop",
+            "LocalKimonoColors,LocalKimonoShapes,LocalKimonoTypography,LocalBackdrop,LocalMarkFocused",
     )
 
 spotless {
