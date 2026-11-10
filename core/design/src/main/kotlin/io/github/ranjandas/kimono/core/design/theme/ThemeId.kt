@@ -3,18 +3,44 @@ package io.github.ranjandas.kimono.core.design.theme
 private fun rgb(hex: String) = Rgb.of(hex)
 
 /**
- * The palettes Kimono ships: Kimono's own, then the themes ported from Omarchy (MIT); see NOTICE for the upstream
- * themes.
+ * The palettes Kimono ships: Kimono's own two, then the themes ported from Omarchy (MIT); see NOTICE for the
+ * upstream themes.
  */
 enum class ThemeId(val displayName: String, val palette: Palette) {
     /**
-     * Kimono's own theme, made for OLED panels. The screen is true black, so its pixels are off, and tiles are only
-     * just lit. Text is a warm off-white rather than white, so labels that stay put wear the panel less. The colours
-     * are traditional Japanese dyes: shu vermilion for focus, kin gold for headers. Its wallpapers are drawn by
-     * Kimono in the same dyes, thin lines on black, a different one each day.
+     * Kimono's own theme: an indigo dusk. The background is ai indigo and text is washi paper, so frosted panels read
+     * as glass over the wallpaper. The colours are traditional Japanese dyes. Kaki persimmon is kept for focus
+     * alone, and kin gold marks section labels.
      */
     Kimono(
         "Kimono",
+        Palette(
+            isLight = false,
+            background = rgb("#151b2e"),
+            surface = rgb("#1d2440"),
+            surfaceVariant = rgb("#2a3254"),
+            foreground = rgb("#f1e8d6"),
+            mutedForeground = rgb("#8f93ad"),
+            line = rgb("#3a4366"),
+            accent = rgb("#f28c5b"),
+            accent2 = rgb("#e8c27a"),
+            red = rgb("#f07274"),
+            yellow = rgb("#e8c27a"),
+            green = rgb("#a3c48c"),
+            cyan = rgb("#7fc4cf"),
+            blue = rgb("#8ea7ea"),
+            magenta = rgb("#e9a7bd"),
+        ),
+    ),
+
+    /**
+     * Kimono Sumi, named for sumi ink: Kimono's true-black theme, made for OLED panels. The screen is black, so its
+     * pixels are off, and tiles are only just lit. Text is a warm off-white rather than white, so labels that stay
+     * put wear the panel less. Shu vermilion marks focus and kin gold headers. Its wallpapers are drawn by Kimono in
+     * the same dyes, thin lines on black, a different one each day.
+     */
+    KimonoSumi(
+        "Kimono Sumi",
         Palette(
             isLight = false,
             background = rgb("#000000"),
@@ -176,7 +202,8 @@ enum class ThemeId(val displayName: String, val palette: Palette) {
     ;
 
     companion object {
-        val Default = Kimono
+        /** Kimono Sumi until the dusk theme has its own wallpaper (#171). */
+        val Default = KimonoSumi
 
         /** The entry stored as [name], or [Default] when nothing is stored or the name no longer exists. */
         fun fromName(name: String?): ThemeId = entries.find { it.name == name } ?: Default
