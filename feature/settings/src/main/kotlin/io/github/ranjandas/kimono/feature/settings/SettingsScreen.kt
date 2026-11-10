@@ -3,9 +3,9 @@ package io.github.ranjandas.kimono.feature.settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -90,29 +90,30 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
     ) {
         SettingsTitle()
-        // One panel split by rules, like Omarchy's (#155). It scrolls if a large text size makes it taller than
-        // the screen; focus brings the row into view.
-        Tile(modifier = Modifier.width(SettingsWidth).weight(1f, fill = false)) {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                LookSection(
-                    theme, onThemeChange, cornerStyle, onCornerStyleChange, textSize, onTextSizeChange, panels,
-                    onPanelsChange, firstRow,
-                )
-                Rule()
-                ScreenCareSection(idleTimeout, onIdleTimeoutChange, pixelShift, onPixelShiftChange)
-                Rule()
-                HomeSection(
-                    wallpaper,
-                    onWallpaperToggle,
-                    clockFormat,
-                    onClockFormatChange,
-                    systemPanel,
-                    onSystemPanelChange,
-                )
+        // One panel split by rules, like Omarchy's (#155). The box takes all the height down to the hint bar, so
+        // the panel grows to fit its rows and only scrolls when they don't fit (a large text size); focus brings
+        // the row into view.
+        Box(Modifier.weight(1f)) {
+            Tile(modifier = Modifier.width(SettingsWidth)) {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    LookSection(
+                        theme, onThemeChange, cornerStyle, onCornerStyleChange, textSize, onTextSizeChange, panels,
+                        onPanelsChange, firstRow,
+                    )
+                    Rule()
+                    ScreenCareSection(idleTimeout, onIdleTimeoutChange, pixelShift, onPixelShiftChange)
+                    Rule()
+                    HomeSection(
+                        wallpaper,
+                        onWallpaperToggle,
+                        clockFormat,
+                        onClockFormatChange,
+                        systemPanel,
+                        onSystemPanelChange,
+                    )
+                }
             }
         }
-        // Pinned to the bottom, where home and the drawer keep theirs.
-        Spacer(Modifier.weight(1f))
         HintBar(SettingsHints)
     }
 }
