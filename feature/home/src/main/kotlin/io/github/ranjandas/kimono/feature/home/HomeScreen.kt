@@ -60,7 +60,8 @@ internal object HomeDimens {
  * the grid from the mockup, watch and play are grids of their apps, and all apps is the [allApps] page, the
  * drawer. Left and Right at the edge of a page switch workspace, sliding the next page in. [apps] is null while
  * the app list is still loading. The top bar reads the time from [clock], which tests fix. Coming back from settings,
- * [startOnSettingsButton] puts focus back on the gear it was opened from.
+ * [startOnSettingsButton] puts focus back on the gear it was opened from. While [holdFocus], something drawn over the
+ * screen (the first-run welcome) has focus, so the page doesn't take it; it takes it back once that closes.
  */
 @Composable
 fun HomeScreen(
@@ -84,6 +85,7 @@ fun HomeScreen(
     onChangeIconStyle: ((InstalledApp, IconStyle) -> Unit)? = null,
     clock: Clock = Clock.systemDefaultZone(),
     startOnSettingsButton: Boolean = false,
+    holdFocus: Boolean = false,
     allApps: @Composable () -> Unit,
 ) {
     val workspace = workspaces.current
@@ -92,8 +94,13 @@ fun HomeScreen(
     val settingsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(if (startOnSettingsButton) HomeArea.SettingsButton else HomeArea.Apps) }
-    val pageActions =
-        PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen = options != null, marks)
+    val pageActions = PageActions(
+        onLaunchApp,
+        onShowOptions = { options = it },
+        switcher,
+        panelOpen = options != null || holdFocus,
+        marks,
+    )
     Box(modifier = modifier.fillMaxSize()) {
         HomeLayout(workspace, switcher, topBar = { barModifier ->
             TopBar(
