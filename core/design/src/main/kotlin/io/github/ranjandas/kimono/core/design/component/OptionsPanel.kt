@@ -7,6 +7,8 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -50,7 +52,8 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
  * next fresh press.
  *
  * A [message] under the title makes the panel a wider question with a paragraph to read before choosing, such as a
- * disclosure that has to be agreed to.
+ * disclosure that has to be agreed to. Its title is then a heading rather than a label, and an [illustration] can sit
+ * beside the paragraph.
  */
 @Composable
 fun OptionsPanel(
@@ -59,6 +62,7 @@ fun OptionsPanel(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     message: String? = null,
+    illustration: (@Composable () -> Unit)? = null,
 ) {
     val firstOption = remember { FocusRequester() }
     // Plain state: nothing is drawn from it, so changing it needn't recompose.
@@ -76,7 +80,13 @@ fun OptionsPanel(
     ) {
         Tile(
             modifier = Modifier
-                .width(if (message == null) PanelWidth else MessagePanelWidth)
+                .width(
+                    when {
+                        message == null -> PanelWidth
+                        illustration == null -> MessagePanelWidth
+                        else -> IllustratedPanelWidth
+                    },
+                )
                 .focusProperties { onExit = { cancelFocusChange() } }
                 .focusGroup()
                 .onPreviewKeyEvent { event ->
@@ -86,15 +96,11 @@ fun OptionsPanel(
                 }
                 .onKeyEvent { it.key in SidewaysKeys },
         ) {
-            // The title is an app's name, so it keeps its own case.
-            SectionHeader(title, caps = false)
-            if (message != null) {
-                Text(
-                    text = message,
-                    modifier = Modifier.padding(top = KimonoSpacing.S),
-                    style = KimonoTheme.typography.body,
-                    color = KimonoTheme.colors.textMuted,
-                )
+            if (message == null) {
+                // The title is an app's name, so it keeps its own case.
+                SectionHeader(title, caps = false)
+            } else {
+                PanelMessage(title, message, illustration)
             }
             Column(
                 modifier = Modifier.padding(top = KimonoSpacing.S),
@@ -113,6 +119,25 @@ fun OptionsPanel(
     }
 }
 
+/** A heading, then the [message] with the [illustration] beside it. */
+@Composable
+private fun ColumnScope.PanelMessage(title: String, message: String, illustration: (@Composable () -> Unit)?) {
+    Text(text = title, style = KimonoTheme.typography.title, color = KimonoTheme.colors.text)
+    Row(
+        modifier = Modifier.padding(top = KimonoSpacing.S),
+        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.weight(1f),
+            style = KimonoTheme.typography.body,
+            color = KimonoTheme.colors.textMuted,
+        )
+        illustration?.invoke()
+    }
+}
+
 /** Swallows OK until a fresh press: the repeats and release of the held OK that opened the panel. */
 private class OkGate {
     private var armed = false
@@ -128,6 +153,7 @@ private val SidewaysKeys = setOf(Key.DirectionLeft, Key.DirectionRight)
 
 private val PanelWidth = 360.dp
 private val MessagePanelWidth = 560.dp
+private val IllustratedPanelWidth = 760.dp
 private val ScrimColor = Color.Black.copy(alpha = 0.72f)
 
 /** One line in an [OptionsPanel]. */
