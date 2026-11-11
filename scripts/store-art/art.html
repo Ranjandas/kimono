@@ -8,22 +8,39 @@ html,body { margin:0; background:#000; }
 svg { display:block; }
 </style></head><body><div id="c" class="c"></div>
 <script>
-const mark = (vb) => `<svg viewBox="${vb}" width="100%" height="100%"><rect width="108" height="108" fill="#000"/>
+const mark = (vb, bg = '#000') => `<svg viewBox="${vb}" width="100%" height="100%">${bg ? `<rect width="108" height="108" fill="${bg}"/>` : ''}
  <g transform="translate(54 55) scale(0.88) translate(-54 -55)">
  <path fill="#F2543D" d="M45,25 L63,25 L83,32 Q86,33 86,36 L86,57 Q86,62 81,62 L72,62 Q69,62 69,59 L69,46 L71.5,86 L36.5,86 L39,46 L39,59 Q39,62 36,62 L27,62 Q22,62 22,57 L22,36 Q22,33 25,32 Z"/>
- <path d="M39,44 L39,60 M69,44 L69,60 M45,67 L44,86" stroke="#000" stroke-width="2"/>
- <path fill="#000" d="M47,25 L61,25 L54,41 Z"/>
- <path d="M60.5,25 L43.5,58" stroke="#000" stroke-width="3" fill="none"/>
+ <path d="M39,44 L39,60 M69,44 L69,60 M45,67 L44,86" stroke="${bg || INK}" stroke-width="2"/>
+ <path fill="${bg || INK}" d="M47,25 L61,25 L54,41 Z"/>
+ <path d="M60.5,25 L43.5,58" stroke="${bg || INK}" stroke-width="3" fill="none"/>
  <rect fill="#E6B84A" x="38.2" y="57" width="31.6" height="10"/></g></svg>`;
+// The dusk Kimono's background, which the mark's cut lines take when it sits on the Yūgure scene.
+const INK = '#151b2e';
+// The feature graphic and the Play TV banner sit on the drawn Yūgure dusk scene (yugure-dusk.png, rendered from
+// core/data's YugureWallpaper at 1920x1080), with a shade on the left so the name reads.
+const scene = (shade) => `background:linear-gradient(90deg, rgba(21,27,46,${shade}) 0%, rgba(21,27,46,${shade * 0.6}) 45%,
+  rgba(21,27,46,0) 75%), url(yugure-dusk.png) 70% 55% / cover;`;
 const k = new URLSearchParams(location.search).get('k');
 const c = document.getElementById('c');
 const S = { banner:[640,360], tv:[1280,720], icon:[512,512], feature:[1024,500] }[k];
 c.style.width = S[0]+'px'; c.style.height = S[1]+'px';
 const u = S[1]/360;
 if (k === 'icon') c.innerHTML = `<div style="width:512px;height:512px">${mark('12 12 84 84')}</div>`;
-else if (k === 'feature') c.innerHTML = `<div style="display:flex;align-items:center;gap:40px">
-  <div style="width:220px;height:220px">${mark('23 23 62 62')}</div>
-  <div><div class="w" style="font-size:96px">Kimono</div><div class="t" style="font-size:36px;margin-top:14px">A calm home screen for Google TV</div></div></div>`;
+else if (k === 'tv') {
+  c.style.cssText += scene(0.8) + 'justify-content:flex-start;';
+  c.innerHTML = `<div style="display:flex;align-items:center;gap:34px;margin-left:96px">
+  <div style="width:168px;height:168px">${mark('23 23 62 62', '')}</div>
+  <div class="w" style="font-size:124px;margin-top:-12px;color:#f1e8d6">Kimono</div></div>`;
+}
+else if (k === 'feature') {
+  const f = S[1] / 500;
+  c.style.cssText += scene(0.85) + 'justify-content:flex-start;';
+  c.innerHTML = `<div style="display:flex;align-items:center;gap:${36*f}px;margin-left:${72*f}px">
+  <div style="width:${190*f}px;height:${190*f}px">${mark('23 23 62 62', '')}</div>
+  <div><div class="w" style="font-size:${96*f}px;color:#f1e8d6">Kimono</div>
+  <div class="t" style="font-size:${34*f}px;margin-top:${14*f}px;color:#e8c27a">A calm home screen for Google TV</div></div></div>`;
+}
 else c.innerHTML = `<div style="display:flex;align-items:center;gap:${30*u}px">
   <div style="width:${120*u}px;height:${120*u}px">${mark('23 23 62 62')}</div>
   <div class="w" style="font-size:${104*u}px;margin-top:${-8*u}px">Kimono</div></div>`;
