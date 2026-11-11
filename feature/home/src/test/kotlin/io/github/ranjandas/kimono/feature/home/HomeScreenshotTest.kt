@@ -46,7 +46,6 @@ class HomeScreenshotTest(
                     onMovePin = { _, _, _ -> },
                     onOpenAppInfo = {},
                     onUninstallApp = {},
-                    theme = theme,
                     onOpenSettings = {},
                     clockFormat = ClockFormat.TwentyFourHour,
                     recents = RecentApps.Apps(SampleApps.take(4)),

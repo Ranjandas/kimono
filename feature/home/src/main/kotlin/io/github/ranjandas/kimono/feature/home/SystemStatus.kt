@@ -99,8 +99,8 @@ private fun readVolume(context: Context): Int? {
 private const val PERCENT = 100
 
 internal enum class NetworkStatus(val icon: KimonoIcon, val label: String) {
-    Wifi(KimonoIcon.Wifi, "wifi"),
-    Ethernet(KimonoIcon.Ethernet, "ethernet"),
-    Other(KimonoIcon.Wifi, "online"),
-    Offline(KimonoIcon.WifiOff, "offline"),
+    Wifi(KimonoIcon.Wifi, "Wi-Fi"),
+    Ethernet(KimonoIcon.Ethernet, "Ethernet"),
+    Other(KimonoIcon.Wifi, "Online"),
+    Offline(KimonoIcon.WifiOff, "Offline"),
 }

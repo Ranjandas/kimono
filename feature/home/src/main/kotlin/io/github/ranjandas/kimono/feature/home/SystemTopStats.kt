@@ -53,11 +53,11 @@ internal data class CpuClock(val currentKhz: Long, val maxKhz: Long) {
 
 /** The system's thermal status, in three steps a viewer cares about. */
 internal enum class Heat(val label: String) {
-    Normal("normal"),
-    Warm("warm"),
+    Normal("Normal"),
+    Warm("Warm"),
 
     /** Hot enough that the system slows things down to cool off. */
-    Hot("hot, slowing down"),
+    Hot("Hot"),
 }
 
 /** Bytes a second through every network interface. */

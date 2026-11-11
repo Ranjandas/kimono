@@ -33,7 +33,6 @@ import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
-import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.AppCategory
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 import io.github.ranjandas.kimono.data.apps.LaunchResult
@@ -73,7 +72,6 @@ fun HomeScreen(
     onMovePin: (InstalledApp, Workspace, Int) -> Unit,
     onOpenAppInfo: (InstalledApp) -> Unit,
     onUninstallApp: (InstalledApp) -> Unit,
-    theme: ThemeId,
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     recents: RecentApps,
@@ -117,7 +115,6 @@ fun HomeScreen(
                     actions = pageActions,
                     recents = recents,
                     onRequestUsageAccess = onRequestUsageAccess,
-                    theme = theme,
                     systemPanel = systemPanel,
                     screenTime = screenTime,
                     focusArea = focusArea,
@@ -245,7 +242,6 @@ private fun HomeScreenPreview() {
             onMovePin = { _, _, _ -> },
             onOpenAppInfo = {},
             onUninstallApp = {},
-            theme = ThemeId.Default,
             onOpenSettings = {},
             clockFormat = ClockFormat.System,
             recents = RecentApps.NeedsAccess,

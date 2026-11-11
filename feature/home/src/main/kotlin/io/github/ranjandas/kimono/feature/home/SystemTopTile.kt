@@ -1,144 +1,69 @@
 package io.github.ranjandas.kimono.feature.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
-import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * The top-style tile: how the box is doing right now, as meters for memory and CPU clock, then heat and network,
- * then the apps on screen most today. Android keeps other apps' CPU and memory private, so the app list is screen
- * time, from usage access, rather than a process list.
+ * The top view: how the box is doing right now, as bars for memory and processor clock, then temperature and
+ * network, and under a rule the apps watched most today. Android keeps other apps' CPU and memory private, so the
+ * app list is screen time, from usage access, rather than a process list. Rows are set like Settings' rows.
  */
 @Composable
 internal fun SystemTopTile(screenTime: ScreenTimeToday, modifier: Modifier = Modifier) {
     val stats by rememberTopStats()
     Tile(modifier = modifier) {
-        SectionHeader("top", icon = KimonoIcon.Activity)
-        DeviceLines(stats)
-        TodayLines(screenTime)
+        SectionHeader("right now", icon = KimonoIcon.Activity)
+        DeviceRows(stats)
+        SystemRule()
+        SectionHeader("watched today")
+        TodayRows(screenTime)
     }
 }
 
 @Composable
-private fun DeviceLines(stats: TopStats?, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        if (stats == null) {
-            InfoLine(KimonoIcon.Memory, "memory", "…")
-        } else {
-            InfoLine(KimonoIcon.Memory, "memory") {
-                Meter(stats.memory.fraction, formatMemory(stats.memory), Modifier.weight(1f))
-            }
-            val clock = stats.clock
-            if (clock == null) {
-                InfoLine(KimonoIcon.Cpu, "cpu", "${stats.cores} cores")
-            } else {
-                InfoLine(KimonoIcon.Cpu, "cpu") {
-                    Meter(clock.fraction, formatClock(clock.currentKhz), Modifier.weight(1f))
-                }
-            }
-            InfoLine(KimonoIcon.Heat, "heat") { HeatValue(stats.heat) }
-            val traffic = stats.traffic
-            InfoLine(
-                KimonoIcon.Traffic,
-                "network",
-                traffic?.let { "${formatRate(it.inPerSecond)} in · ${formatRate(it.outPerSecond)} out" } ?: "…",
-            )
-        }
+private fun DeviceRows(stats: TopStats?) {
+    if (stats == null) {
+        SystemRow(KimonoIcon.Memory, "Memory", "…")
+        return
     }
-}
-
-@Composable
-private fun HeatValue(heat: Heat, modifier: Modifier = Modifier) {
+    val memory = formatMemory(stats.memory)
+    SystemRow(KimonoIcon.Memory, "Memory", spoken = memory) { MeterValue(stats.memory.fraction, memory) }
+    val clock = stats.clock
+    if (clock == null) {
+        SystemRow(KimonoIcon.Cpu, "Processor", "${stats.cores} cores")
+    } else {
+        val speed = formatClock(clock.currentKhz)
+        SystemRow(KimonoIcon.Cpu, "Processor", spoken = speed) { MeterValue(clock.fraction, speed) }
+    }
     val colors = KimonoTheme.colors
-    val color = when (heat) {
-        Heat.Normal -> colors.text
+    val heatColor = when (stats.heat) {
+        Heat.Normal -> colors.success
         Heat.Warm -> colors.warning
         Heat.Hot -> colors.error
     }
-    Text(heat.label, modifier = modifier, style = KimonoTheme.typography.data, color = color, maxLines = 1)
+    SystemRow(KimonoIcon.Heat, "Temperature", spoken = stats.heat.label) { DotValue(heatColor, stats.heat.label) }
+    val traffic = stats.traffic
+    SystemRow(
+        KimonoIcon.Traffic,
+        "Network",
+        traffic?.let { "↓ ${formatRate(it.inPerSecond)}  ↑ ${formatRate(it.outPerSecond)}" } ?: "…",
+    )
 }
 
-/** Up to [TODAY_APPS] apps, each on its own line under one `today` key. */
+/** Up to [TODAY_APPS] apps, each with its own icon and its time on screen, or a note when there are none. */
 @Composable
-private fun TodayLines(screenTime: ScreenTimeToday, modifier: Modifier = Modifier) {
-    val muted = KimonoTheme.colors.textMuted
+private fun TodayRows(screenTime: ScreenTimeToday) {
     val apps = (screenTime as? ScreenTimeToday.Apps)?.apps.orEmpty().take(TODAY_APPS)
-    Column(modifier) {
-        if (apps.isEmpty()) {
-            val note = if (screenTime == ScreenTimeToday.NeedsAccess) "needs usage access" else "nothing yet"
-            InfoLine(KimonoIcon.Recent, "today") {
-                Text(note, style = KimonoTheme.typography.data, color = muted, maxLines = 1)
-            }
-        }
-        apps.forEachIndexed { index, (app, time) ->
-            val first = index == 0
-            InfoLine(if (first) KimonoIcon.Recent else null, if (first) "today" else "") {
-                Text(
-                    app.label,
-                    modifier = Modifier.weight(1f),
-                    // An app's name, so the text face rather than mono.
-                    style = KimonoTheme.typography.body,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(formatScreenTime(time), style = KimonoTheme.typography.data, color = muted, maxLines = 1)
-            }
-        }
+    if (apps.isEmpty()) {
+        val note = if (screenTime == ScreenTimeToday.NeedsAccess) "Needs usage access" else "Nothing yet"
+        SystemRow(KimonoIcon.Recent, note, "")
     }
+    apps.forEach { (app, time) -> SystemRow(app.icon, app.label, formatScreenTime(time)) }
 }
 
-/** A bar filled to [fraction], then [value] in a fixed column so the bars line up. Nearly full turns it amber. */
-@Composable
-private fun Meter(fraction: Float, value: String, modifier: Modifier = Modifier) {
-    val colors = KimonoTheme.colors
-    val fill = if (fraction >= METER_HIGH) colors.warning else colors.accent
-    val style = KimonoTheme.typography.data
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(8.dp)
-                .clip(KimonoTheme.shapes.small)
-                .background(colors.surfaceVariant),
-        ) {
-            Box(Modifier.fillMaxHeight().fillMaxWidth(fraction).background(fill))
-        }
-        Text(
-            value,
-            modifier = Modifier.width(style.ems(METER_VALUE_EMS)),
-            style = style,
-            textAlign = TextAlign.End,
-            maxLines = 1,
-        )
-    }
-}
-
-private const val TODAY_APPS = 3
-private const val METER_HIGH = 0.85f
-
-// Mono figures are 0.6 em each, so "1.2 of 2.0 GB" needs about 8 ems.
-private const val METER_VALUE_EMS = 8f
+private const val TODAY_APPS = 2
