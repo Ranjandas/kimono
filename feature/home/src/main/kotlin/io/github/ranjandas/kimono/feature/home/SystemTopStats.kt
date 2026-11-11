@@ -47,9 +47,7 @@ internal data class Memory(val usedBytes: Long, val totalBytes: Long) {
 }
 
 /** The cores' current clock, averaged, against the fastest any of them can go. Not load, which apps can't read. */
-internal data class CpuClock(val currentKhz: Long, val maxKhz: Long) {
-    val fraction: Float get() = fractionOf(currentKhz, maxKhz)
-}
+internal data class CpuClock(val currentKhz: Long, val maxKhz: Long)
 
 /** The system's thermal status, in three steps a viewer cares about. */
 internal enum class Heat(val label: String) {
