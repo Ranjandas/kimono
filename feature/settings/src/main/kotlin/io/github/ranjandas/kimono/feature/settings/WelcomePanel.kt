@@ -20,12 +20,7 @@ import io.github.ranjandas.kimono.core.design.component.OptionsPanel
  * the system's accessibility settings. Every way out, Back included, calls [onDone], so the welcome is shown once.
  */
 @Composable
-fun WelcomePanel(
-    homeWatcher: Boolean?,
-    onTurnOnHome: () -> Unit,
-    onDone: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun WelcomePanel(homeWatcher: Boolean?, onTurnOnHome: () -> Unit, onDone: () -> Unit, modifier: Modifier = Modifier) {
     var disclosing by rememberSaveable { mutableStateOf(false) }
     // A fresh panel for each step, so the disclosure's first option takes focus as the welcome's did.
     key(disclosing) {
