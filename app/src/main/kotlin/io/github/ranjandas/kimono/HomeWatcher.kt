@@ -30,9 +30,15 @@ internal class HomeWatcher(private val context: Context) {
         return isListed(enabled, context.packageName, SERVICE_CLASS)
     }
 
-    /** Opens the accessibility screen, where it's switched on and off. False when this device hides it. */
+    /**
+     * Opens the accessibility screen, where it's switched on and off. False when this device hides it. It opens in a
+     * fresh task: otherwise TV Settings resumes whatever it last showed under it, and Back walks through that
+     * instead of returning to Kimono.
+     */
     fun openSettings(): Boolean = try {
-        context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        context.startActivity(intent)
         true
     } catch (_: ActivityNotFoundException) {
         false
