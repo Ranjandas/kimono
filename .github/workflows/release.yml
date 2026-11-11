@@ -62,28 +62,20 @@ jobs:
           KIMONO_RELEASE_STORE_PASSWORD: ${{ secrets.KIMONO_RELEASE_STORE_PASSWORD }}
           KIMONO_RELEASE_KEY_ALIAS: ${{ secrets.KIMONO_RELEASE_KEY_ALIAS }}
           KIMONO_RELEASE_KEY_PASSWORD: ${{ secrets.KIMONO_RELEASE_KEY_PASSWORD }}
-        # Two runs: the bundle for Play without the home watcher (an accessibility service, see :feature:homewatch),
-        # then the sideload APK with it.
-        run: |
-          version="-Pkimono.versionName=${{ steps.version.outputs.name }} -Pkimono.versionCode=${{ steps.version.outputs.code }}"
-          ./gradlew bundleRelease --stacktrace $version
-          ./gradlew assembleRelease --stacktrace $version -Pkimono.sideload=true
+        run: >
+          ./gradlew assembleRelease bundleRelease --stacktrace
+          -Pkimono.versionName=${{ steps.version.outputs.name }}
+          -Pkimono.versionCode=${{ steps.version.outputs.code }}
 
       # Play needs an app bundle (the .aab); the APK is for sideloading. Since August 2026, TV apps must also
       # support 16 KB memory pages, so every native library has to be 16 KB aligned.
-      - name: Check the signatures, 16 KB alignment and the home watcher
+      - name: Check the signatures and 16 KB alignment
         run: |
           tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)"
           apk=$(ls app/build/outputs/apk/release/*.apk)
           aab=$(ls app/build/outputs/bundle/release/*.aab)
           "$tools"/apksigner verify --print-certs "$apk"
           jarsigner -verify "$aab" | tail -1
-          # The Play bundle must not declare the accessibility service; the sideload APK must.
-          if unzip -p "$aab" base/manifest/AndroidManifest.xml | grep -a -q HomeWatcherService; then
-            echo "::error::the Play bundle declares the home watcher"; exit 1
-          fi
-          "$tools"/aapt2 dump xmltree --file AndroidManifest.xml "$apk" | grep -q HomeWatcherService \
-            || { echo "::error::the sideload APK is missing the home watcher"; exit 1; }
           "$tools"/zipalign -c -P 16 -v 4 "$apk" | tail -1
           mkdir -p "$RUNNER_TEMP/lib" && unzip -q -o "$apk" 'lib/*' -d "$RUNNER_TEMP/lib" || true
           bad=0

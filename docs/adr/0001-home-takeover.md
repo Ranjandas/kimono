@@ -1,7 +1,8 @@
 # ADR 0001: Home-screen takeover on Google TV
 
 - **Status:** Accepted for route A (development and Ranjan's own TV), tried on the Streamer on 2026-10-27.
-  Route B is built as the home watcher (#26), in every build except the Play bundle.
+  Route B is built as the home watcher (#26, #183) and ships in every build, Play included, with the accessibility
+  declaration. Tried on the Streamer on 2026-11-11: Kimono is back about 0.34 s after Home.
 - **Date:** 2026-10-26, results added 2026-10-27
 - **Issue:** #24 (M2-1). See [PLAN §6.7](../PLAN.md#67-home-screen-takeover-on-google-tv).
 
@@ -104,8 +105,8 @@ how Projectivy and other third-party TV launchers work without adb.
    it as the M2-2 scripts (`scripts/home-take` and `scripts/home-restore`), with the undo steps above in
    DEVELOPING.md. Before leaving it on long term, make adb survive a reboot (wireless debugging re-paired, or a
    USB route), then check reboot, a `launcherx` update and an OTA.
-2. **For everyone else:** build B as an optional onboarding step (M2-3), sideload-only until the Play
-   accessibility policy is checked against a draft listing.
+2. **For everyone else:** build B as an optional step in Settings (M2-3), behind an in-app disclosure. It goes to
+   Play with the accessibility declaration (decided 2026-11-11); if Play refuses it, it ships in the GitHub APK only.
 
 ## Spike checklist
 
@@ -118,8 +119,8 @@ Finish every session with the TV asleep.
       as home, about 35 s from `adb reboot`. Both packages stay disabled. Wireless debugging is off after the reboot.
 - [x] A: does Settings still open? Yes, with accounts, profiles and system. Input settings weren't opened.
 - [x] A: undo restores stock Home exactly.
-- [ ] B: with a minimal watcher, how long is the stock-launcher flash on Home? Does it survive a reboot and an
-      app update?
+- [x] B: how long is the stock-launcher flash on Home? About 0.34 s from launcherx resuming to Kimono resuming
+      (3 of 3, 2026-11-11). Surviving a reboot and an app update is still to check.
 - [x] Record the `launcherx` version tested: 1.0.1002449598.
 
 ## Consequences

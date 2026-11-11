@@ -1,6 +1,6 @@
 // Brings Kimono back when Google TV's own home comes to the front (route B in docs/adr/0001-home-takeover.md).
-// An accessibility service, so it's only in builds that don't go to Play: debug, benchmark and the sideload APK
-// (see :app). Play's accessibility policy is for apps that help people with disabilities, which this isn't.
+// An accessibility service that isn't an accessibility tool, so Play needs the in-app disclosure (Settings) and the
+// accessibility declaration in Play Console (docs/PLAY-STORE.md).
 
 plugins {
     alias(libs.plugins.android.library)

@@ -12,12 +12,28 @@ step-by-step walkthrough lives in the project's release doc.
 | `REQUEST_DELETE_PACKAGES` | Fine | Uninstall from an app's options, a core launcher feature; the system confirms each one. Check the current Play form at submission. |
 | Package visibility | Fine | `<queries>` limited to `LEANBACK_LAUNCHER` and `LAUNCHER` activities; no `QUERY_ALL_PACKAGES`. |
 | `READ_TV_LISTINGS` | Debug builds only | The Watch Next probe (#143); not in release builds. |
-| Accessibility service | Not in the Play bundle | The home watcher (route B, ADR 0001, #26) is one, and Play's accessibility API policy is for apps that help people with disabilities. It lives in `:feature:homewatch`, which only debug, benchmark and the sideload APK include; `release.yml` fails if the bundle declares it. |
-| Home takeover | Not in the Play app | Route A is adb-only and stays in docs; route B is in the sideload APK only. |
+| Accessibility service | Declaration needed | The home watcher (route B, ADR 0001, #26), so Home opens Kimono. It isn't an accessibility tool (`isAccessibilityTool=false`), so Play needs: the in-app disclosure and consent (Settings › Kimono as home shows it before opening the system settings), the Accessibility API declaration in Play Console with a short video, and the privacy policy section. See *Accessibility declaration* below. If Play refuses it, make `:feature:homewatch` debug and benchmark only in `app/build.gradle.kts` and ship it in the GitHub APK instead. |
+| Home takeover | Route B in the app | Route A is adb-only and stays in docs. |
 | Brand logos | Check at submission | Other apps' logos only next to the app they open (plan risks table). |
 | Data safety form | Ready to fill | No data collected or shared; see the privacy policy. |
 | Target SDK | Fine | targetSdk 37. |
 | TV quality | To check | App icon and banner (640×360 px in drawable-xhdpi, 320×180 dp), D-pad only, no touch required, leanback launcher intent. |
+
+## Accessibility declaration
+
+Play Console › App content › Sensitive app permissions › Accessibility API. Answers, in our words:
+
+- **Is the app an accessibility tool?** No.
+- **What does it use the API for?** Google TV doesn't let people choose a home app. With the user's consent, the
+  service notices when Google TV's own home comes to the front and opens Kimono instead, so the Home button opens
+  the launcher the user chose. It only receives window-change events from Google TV's two home packages, can't read
+  window contents, and sends nothing off the device.
+- **Prominent disclosure:** Kimono › Settings › Kimono as home shows the disclosure and an "Agree and continue"
+  button before opening the system's accessibility settings. Nothing is turned on without it.
+- **Video:** record on the Streamer: Settings › Kimono as home, the disclosure, Agree and continue, turning on
+  Kimono as home in the system list, then an app and a Home press landing on Kimono. Upload it unlisted.
+
+The listing can say Home opens Kimono, but shouldn't promise more than that.
 
 ## Privacy policy
 
