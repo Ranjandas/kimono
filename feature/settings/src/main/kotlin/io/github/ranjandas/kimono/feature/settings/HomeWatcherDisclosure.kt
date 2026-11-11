@@ -16,7 +16,7 @@ import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
  * What "Kimono as home" uses and why, shown before Kimono sends anyone to the accessibility settings to turn it on.
  * Play asks an app that isn't an accessibility tool to say this in the app, and to have the user agree, before it
  * uses the accessibility API (docs/PLAY-STORE.md). Not now, or Back, leaves it off. Either way focus goes back to
- * the row it came from, or the D-pad would have nothing to move.
+ * the row it came from, or the D-pad would have nothing to move. [ToggleHint] sketches the switch to turn on next.
  */
 @Composable
 internal fun HomeWatcherDisclosure(state: DisclosureState, onAgree: () -> Unit, modifier: Modifier = Modifier) {
@@ -37,6 +37,7 @@ internal fun HomeWatcherDisclosure(state: DisclosureState, onAgree: () -> Unit, 
         onDismiss = state::close,
         modifier = modifier,
         message = HOME_WATCHER_DISCLOSURE,
+        illustration = { ToggleHint() },
     )
 }
 
