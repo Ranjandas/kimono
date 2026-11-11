@@ -56,6 +56,9 @@ import java.time.LocalDate
  * bar, after Omarchy's panels (#155, #156). Left and Right step a setting back and forward
  * (OK steps forward too), and the change applies at once, so the screen itself is the preview. The theme lives
  * here rather than on home's top bar, where one stray press changed it (#110). Back returns home.
+ *
+ * [homeWatcher] is whether Kimono opens over Google TV's home (#26): null leaves the row out, as in the Play build,
+ * which doesn't have it. Its switch lives in the system's accessibility settings, so the row opens those.
  */
 @Composable
 fun SettingsScreen(
@@ -79,6 +82,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     systemPanel: SystemPanel = SystemPanel.Default,
     onSystemPanelChange: (SystemPanel) -> Unit = {},
+    homeWatcher: Boolean? = null,
+    onHomeWatcherClick: () -> Unit = {},
     subtitle: String = PanelSubtitle.forDay(LocalDate.now()),
 ) {
     val firstRow = remember { FocusRequester() }
@@ -115,6 +120,8 @@ fun SettingsScreen(
                         onClockFormatChange,
                         systemPanel,
                         onSystemPanelChange,
+                        homeWatcher,
+                        onHomeWatcherClick,
                     )
                 }
             }

@@ -76,7 +76,7 @@ internal fun ScreenCareSection(
     }
 }
 
-/** What home shows. */
+/** What home shows, and whether Kimono opens over Google TV's home ([homeWatcher], null when it can't). */
 @Composable
 internal fun HomeSection(
     wallpaper: WallpaperChoice,
@@ -85,6 +85,8 @@ internal fun HomeSection(
     onClockFormatChange: (ClockFormat) -> Unit,
     systemPanel: SystemPanel,
     onSystemPanelChange: (SystemPanel) -> Unit,
+    homeWatcher: Boolean?,
+    onHomeWatcherClick: () -> Unit,
 ) {
     SettingsSection("home") {
         SettingRow(KimonoIcon.Wallpaper, "Wallpaper", wallpaper.label, onStep = { onWallpaperToggle() }) {
@@ -93,6 +95,12 @@ internal fun HomeSection(
         ChoiceRow(KimonoIcon.Clock, "Clock", clockFormat, ClockFormat.entries, ClockFormat::label, onClockFormatChange)
         ChoiceRow(KimonoIcon.Activity, "System tile", systemPanel, SystemPanel.entries, SystemPanel::label) {
             onSystemPanelChange(it)
+        }
+        // Either direction or OK opens the accessibility settings, where the switch really is.
+        if (homeWatcher != null) {
+            SettingRow(KimonoIcon.Home, "Kimono as home", if (homeWatcher) "on" else "off", onStep = {
+                onHomeWatcherClick()
+            }) { Toggle(homeWatcher, it) }
         }
     }
 }

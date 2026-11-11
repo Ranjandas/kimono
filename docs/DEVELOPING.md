@@ -291,6 +291,20 @@ scripts/home-restore            # Home opens the stock launcher again; safe to r
 Set `ADB_SERIAL=<tv-ip>:<port>` when more than one device is connected. Both scripts print the state before
 and after: which app Home opens, the HOME role holder and which of the two packages are disabled.
 
+Without adb there's route B, the home watcher (#26): an accessibility service that opens Kimono whenever
+Google TV's home comes to the front, so Google TV's home shows for a moment first. It's in debug and benchmark
+builds and in the sideload APK from GitHub Releases, but not in the Play bundle (docs/PLAY-STORE.md). Switch it on
+from Kimono's Settings › Kimono as home, which opens the system's accessibility settings. Over adb:
+
+```sh
+adb shell settings put secure enabled_accessibility_services \
+  io.github.ranjandas.kimono/.feature.homewatch.HomeWatcherService
+adb shell settings put secure accessibility_enabled 1
+```
+
+That replaces any other enabled services, so check `settings get secure enabled_accessibility_services` first.
+To build a release APK with it, pass `-Pkimono.sideload=true`.
+
 Before leaving Kimono as home, make sure adb comes back after a reboot. `home-take` warns when it won't
 (`adb tcpip` connections don't survive one). Kimono's drawer can still open Settings to re-enable wireless
 debugging.
@@ -321,7 +335,12 @@ Check `adb shell pm list packages -d` for anything else you disabled, and re-ena
 **adb can't reach the TV**
 
 - Check the TV and computer are on the same network, then `adb disconnect` and `adb connect` again.
-- After a reboot the wireless debugging port changes; read the new one on the TV or use `adb mdns services`.
+- After a reboot the Streamer turns wireless debugging off. Someone at the TV turns it back on in Settings ›
+  System › Developer options › Wireless debugging (with Kimono as home, open Settings from All apps). Then
+  `adb mdns services` lists `_adb-tls-connect._tcp <ip>:<port>`; `adb connect` to it. The port changes every
+  time, but the pairing stays, so there's no new code. The old `adb tcpip` port 5555 is gone too.
+- If `adb mdns services` shows nothing while macOS's `dns-sd -B _adb-tls-connect._tcp` does, run
+  `adb kill-server`; its list goes stale.
 - If the TV has no working home screen and adb is unreachable, open Settings from the remote's settings
   shortcut if your remote has one, and re-enable wireless debugging there. As a last resort, a factory reset
   restores the stock setup; follow Google's instructions for the Streamer.

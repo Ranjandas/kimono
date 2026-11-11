@@ -151,6 +151,7 @@ class AccessibilityTest {
         panels = Panels.Default,
         onPanelsChange = {},
         onClose = {},
+        homeWatcher = false,
         subtitle = "quiet tatami",
     )
 

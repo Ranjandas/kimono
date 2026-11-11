@@ -12,8 +12,8 @@ step-by-step walkthrough lives in the project's release doc.
 | `REQUEST_DELETE_PACKAGES` | Fine | Uninstall from an app's options, a core launcher feature; the system confirms each one. Check the current Play form at submission. |
 | Package visibility | Fine | `<queries>` limited to `LEANBACK_LAUNCHER` and `LAUNCHER` activities; no `QUERY_ALL_PACKAGES`. |
 | `READ_TV_LISTINGS` | Debug builds only | The Watch Next probe (#143); not in release builds. |
-| Accessibility service | None shipped | The Home takeover's route B (ADR 0001) would need one, and Play's accessibility API policy would need a declaration and a prominent disclosure. Keep it sideload-only or out of the Play build. |
-| Home takeover | Not in the app | Route A is adb-only and stays in docs. |
+| Accessibility service | Not in the Play bundle | The home watcher (route B, ADR 0001, #26) is one, and Play's accessibility API policy is for apps that help people with disabilities. It lives in `:feature:homewatch`, which only debug, benchmark and the sideload APK include; `release.yml` fails if the bundle declares it. |
+| Home takeover | Not in the Play app | Route A is adb-only and stays in docs; route B is in the sideload APK only. |
 | Brand logos | Check at submission | Other apps' logos only next to the app they open (plan risks table). |
 | Data safety form | Ready to fill | No data collected or shared; see the privacy policy. |
 | Target SDK | Fine | targetSdk 37. |
