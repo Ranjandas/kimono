@@ -37,6 +37,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.component.FocusDefaults
@@ -99,7 +100,9 @@ internal fun SearchField(
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("~/apps ❯", style = KimonoTheme.typography.headline, color = colors.accent)
+        // A heading like Settings' (the workspace's icon in the accent, a bold name), not a shell prompt.
+        Icon(KimonoIcon.Apps, color = colors.accent, style = KimonoTheme.typography.headline)
+        Text("All apps", style = KimonoTheme.typography.headline, fontWeight = FontWeight.Bold, color = colors.text)
         SearchBox(focused, Modifier.weight(1f)) {
             SearchInput(
                 query = query,
