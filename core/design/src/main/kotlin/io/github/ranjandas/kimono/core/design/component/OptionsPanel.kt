@@ -24,6 +24,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,8 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
  *
  * Focus stays in the panel: the D-pad stops at the first and last option rather than leaving for the page
  * underneath. It used to slip out past the first option to the top bar, and then Back and OK went to the page, so the
- * panel stayed on screen with nothing focused and no way to close it.
+ * panel stayed on screen with nothing focused and no way to close it. Left and Right have nowhere to go in the one
+ * column, so the panel keeps them too: in all apps they used to reach the page and switch workspace.
  *
  * Back is taken as a key here rather than only through a back handler: Compose spends the first Back on clearing
  * focus, which left the panel on screen, unfocused and deaf to the D-pad, until a second press. The back handler
@@ -71,7 +73,8 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
                     // Close on release, so the release doesn't reach whatever is under the panel.
                     if (event.key == Key.Back && event.type == KeyEventType.KeyUp) onDismiss()
                     event.key == Key.Back || okGate.swallows(event)
-                },
+                }
+                .onKeyEvent { it.key in SidewaysKeys },
         ) {
             // The title is an app's name, so it keeps its own case.
             SectionHeader(title, caps = false)
@@ -102,6 +105,8 @@ private class OkGate {
         return !armed
     }
 }
+
+private val SidewaysKeys = setOf(Key.DirectionLeft, Key.DirectionRight)
 
 private val PanelWidth = 360.dp
 private val ScrimColor = Color.Black.copy(alpha = 0.72f)
