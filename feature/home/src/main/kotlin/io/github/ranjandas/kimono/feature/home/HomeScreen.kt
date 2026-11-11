@@ -94,8 +94,8 @@ fun HomeScreen(
     val settingsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(if (startOnSettingsButton) HomeArea.SettingsButton else HomeArea.Apps) }
-    val pageActions =
-        PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen = options != null || holdFocus, marks)
+    val panelOpen = options != null || holdFocus
+    val pageActions = PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen, marks)
     Box(modifier = modifier.fillMaxSize()) {
         HomeLayout(workspace, switcher, topBar = { barModifier ->
             TopBar(
