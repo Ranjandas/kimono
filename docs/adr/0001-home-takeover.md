@@ -114,7 +114,8 @@ Finish every session with the TV asleep.
 - [x] A′: does `add-role-holder` change what Home opens? No.
 - [x] A: with `launcherx` disabled, where does Home go? To `RecoveryActivity`, in a relaunch loop. `setupwraith`
       is needed too, and then there's no chooser.
-- [ ] A: after a reboot, does Kimono come up? How long until first draw? Needs adb that survives a reboot first.
+- [x] A: after a reboot, does Kimono come up? Yes (2026-11-11): about 2 s of Android's FallbackHome, then Kimono
+      as home, about 35 s from `adb reboot`. Both packages stay disabled. Wireless debugging is off after the reboot.
 - [x] A: does Settings still open? Yes, with accounts, profiles and system. Input settings weren't opened.
 - [x] A: undo restores stock Home exactly.
 - [ ] B: with a minimal watcher, how long is the stock-launcher flash on Home? Does it survive a reboot and an

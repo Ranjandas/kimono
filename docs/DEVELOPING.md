@@ -335,7 +335,12 @@ Check `adb shell pm list packages -d` for anything else you disabled, and re-ena
 **adb can't reach the TV**
 
 - Check the TV and computer are on the same network, then `adb disconnect` and `adb connect` again.
-- After a reboot the wireless debugging port changes; read the new one on the TV or use `adb mdns services`.
+- After a reboot the Streamer turns wireless debugging off. Someone at the TV turns it back on in Settings ›
+  System › Developer options › Wireless debugging (with Kimono as home, open Settings from All apps). Then
+  `adb mdns services` lists `_adb-tls-connect._tcp <ip>:<port>`; `adb connect` to it. The port changes every
+  time, but the pairing stays, so there's no new code. The old `adb tcpip` port 5555 is gone too.
+- If `adb mdns services` shows nothing while macOS's `dns-sd -B _adb-tls-connect._tcp` does, run
+  `adb kill-server`; its list goes stale.
 - If the TV has no working home screen and adb is unreachable, open Settings from the remote's settings
   shortcut if your remote has one, and re-enable wireless debugging there. As a last resort, a factory reset
   restores the stock setup; follow Google's instructions for the Streamer.
