@@ -1,7 +1,7 @@
 # ADR 0001: Home-screen takeover on Google TV
 
 - **Status:** Accepted for route A (development and Ranjan's own TV), tried on the Streamer on 2026-10-27.
-  Route B is still proposed and not yet built.
+  Route B is built as the home watcher (#26), in every build except the Play bundle.
 - **Date:** 2026-10-26, results added 2026-10-27
 - **Issue:** #24 (M2-1). See [PLAN §6.7](../PLAN.md#67-home-screen-takeover-on-google-tv).
 

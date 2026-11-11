@@ -291,6 +291,20 @@ scripts/home-restore            # Home opens the stock launcher again; safe to r
 Set `ADB_SERIAL=<tv-ip>:<port>` when more than one device is connected. Both scripts print the state before
 and after: which app Home opens, the HOME role holder and which of the two packages are disabled.
 
+Without adb there's route B, the home watcher (#26): an accessibility service that opens Kimono whenever
+Google TV's home comes to the front, so Google TV's home shows for a moment first. It's in debug and benchmark
+builds and in the sideload APK from GitHub Releases, but not in the Play bundle (docs/PLAY-STORE.md). Switch it on
+from Kimono's Settings › Kimono as home, which opens the system's accessibility settings. Over adb:
+
+```sh
+adb shell settings put secure enabled_accessibility_services \
+  io.github.ranjandas.kimono/.feature.homewatch.HomeWatcherService
+adb shell settings put secure accessibility_enabled 1
+```
+
+That replaces any other enabled services, so check `settings get secure enabled_accessibility_services` first.
+To build a release APK with it, pass `-Pkimono.sideload=true`.
+
 Before leaving Kimono as home, make sure adb comes back after a reboot. `home-take` warns when it won't
 (`adb tcpip` connections don't survive one). Kimono's drawer can still open Settings to re-enable wireless
 debugging.
