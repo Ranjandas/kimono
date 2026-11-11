@@ -57,8 +57,8 @@ import java.time.LocalDate
  * (OK steps forward too), and the change applies at once, so the screen itself is the preview. The theme lives
  * here rather than on home's top bar, where one stray press changed it (#110). Back returns home.
  *
- * [homeWatcher] is whether Kimono opens over Google TV's home (#26): null leaves the row out, as in the Play build,
- * which doesn't have it. Its switch lives in the system's accessibility settings, so the row opens those.
+ * [homeWatcher] is whether Kimono opens over Google TV's home (#26), or null to leave the row out. Its switch lives
+ * in the system's accessibility settings, so the row opens those, after [HomeWatcherDisclosure] when it's off.
  */
 @Composable
 fun SettingsScreen(
@@ -87,46 +87,51 @@ fun SettingsScreen(
     subtitle: String = PanelSubtitle.forDay(LocalDate.now()),
 ) {
     val firstRow = remember { FocusRequester() }
+    val disclosure = remember { DisclosureState() }
     // Retried like home and the drawer, in case the screen draws before it can take focus.
     LaunchedEffect(Unit) { firstRow.requestFocusWhenLaidOut() }
     BackHandler(onBack = onClose)
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(KimonoTheme.colors.background)
-            .padding(horizontal = KimonoSpacing.XL, vertical = KimonoSpacing.M),
-        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
-    ) {
-        SettingsTitle(subtitle)
-        // One panel split by rules, like Omarchy's (#155). The box takes all the height down to the hint bar, so
-        // the panel grows to fit its rows and only scrolls when they don't fit (a large text size); focus brings
-        // the row into view. While there are rows past an edge, that edge fades out, so a cut row reads as more to
-        // scroll to rather than as a glitch (#165).
-        Box(Modifier.weight(1f)) {
-            Tile(modifier = Modifier.width(SettingsWidth)) {
-                val scroll = rememberScrollState()
-                Column(Modifier.fadingEdges(scroll).verticalScroll(scroll)) {
-                    LookSection(
-                        theme, onThemeChange, cornerStyle, onCornerStyleChange, textSize, onTextSizeChange, panels,
-                        onPanelsChange, firstRow,
-                    )
-                    Rule()
-                    ScreenCareSection(idleTimeout, onIdleTimeoutChange, pixelShift, onPixelShiftChange)
-                    Rule()
-                    HomeSection(
-                        wallpaper,
-                        onWallpaperToggle,
-                        clockFormat,
-                        onClockFormatChange,
-                        systemPanel,
-                        onSystemPanelChange,
-                        homeWatcher,
-                        onHomeWatcherClick,
-                    )
+    Box(modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(KimonoTheme.colors.background)
+                .padding(horizontal = KimonoSpacing.XL, vertical = KimonoSpacing.M),
+            verticalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
+        ) {
+            SettingsTitle(subtitle)
+            // One panel split by rules, like Omarchy's (#155). The box takes all the height down to the hint bar, so
+            // the panel grows to fit its rows and only scrolls when they don't fit (a large text size); focus brings
+            // the row into view. While there are rows past an edge, that edge fades out, so a cut row reads as more to
+            // scroll to rather than as a glitch (#165).
+            Box(Modifier.weight(1f)) {
+                Tile(modifier = Modifier.width(SettingsWidth)) {
+                    val scroll = rememberScrollState()
+                    Column(Modifier.fadingEdges(scroll).verticalScroll(scroll)) {
+                        LookSection(
+                            theme, onThemeChange, cornerStyle, onCornerStyleChange, textSize, onTextSizeChange, panels,
+                            onPanelsChange, firstRow,
+                        )
+                        Rule()
+                        ScreenCareSection(idleTimeout, onIdleTimeoutChange, pixelShift, onPixelShiftChange)
+                        Rule()
+                        HomeSection(
+                            wallpaper,
+                            onWallpaperToggle,
+                            clockFormat,
+                            onClockFormatChange,
+                            systemPanel,
+                            onSystemPanelChange,
+                            homeWatcher,
+                            onHomeWatcherClick = { disclosure.open(on = homeWatcher == true, onHomeWatcherClick) },
+                            disclosure.row,
+                        )
+                    }
                 }
             }
+            HintBar(SettingsHints)
         }
-        HintBar(SettingsHints)
+        HomeWatcherDisclosure(disclosure, onAgree = onHomeWatcherClick)
     }
 }
 

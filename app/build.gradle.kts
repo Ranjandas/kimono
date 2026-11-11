@@ -111,14 +111,9 @@ dependencies {
     implementation(project(":feature:settings"))
     implementation(project(":data:apps"))
     implementation(project(":data:media"))
-    // Kimono as home without adb (route B, ADR 0001) is an accessibility service, and Play's accessibility policy
-    // doesn't cover a launcher, so the Play bundle leaves it out. Every other build has it: debug, benchmark, and the
-    // sideload APK, which release.yml builds with -Pkimono.sideload=true.
-    debugImplementation(project(":feature:homewatch"))
-    "benchmarkImplementation"(project(":feature:homewatch"))
-    if (providers.gradleProperty("kimono.sideload").orNull == "true") {
-        releaseImplementation(project(":feature:homewatch"))
-    }
+    // Kimono as home without adb (route B, ADR 0001), an accessibility service. It ships on Play with the
+    // accessibility declaration (docs/PLAY-STORE.md); if Play refuses it, make this debug and benchmark only.
+    implementation(project(":feature:homewatch"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

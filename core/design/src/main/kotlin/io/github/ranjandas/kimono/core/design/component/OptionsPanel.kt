@@ -28,6 +28,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
@@ -47,9 +48,18 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
  * The panel usually opens from a held OK, and that key is still down when the first option takes focus. Its
  * remaining repeats and release are ignored, so they can't pick the first option; OK works again from the
  * next fresh press.
+ *
+ * A [message] under the title makes the panel a wider question with a paragraph to read before choosing, such as a
+ * disclosure that has to be agreed to.
  */
 @Composable
-fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+fun OptionsPanel(
+    title: String,
+    options: List<Option>,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    message: String? = null,
+) {
     val firstOption = remember { FocusRequester() }
     // Plain state: nothing is drawn from it, so changing it needn't recompose.
     val okGate = remember { OkGate() }
@@ -66,7 +76,7 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
     ) {
         Tile(
             modifier = Modifier
-                .width(PanelWidth)
+                .width(if (message == null) PanelWidth else MessagePanelWidth)
                 .focusProperties { onExit = { cancelFocusChange() } }
                 .focusGroup()
                 .onPreviewKeyEvent { event ->
@@ -78,6 +88,14 @@ fun OptionsPanel(title: String, options: List<Option>, onDismiss: () -> Unit, mo
         ) {
             // The title is an app's name, so it keeps its own case.
             SectionHeader(title, caps = false)
+            if (message != null) {
+                Text(
+                    text = message,
+                    modifier = Modifier.padding(top = KimonoSpacing.S),
+                    style = KimonoTheme.typography.body,
+                    color = KimonoTheme.colors.textMuted,
+                )
+            }
             Column(
                 modifier = Modifier.padding(top = KimonoSpacing.S),
                 verticalArrangement = Arrangement.spacedBy(KimonoSpacing.XXS),
@@ -109,6 +127,7 @@ private class OkGate {
 private val SidewaysKeys = setOf(Key.DirectionLeft, Key.DirectionRight)
 
 private val PanelWidth = 360.dp
+private val MessagePanelWidth = 560.dp
 private val ScrimColor = Color.Black.copy(alpha = 0.72f)
 
 /** One line in an [OptionsPanel]. */

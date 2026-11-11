@@ -87,6 +87,7 @@ internal fun HomeSection(
     onSystemPanelChange: (SystemPanel) -> Unit,
     homeWatcher: Boolean?,
     onHomeWatcherClick: () -> Unit,
+    watcherRow: FocusRequester,
 ) {
     SettingsSection("home") {
         SettingRow(KimonoIcon.Wallpaper, "Wallpaper", wallpaper.label, onStep = { onWallpaperToggle() }) {
@@ -98,9 +99,13 @@ internal fun HomeSection(
         }
         // Either direction or OK opens the accessibility settings, where the switch really is.
         if (homeWatcher != null) {
-            SettingRow(KimonoIcon.Home, "Kimono as home", if (homeWatcher) "on" else "off", onStep = {
-                onHomeWatcherClick()
-            }) { Toggle(homeWatcher, it) }
+            SettingRow(
+                KimonoIcon.Home,
+                "Kimono as home",
+                if (homeWatcher) "on" else "off",
+                onStep = { onHomeWatcherClick() },
+                modifier = Modifier.focusRequester(watcherRow),
+            ) { Toggle(homeWatcher, it) }
         }
     }
 }
