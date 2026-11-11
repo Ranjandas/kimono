@@ -100,11 +100,8 @@ private fun Screens(
     // The first-run welcome, over home (not all apps, whose search takes focus as it opens). Settings and workspaces
     // have loaded by now, so it never flashes up for someone who has already closed it.
     val welcoming = !settings.welcomed && screen == Screen.Home && workspaces.current != Workspace.AllApps
-    val screenTime = rememberScreenTimeToday(
-        dependencies.usageHistory,
-        apps,
-        enabled = settings.systemPanel == SystemPanel.Top,
-    )
+    val screenTime =
+        rememberScreenTimeToday(dependencies.usageHistory, apps, enabled = settings.systemPanel == SystemPanel.Top)
     // A Home press goes back to the start: the home screen on workspace 1. Everything else (the screen, the
     // workspace) is saved, so it survives the process being killed in the background.
     LaunchedEffect(homePresses) {
@@ -156,13 +153,16 @@ private fun Screens(
             screen = Screen.Home
         })
     }
-    if (welcoming) {
-        WelcomePanel(
-            homeWatcher = watcher.state.takeIf { watcher.isInBuild },
-            onTurnOnHome = watcher::open,
-            onDone = { updateSettings { it.copy(welcomed = true) } },
-        )
-    }
+    if (welcoming) Welcome(watcher, updateSettings)
+}
+
+@Composable
+private fun Welcome(watcher: HomeWatcherState, updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit) {
+    WelcomePanel(
+        homeWatcher = watcher.state.takeIf { watcher.isInBuild },
+        onTurnOnHome = watcher::open,
+        onDone = { updateSettings { it.copy(welcomed = true) } },
+    )
 }
 
 @Composable
