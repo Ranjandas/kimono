@@ -9,9 +9,10 @@ import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 
 /**
- * The top view: how the box is doing right now, as bars for memory and processor clock, then temperature and
- * network, and under a rule the apps watched most today. Android keeps other apps' CPU and memory private, so the
- * app list is screen time, from usage access, rather than a process list. Rows are set like Settings' rows.
+ * The top view: how the box is doing right now, as a bar for memory and the processor clock as text (the clock
+ * sits at its maximum most of the time, so a bar would always look full), then temperature and network, and under
+ * a rule the apps watched most today. Android keeps other apps' CPU and memory private, so the app list is screen
+ * time, from usage access, rather than a process list. Rows are set like Settings' rows.
  */
 @Composable
 internal fun SystemTopTile(screenTime: ScreenTimeToday, modifier: Modifier = Modifier) {
@@ -34,12 +35,8 @@ private fun DeviceRows(stats: TopStats?) {
     val memory = formatMemory(stats.memory)
     SystemRow(KimonoIcon.Memory, "Memory", spoken = memory) { MeterValue(stats.memory.fraction, memory) }
     val clock = stats.clock
-    if (clock == null) {
-        SystemRow(KimonoIcon.Cpu, "Processor", "${stats.cores} cores")
-    } else {
-        val speed = formatClock(clock.currentKhz)
-        SystemRow(KimonoIcon.Cpu, "Processor", spoken = speed) { MeterValue(clock.fraction, speed) }
-    }
+    val processor = if (clock == null) "${stats.cores} cores" else formatClock(clock.currentKhz)
+    SystemRow(KimonoIcon.Cpu, "Processor", processor)
     val colors = KimonoTheme.colors
     val heatColor = when (stats.heat) {
         Heat.Normal -> colors.success
