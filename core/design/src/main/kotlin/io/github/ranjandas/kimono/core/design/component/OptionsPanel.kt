@@ -35,8 +35,8 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
  * focus, so the D-pad is on it straight away, and Back closes the panel without choosing anything.
  *
  * Focus stays in the panel: the D-pad stops at the first and last option rather than leaving for the page
- * underneath. It used to slip out past the last option, and then Back and OK went to that hidden page, so the panel
- * stayed on screen with nothing focused and no way to close it.
+ * underneath. It used to slip out past the first option to the top bar, and then Back and OK went to the page, so the
+ * panel stayed on screen with nothing focused and no way to close it.
  *
  * Back is taken as a key here rather than only through a back handler: Compose spends the first Back on clearing
  * focus, which left the panel on screen, unfocused and deaf to the D-pad, until a second press. The back handler
