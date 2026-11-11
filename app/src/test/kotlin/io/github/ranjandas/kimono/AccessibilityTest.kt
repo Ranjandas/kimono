@@ -67,7 +67,6 @@ class AccessibilityTest {
             onMovePin = { _, _, _ -> },
             onOpenAppInfo = {},
             onUninstallApp = {},
-            theme = ThemeId.Default,
             onOpenSettings = {},
             clockFormat = ClockFormat.TwentyFourHour,
             recents = RecentApps.Apps(SampleApps.take(3)),

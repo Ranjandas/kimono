@@ -19,7 +19,6 @@ import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
-import io.github.ranjandas.kimono.core.design.theme.ThemeId
 import io.github.ranjandas.kimono.data.apps.InstalledApp
 
 /**
@@ -34,7 +33,6 @@ internal fun HomePage(
     actions: PageActions,
     recents: RecentApps,
     onRequestUsageAccess: () -> Unit,
-    theme: ThemeId,
     systemPanel: SystemPanel,
     screenTime: ScreenTimeToday,
     focusArea: HomeArea,
@@ -95,7 +93,6 @@ internal fun HomePage(
                 apps = apps,
                 actions = actions,
                 systemPanel = systemPanel,
-                theme = theme,
                 screenTime = screenTime,
                 onFocusArea = onFocusArea,
                 appsFocus = focus.apps,
@@ -112,14 +109,13 @@ private fun SideColumn(
     apps: List<InstalledApp>?,
     actions: PageActions,
     systemPanel: SystemPanel,
-    theme: ThemeId,
     screenTime: ScreenTimeToday,
     onFocusArea: (HomeArea) -> Unit,
     appsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(HomeDimens.Gap)) {
-        SystemTile(systemPanel, theme, screenTime, Modifier.fillMaxWidth())
+        SystemTile(systemPanel, screenTime, Modifier.fillMaxWidth())
         AppsTile(
             apps = apps,
             onLaunchApp = actions.onLaunchApp,
