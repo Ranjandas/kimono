@@ -6,12 +6,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.data.idle.IdleController
@@ -29,6 +27,7 @@ import io.github.ranjandas.kimono.feature.drawer.DrawerScreen
 import io.github.ranjandas.kimono.feature.home.HomeScreen
 import io.github.ranjandas.kimono.feature.home.RecentApps
 import io.github.ranjandas.kimono.feature.settings.SettingsScreen
+import io.github.ranjandas.kimono.feature.settings.WelcomePanel
 import kotlinx.coroutines.launch
 
 private enum class Screen { Home, Settings }
@@ -97,11 +96,12 @@ private fun Screens(
     // Set when settings closes, so home puts focus back on the gear; a Home press starts over.
     var backFromSettings by rememberSaveable { mutableStateOf(false) }
     val actions = appCallbacks(dependencies, workspaces)
-    val screenTime = rememberScreenTimeToday(
-        dependencies.usageHistory,
-        apps,
-        enabled = settings.systemPanel == SystemPanel.Top,
-    )
+    val watcher = rememberHomeWatcher()
+    // The first-run welcome, over home (not all apps, whose search takes focus as it opens). Settings and workspaces
+    // have loaded by now, so it never flashes up for someone who has already closed it.
+    val welcoming = !settings.welcomed && screen == Screen.Home && workspaces.current != Workspace.AllApps
+    val screenTime =
+        rememberScreenTimeToday(dependencies.usageHistory, apps, enabled = settings.systemPanel == SystemPanel.Top)
     // A Home press goes back to the start: the home screen on workspace 1. Everything else (the screen, the
     // workspace) is saved, so it survives the process being killed in the background.
     LaunchedEffect(homePresses) {
@@ -133,6 +133,7 @@ private fun Screens(
                 screenTime = screenTime,
                 iconStyles = icons.styles,
                 onChangeIconStyle = actions.changeIconStyle,
+                holdFocus = welcoming,
             ) {
                 DrawerScreen(
                     apps = apps.orEmpty(),
@@ -147,27 +148,30 @@ private fun Screens(
             }
         }
 
-        Screen.Settings -> Settings(settings, updateSettings, onClose = {
+        Screen.Settings -> Settings(settings, updateSettings, watcher, onClose = {
             backFromSettings = true
             screen = Screen.Home
         })
     }
+    if (welcoming) Welcome(watcher, updateSettings)
+}
+
+@Composable
+private fun Welcome(watcher: HomeWatcherState, updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit) {
+    WelcomePanel(
+        homeWatcher = watcher.state.takeIf { watcher.isInBuild },
+        onTurnOnHome = watcher::open,
+        onDone = { updateSettings { it.copy(welcomed = true) } },
+    )
 }
 
 @Composable
 private fun Settings(
     settings: LauncherSettings,
     updateSettings: ((LauncherSettings) -> LauncherSettings) -> Unit,
+    watcher: HomeWatcherState,
     onClose: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val watcher = remember { HomeWatcher(context) }
-    // Switched on and off in the system's accessibility settings, so read it again on coming back from there.
-    var watcherOn by remember { mutableStateOf(false) }
-    LifecycleResumeEffect(watcher) {
-        watcherOn = watcher.isOn()
-        onPauseOrDispose {}
-    }
     SettingsScreen(
         theme = ThemeId.fromName(settings.themeName),
         onThemeChange = { new -> updateSettings { it.copy(themeName = new.name) } },
@@ -187,12 +191,8 @@ private fun Settings(
         onPanelsChange = { new -> updateSettings { it.copy(panels = new) } },
         systemPanel = settings.systemPanel,
         onSystemPanelChange = { new -> updateSettings { it.copy(systemPanel = new) } },
-        homeWatcher = if (watcher.isInBuild) watcherOn else null,
-        onHomeWatcherClick = {
-            if (!watcher.openSettings()) {
-                Toast.makeText(context, "this TV hides its accessibility settings", Toast.LENGTH_LONG).show()
-            }
-        },
+        homeWatcher = if (watcher.isInBuild) watcher.state else null,
+        onHomeWatcherClick = watcher::open,
         onClose = onClose,
     )
 }

@@ -22,6 +22,8 @@ data class LauncherSettings(
     val wallpaperUrl: String? = null,
     val panels: Panels = Panels.Default,
     val systemPanel: SystemPanel = SystemPanel.Default,
+    /** The first-run welcome has been seen and closed, so it doesn't come back (#187). */
+    val welcomed: Boolean = false,
 )
 
 /** How the top bar shows the time. */

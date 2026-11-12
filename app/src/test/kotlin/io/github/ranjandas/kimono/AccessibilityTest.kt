@@ -28,6 +28,7 @@ import io.github.ranjandas.kimono.feature.home.HomeScreen
 import io.github.ranjandas.kimono.feature.home.RecentApps
 import io.github.ranjandas.kimono.feature.settings.SettingsScreen
 import io.github.ranjandas.kimono.feature.settings.WallpaperChoice
+import io.github.ranjandas.kimono.feature.settings.WelcomePanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -102,6 +103,11 @@ class AccessibilityTest {
             iconStyle = "logo",
             onNextIconStyle = {},
         )
+    }
+
+    @Test
+    fun `welcome names everything it can focus`() = assertAccessible {
+        WelcomePanel(homeWatcher = false, onTurnOnHome = {}, onDone = {})
     }
 
     @Test

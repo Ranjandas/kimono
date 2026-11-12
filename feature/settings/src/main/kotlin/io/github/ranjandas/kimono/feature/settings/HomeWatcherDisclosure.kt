@@ -25,16 +25,29 @@ internal fun HomeWatcherDisclosure(state: DisclosureState, onAgree: () -> Unit, 
         state.refocus = false
     }
     if (!state.showing) return
+    HomeWatcherDisclosurePanel(
+        onAgree = {
+            state.close()
+            onAgree()
+        },
+        onDismiss = state::close,
+        modifier = modifier,
+    )
+}
+
+/**
+ * The disclosure itself: what the service does, and the switch to turn on next. [onAgree] goes on to the system's
+ * accessibility settings; Not now, or Back, calls [onDismiss]. Settings and the first-run welcome both show it.
+ */
+@Composable
+internal fun HomeWatcherDisclosurePanel(onAgree: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     OptionsPanel(
         title = "Kimono as home",
         options = listOf(
-            Option("Agree and continue") {
-                state.close()
-                onAgree()
-            },
-            Option("Not now", onSelect = state::close),
+            Option("Agree and continue", onSelect = onAgree),
+            Option("Not now", onSelect = onDismiss),
         ),
-        onDismiss = state::close,
+        onDismiss = onDismiss,
         modifier = modifier,
         message = HOME_WATCHER_DISCLOSURE,
         illustration = { ToggleHint() },
