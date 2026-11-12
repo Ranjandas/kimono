@@ -22,15 +22,16 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.delay
 
-/** The current time from [clock], updated on each minute boundary. */
+/** The current time from [clock], updated on each minute boundary while Kimono is on screen, and on coming back. */
 @Composable
-internal fun rememberClock(clock: Clock): State<LocalDateTime> = produceState(LocalDateTime.now(clock), clock) {
-    while (true) {
-        val now = LocalDateTime.now(clock)
-        value = now
-        delay(Duration.between(now, now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1)).toMillis())
+internal fun rememberClock(clock: Clock): State<LocalDateTime> =
+    produceStateWhileStarted(LocalDateTime.now(clock), clock) {
+        while (true) {
+            val now = LocalDateTime.now(clock)
+            value = now
+            delay(Duration.between(now, now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1)).toMillis())
+        }
     }
-}
 
 @Composable
 internal fun is24HourClock(): Boolean = DateFormat.is24HourFormat(LocalContext.current)

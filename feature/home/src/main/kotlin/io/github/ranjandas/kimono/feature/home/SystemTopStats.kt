@@ -7,7 +7,6 @@ import android.os.PowerManager
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalContext
 import java.io.File
 import java.time.Duration
@@ -19,12 +18,13 @@ import kotlinx.coroutines.withContext
 /**
  * What the top view shows, read every couple of seconds like top itself. Android doesn't let an app see other
  * processes (their /proc entries are hidden and /proc/stat is blocked), so these are whole-device numbers, and
- * each is null where this device doesn't share it. Null until the first read.
+ * each is null where this device doesn't share it. Null until the first read, and only read while Kimono is on
+ * screen.
  */
 @Composable
 internal fun rememberTopStats(): State<TopStats?> {
     val context = LocalContext.current
-    return produceState<TopStats?>(null, context) {
+    return produceStateWhileStarted<TopStats?>(null, context) {
         val reader = TopReader(context.applicationContext)
         while (true) {
             value = withContext(Dispatchers.IO) { reader.read() }

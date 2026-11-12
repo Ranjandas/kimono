@@ -5,25 +5,24 @@ import android.os.StatFs
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.produceState
 import java.time.Duration
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-/** Time since boot, refreshed every minute: the only unit the tile shows below an hour. */
+/** Time since boot, refreshed every minute (the only unit the tile shows below an hour) while Kimono is on screen. */
 @Composable
-internal fun rememberUptime(): State<Duration> = produceState(uptime()) {
+internal fun rememberUptime(): State<Duration> = produceStateWhileStarted(uptime()) {
     while (true) {
-        delay(UPTIME_REFRESH_MILLIS)
         value = uptime()
+        delay(UPTIME_REFRESH_MILLIS)
     }
 }
 
-/** Free and total space on the data partition, read off the main thread every few minutes. */
+/** Free and total space on the data partition, read off the main thread every few minutes while Kimono is on screen. */
 @Composable
-internal fun rememberStorage(): State<Storage?> = produceState<Storage?>(null) {
+internal fun rememberStorage(): State<Storage?> = produceStateWhileStarted<Storage?>(null) {
     while (true) {
         value = withContext(Dispatchers.IO) { runCatching { readStorage() }.getOrNull() }
         delay(STORAGE_REFRESH_MILLIS)
