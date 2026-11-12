@@ -21,8 +21,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -164,6 +166,9 @@ private class DrawerFocus {
     val search = FocusRequester()
     val list = FocusRequester()
 
+    /** Whether the list has had focus yet; until then the screen itself may hold it. */
+    var listTookFocus by mutableStateOf(false)
+
     // Plain state: only key handling reads it, so it needn't recompose anything.
     var searching = false
 }
@@ -195,6 +200,9 @@ private fun DrawerContent(
             }
             // After the key handler, so the handler sees keys while the screen itself holds focus.
             .focusRequester(focus.root)
+            // The screen holds focus itself only until the list first takes it, and again while nothing is listed.
+            // Otherwise Down from the top bar's gear lands on the whole page, with nothing lit (#219).
+            .focusProperties { canFocus = sections.isEmpty() || !focus.listTookFocus }
             .focusable(),
         verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
@@ -217,7 +225,10 @@ private fun DrawerContent(
                 marks = marks,
                 onClickApp = onClickApp,
                 onShowOptions = onShowOptions,
-                modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.list).focusRestorer(),
+                modifier = Modifier.fillMaxWidth().weight(1f)
+                    .onFocusChanged { if (it.hasFocus) focus.listTookFocus = true }
+                    .focusRequester(focus.list)
+                    .focusRestorer(),
             )
         }
         unavailable?.let {
