@@ -14,8 +14,7 @@ class HomeHintsTest {
     }
 
     @Test
-    fun `ok does what the focused top bar button does`() {
-        assertEquals("switch workspace", okAction(HomeArea.Workspaces))
+    fun `ok on the gear opens settings`() {
         assertEquals("open settings", okAction(HomeArea.SettingsButton))
     }
 

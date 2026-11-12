@@ -24,8 +24,7 @@ import io.github.ranjandas.kimono.data.apps.InstalledApp
 /**
  * The home workspace: the last used app and the ones before it on the left, system info (in the [systemPanel] view)
  * and the apps list on the right, key hints below. [apps] is null while the app list is still loading. With no apps at
- * all, focus goes to [emptyFocus] (the workspace's button in the top bar) so the remote still has something to move
- * from.
+ * all, focus goes to [settingsFocus] (the gear in the top bar) so the remote still has something to move from.
  */
 @Composable
 internal fun HomePage(
@@ -37,7 +36,6 @@ internal fun HomePage(
     screenTime: ScreenTimeToday,
     focusArea: HomeArea,
     onFocusArea: (HomeArea) -> Unit,
-    emptyFocus: FocusRequester,
     settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
@@ -50,9 +48,8 @@ internal fun HomePage(
     LaunchedEffect(hasApps, loaded, actions.panelOpen) {
         when {
             actions.panelOpen || !loaded -> Unit
-            focusArea == HomeArea.SettingsButton -> settingsFocus.requestFocusWhenLaidOut()
-            hasApps -> focus.of(focusArea).requestFocusWhenLaidOut()
-            else -> emptyFocus.requestFocusWhenLaidOut()
+            focusArea == HomeArea.SettingsButton || !hasApps -> settingsFocus.requestFocusWhenLaidOut()
+            else -> focus.of(focusArea).requestFocusWhenLaidOut()
         }
     }
     // Home is the root of the launcher, so Back never leaves it; it returns focus to the start position.

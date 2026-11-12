@@ -1,6 +1,9 @@
 package io.github.ranjandas.kimono.feature.home
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.database.ContentObserver
 import android.media.AudioManager
 import android.net.ConnectivityManager
@@ -15,6 +18,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import java.time.Clock
 import java.time.Duration
@@ -67,8 +71,8 @@ private fun NetworkCapabilities.toStatus(): NetworkStatus = when {
 }
 
 /**
- * Media volume as a percentage, updated when it changes, or null when the device doesn't control volume itself
- * (for example when the remote sets the TV's volume over HDMI-CEC).
+ * Media volume as a percentage, 0 while muted, updated when it changes, or null when the device doesn't control
+ * volume itself (for example when the remote sets the TV's volume over HDMI-CEC).
  */
 @Composable
 internal fun rememberVolumePercent(): State<Int?> {
@@ -81,21 +85,34 @@ internal fun rememberVolumePercent(): State<Int?> {
         }
         // Stream volumes are stored in system settings, so this fires on every volume change.
         context.contentResolver.registerContentObserver(Settings.System.CONTENT_URI, true, observer)
-        awaitDispose { context.contentResolver.unregisterContentObserver(observer) }
+        // Muting keeps the stored volume and may write no setting, so listen for it too (#222).
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                value = readVolume(context)
+            }
+        }
+        val filter = IntentFilter().apply { VolumeActions.forEach(::addAction) }
+        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        awaitDispose {
+            context.contentResolver.unregisterContentObserver(observer)
+            context.unregisterReceiver(receiver)
+        }
     }
 }
 
 private fun readVolume(context: Context): Int? {
     val audio = context.getSystemService(AudioManager::class.java)
     val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-    return if (audio.isVolumeFixed ||
-        max <= 0
-    ) {
-        null
-    } else {
-        audio.getStreamVolume(AudioManager.STREAM_MUSIC) * PERCENT / max
+    return when {
+        audio.isVolumeFixed || max <= 0 -> null
+        audio.isStreamMute(AudioManager.STREAM_MUSIC) -> 0
+        else -> audio.getStreamVolume(AudioManager.STREAM_MUSIC) * PERCENT / max
     }
 }
+
+// AudioManager's broadcasts for a volume or mute change. Their constants are hidden, but the system sends them to
+// registered receivers.
+private val VolumeActions = listOf("android.media.VOLUME_CHANGED_ACTION", "android.media.STREAM_MUTE_CHANGED_ACTION")
 
 private const val PERCENT = 100
 

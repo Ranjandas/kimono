@@ -21,8 +21,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -42,6 +44,7 @@ import io.github.ranjandas.kimono.core.design.component.HintBar
 import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.PinChoice
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
+import io.github.ranjandas.kimono.core.design.component.TextButton
 import io.github.ranjandas.kimono.core.design.component.Tile
 import io.github.ranjandas.kimono.core.design.component.requestFocusWhenLaidOut
 import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
@@ -87,11 +90,12 @@ fun DrawerScreen(
     // The screen itself takes focus on its first frame, so letters typed straight after opening reach the
     // search before the list has laid out its rows; the list takes over as soon as it can.
     LaunchedEffect(Unit) { runCatching { focus.root.requestFocus() } }
-    // With nothing listed the screen keeps focus itself, so typing and Back still reach it.
+    // A search that matches nothing focuses its "clear search" button, which sits in the list (#223). With no apps
+    // at all the screen keeps focus itself, so typing and Back still reach it.
     LaunchedEffect(hasResults, panelOpen) {
         when {
             panelOpen || focus.searching -> Unit
-            hasResults -> focus.list.requestFocusWhenLaidOut()
+            hasResults || query.isNotEmpty() -> focus.list.requestFocusWhenLaidOut()
             else -> runCatching { focus.root.requestFocus() }
         }
     }
@@ -164,6 +168,9 @@ private class DrawerFocus {
     val search = FocusRequester()
     val list = FocusRequester()
 
+    /** Whether the list has had focus yet; until then the screen itself may hold it. */
+    var listTookFocus by mutableStateOf(false)
+
     // Plain state: only key handling reads it, so it needn't recompose anything.
     var searching = false
 }
@@ -195,6 +202,9 @@ private fun DrawerContent(
             }
             // After the key handler, so the handler sees keys while the screen itself holds focus.
             .focusRequester(focus.root)
+            // The screen holds focus itself only until the list first takes it, and again when there are no apps at
+            // all. Otherwise Down from the top bar's gear lands on the whole page, with nothing lit (#219).
+            .focusProperties { canFocus = !focus.listTookFocus || (sections.isEmpty() && query.isEmpty()) }
             .focusable(),
         verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
@@ -214,10 +224,14 @@ private fun DrawerContent(
                 sections = sections,
                 pinned = pinned,
                 query = query,
+                onClearSearch = { onQueryChange("") },
                 marks = marks,
                 onClickApp = onClickApp,
                 onShowOptions = onShowOptions,
-                modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(focus.list).focusRestorer(),
+                modifier = Modifier.fillMaxWidth().weight(1f)
+                    .onFocusChanged { if (it.hasFocus) focus.listTookFocus = true }
+                    .focusRequester(focus.list)
+                    .focusRestorer(),
             )
         }
         unavailable?.let {
@@ -237,6 +251,7 @@ private fun DrawerList(
     sections: List<DrawerSection>,
     pinned: Set<String>,
     query: String,
+    onClearSearch: () -> Unit,
     marks: AppMarks,
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
@@ -269,7 +284,7 @@ private fun DrawerList(
             }
         }
         if (sections.isEmpty()) {
-            item(key = "empty") { EmptyResults(query) }
+            item(key = "empty") { EmptyResults(query, onClearSearch) }
         }
     }
 }
@@ -288,14 +303,20 @@ private fun DrawerHints(query: String, modifier: Modifier = Modifier) {
     )
 }
 
+/** What a search that matches nothing shows, with a button to clear it so focus has somewhere visible to be. */
 @Composable
-private fun EmptyResults(query: String, modifier: Modifier = Modifier) {
-    Text(
-        "nothing matches \"$query\"",
+private fun EmptyResults(query: String, onClearSearch: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
         modifier = modifier.padding(top = Gap),
-        style = KimonoTheme.typography.body,
-        color = KimonoTheme.colors.textMuted,
-    )
+        verticalArrangement = Arrangement.spacedBy(KimonoSpacing.M),
+    ) {
+        Text(
+            "nothing matches \"$query\"",
+            style = KimonoTheme.typography.body,
+            color = KimonoTheme.colors.textMuted,
+        )
+        if (query.isNotEmpty()) TextButton("clear search", onClick = onClearSearch, primary = true)
+    }
 }
 
 /**

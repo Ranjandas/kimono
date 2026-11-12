@@ -3,7 +3,6 @@ package io.github.ranjandas.kimono.feature.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,12 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -47,37 +49,29 @@ import kotlinx.coroutines.delay
  * Workspaces on the left, date and time in the middle, network, volume and settings on the right. The theme is
  * changed in settings (#110). Like Omarchy's Waybar, the right side is icons only (#123): the volume shows its
  * level only while it changes.
- * Status values update live. [currentWorkspaceFocus] focuses the current workspace's button, [settingsFocus] the gear.
+ * Status values update live. [settingsFocus] focuses the gear.
+ *
+ * The workspace numbers only show where you are (#219): they never take focus, so Up from any page goes straight to
+ * the gear. Left and Right at the edge of a page switch workspace, and the highlight follows.
  */
 @Composable
 internal fun TopBar(
     workspace: Workspace,
-    onSelectWorkspace: (Workspace) -> Unit,
     onOpenSettings: () -> Unit,
     clockFormat: ClockFormat,
     onFocusArea: (HomeArea) -> Unit,
     clock: Clock,
-    currentWorkspaceFocus: FocusRequester,
     settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         Row(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .tracksFocus(HomeArea.Workspaces, onFocusArea)
-                .focusRestorer()
-                .focusGroup(),
+            modifier = Modifier.align(Alignment.CenterStart).selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XS),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Workspace.entries.forEach { candidate ->
-                WorkspaceButton(
-                    workspace = candidate,
-                    selected = candidate == workspace,
-                    onClick = { onSelectWorkspace(candidate) },
-                    modifier = if (candidate == workspace) Modifier.focusRequester(currentWorkspaceFocus) else Modifier,
-                )
+                WorkspaceNumber(workspace = candidate, selected = candidate == workspace)
             }
             Icon(
                 workspace.icon,
@@ -87,7 +81,11 @@ internal fun TopBar(
             )
             Text(
                 workspace.label.uppercase(),
-                modifier = Modifier.semantics { contentDescription = workspace.label },
+                // TalkBack says the new workspace on each switch, since focus stays on the page.
+                modifier = Modifier.semantics {
+                    contentDescription = workspace.label
+                    liveRegion = LiveRegionMode.Polite
+                },
                 style = KimonoTheme.typography.section,
                 color = KimonoTheme.colors.textMuted,
             )
@@ -110,27 +108,19 @@ internal fun TopBar(
     }
 }
 
+/** A workspace's number, filled in when it is the current one. It's a tab for TalkBack, but never takes focus. */
 @Composable
-private fun WorkspaceButton(
-    workspace: Workspace,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
+private fun WorkspaceNumber(workspace: Workspace, selected: Boolean, modifier: Modifier = Modifier) {
     val colors = KimonoTheme.colors
-    val shape = KimonoTheme.shapes.small
     Box(
         modifier = modifier
             .size(30.dp)
             .semantics {
                 contentDescription = "Workspace ${workspace.number}, ${workspace.label}"
+                role = Role.Tab
                 this.selected = selected
             }
-            .clickable(interactionSource = interactionSource, indication = null, role = Role.Tab, onClick = onClick)
-            .background(if (selected) colors.accent else Color.Transparent, shape)
-            .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, shape),
+            .background(if (selected) colors.accent else Color.Transparent, KimonoTheme.shapes.small),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -208,7 +198,7 @@ private fun StatusItem(icon: KimonoIcon, label: String?, description: String, mo
     }
 }
 
-/** A plain icon that takes focus the same way the workspace numbers do. */
+/** A plain icon that shows focus with a border. */
 @Composable
 private fun IconButton(icon: KimonoIcon, description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interactionSource = remember { MutableInteractionSource() }

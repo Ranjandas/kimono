@@ -90,22 +90,25 @@ fun HomeScreen(
 ) {
     val workspace = workspaces.current
     val switcher = rememberWorkspaceSwitcher(workspace, onSelectWorkspace)
-    val workspaceFocus = remember { FocusRequester() }
     val settingsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(if (startOnSettingsButton) HomeArea.SettingsButton else HomeArea.Apps) }
+    // Where the gear last had focus: coming back to home from another page lands on the page, not on a gear that
+    // was only passed on the way (#219). Back from settings still returns to it.
+    var gearWorkspace by remember { mutableStateOf(workspace) }
     val panelOpen = options != null || holdFocus
     val pageActions = PageActions(onLaunchApp, onShowOptions = { options = it }, switcher, panelOpen, marks)
     Box(modifier = modifier.fillMaxSize()) {
         HomeLayout(workspace, switcher, topBar = { barModifier ->
             TopBar(
                 workspace = workspace,
-                onSelectWorkspace = switcher::select,
                 onOpenSettings = onOpenSettings,
                 clockFormat = clockFormat,
-                onFocusArea = { focusArea = it },
+                onFocusArea = {
+                    focusArea = it
+                    gearWorkspace = workspace
+                },
                 clock = clock,
-                currentWorkspaceFocus = workspaceFocus,
                 settingsFocus = settingsFocus,
                 modifier = barModifier,
             )
@@ -119,9 +122,9 @@ fun HomeScreen(
                     onRequestUsageAccess = onRequestUsageAccess,
                     systemPanel = systemPanel,
                     screenTime = screenTime,
-                    focusArea = focusArea,
+                    focusArea = focusArea.takeUnless { it == HomeArea.SettingsButton && gearWorkspace != page }
+                        ?: HomeArea.Apps,
                     onFocusArea = { focusArea = it },
-                    emptyFocus = workspaceFocus,
                     settingsFocus = settingsFocus,
                 )
 
