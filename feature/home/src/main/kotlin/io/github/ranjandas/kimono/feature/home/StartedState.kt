@@ -15,6 +15,8 @@ import androidx.lifecycle.repeatOnLifecycle
  * Kimono is on screen, and starts again from the top each time it comes back. Home stays composed while another app
  * plays, so a plain loop would keep reading for hours behind a film (#190).
  */
+// [producer] sets the value, which lint can't see into.
+@Suppress("ProduceStateDoesNotAssignValue")
 @Composable
 internal fun <T> produceStateWhileStarted(
     initialValue: T,
