@@ -90,7 +90,6 @@ fun HomeScreen(
 ) {
     val workspace = workspaces.current
     val switcher = rememberWorkspaceSwitcher(workspace, onSelectWorkspace)
-    val workspaceFocus = remember { FocusRequester() }
     val settingsFocus = remember { FocusRequester() }
     var options by remember { mutableStateOf<InstalledApp?>(null) }
     var focusArea by remember { mutableStateOf(if (startOnSettingsButton) HomeArea.SettingsButton else HomeArea.Apps) }
@@ -100,12 +99,10 @@ fun HomeScreen(
         HomeLayout(workspace, switcher, topBar = { barModifier ->
             TopBar(
                 workspace = workspace,
-                onSelectWorkspace = switcher::select,
                 onOpenSettings = onOpenSettings,
                 clockFormat = clockFormat,
                 onFocusArea = { focusArea = it },
                 clock = clock,
-                currentWorkspaceFocus = workspaceFocus,
                 settingsFocus = settingsFocus,
                 modifier = barModifier,
             )
@@ -121,7 +118,6 @@ fun HomeScreen(
                     screenTime = screenTime,
                     focusArea = focusArea,
                     onFocusArea = { focusArea = it },
-                    emptyFocus = workspaceFocus,
                     settingsFocus = settingsFocus,
                 )
 
