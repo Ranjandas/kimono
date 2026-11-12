@@ -20,12 +20,17 @@ class HomeWatcherService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        if (!watch.shouldOpenKimono(event.packageName?.toString(), SystemClock.elapsedRealtime())) return
+        val packageName = event.packageName?.toString()
+        val className = event.className?.toString()
+        if (!watch.shouldOpenKimono(packageName, className, SystemClock.elapsedRealtime())) {
+            if (packageName in HomeWatch.STOCK_HOMES) Log.d(TAG, "Left $className alone")
+            return
+        }
         // The same intent the Home button sends, so Kimono treats it as a Home press and goes to its first
         // workspace. An accessibility service may start an activity from the background.
         val home = Intent(Intent.ACTION_MAIN)
             .addCategory(Intent.CATEGORY_HOME)
-            .setPackage(packageName)
+            .setPackage(this.packageName)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         try {
             startActivity(home)
@@ -44,13 +49,16 @@ class HomeWatcherService : AccessibilityService() {
 /**
  * When to open Kimono: when one of Google TV's home apps comes to the front, but not again within [quietMillis] of
  * the last time, so a launcher that fires several window changes in a row opens Kimono once.
+ *
+ * Google TV's dashboard (the side panel that a held Home opens, with profiles, settings and inputs) belongs to the
+ * same home app, but it's a panel over whatever is on screen rather than the home screen, so it's left alone.
  */
 class HomeWatch(private val quietMillis: Long = QUIET_MILLIS) {
     private var lastOpenedAt: Long? = null
 
-    fun shouldOpenKimono(packageName: String?, now: Long): Boolean {
+    fun shouldOpenKimono(packageName: String?, className: String?, now: Long): Boolean {
         val last = lastOpenedAt
-        val open = packageName in STOCK_HOMES && (last == null || now - last >= quietMillis)
+        val open = packageName in STOCK_HOMES && !isDashboard(className) && (last == null || now - last >= quietMillis)
         if (open) lastOpenedAt = now
         return open
     }
@@ -60,5 +68,8 @@ class HomeWatch(private val quietMillis: Long = QUIET_MILLIS) {
         val STOCK_HOMES = setOf("com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher")
 
         const val QUIET_MILLIS = 1_000L
+
+        /** launcherx's dashboard classes live in its `dashboard` package, e.g. `.dashboard.DashboardHandler`. */
+        private fun isDashboard(className: String?): Boolean = className?.contains(".dashboard.") == true
     }
 }
