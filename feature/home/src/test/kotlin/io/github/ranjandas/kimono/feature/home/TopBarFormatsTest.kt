@@ -3,6 +3,7 @@ package io.github.ranjandas.kimono.feature.home
 import java.time.LocalDateTime
 import java.util.Locale
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -13,7 +14,8 @@ class TopBarFormatsTest {
     @Test
     fun `date is in the locale's own order`() {
         assertEquals("Thu, Nov 12", date(Locale.US))
-        assertEquals("Thu 12 Nov", date(Locale.UK))
+        // The UK comma after the weekday has come and gone between ICU versions, so only the order is checked.
+        assertTrue(date(Locale.UK), date(Locale.UK).matches(Regex("Thu,? 12 Nov")))
         assertEquals("11月12日(木)", date(Locale.JAPAN))
     }
 
