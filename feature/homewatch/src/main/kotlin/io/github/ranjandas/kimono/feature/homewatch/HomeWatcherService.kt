@@ -26,6 +26,7 @@ class HomeWatcherService : AccessibilityService() {
             if (packageName in HomeWatch.STOCK_HOMES) Log.d(TAG, "Left $className alone")
             return
         }
+        Log.d(TAG, "Opened Kimono for $className")
         // The same intent the Home button sends, so Kimono treats it as a Home press and goes to its first
         // workspace. An accessibility service may start an activity from the background.
         val home = Intent(Intent.ACTION_MAIN)
