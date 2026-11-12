@@ -23,6 +23,7 @@ import io.github.ranjandas.kimono.data.apps.AppLauncher
 import io.github.ranjandas.kimono.data.apps.AppsRepository
 import io.github.ranjandas.kimono.data.apps.UsageHistory
 import io.github.ranjandas.kimono.data.apps.icon.AppMarkCache
+import io.github.ranjandas.kimono.feature.homewatch.StockHomeVisit
 import kotlinx.coroutines.launch
 
 class HomeActivity : ComponentActivity() {
@@ -69,6 +70,12 @@ class HomeActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         idle.resume()
+    }
+
+    // Back in Kimono, so any visit to Google TV's home is over and the watcher takes Home again (#198).
+    override fun onResume() {
+        super.onResume()
+        StockHomeVisit.current.end()
     }
 
     override fun onStop() {

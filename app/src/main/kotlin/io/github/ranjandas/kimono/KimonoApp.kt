@@ -193,6 +193,11 @@ private fun Settings(
         onSystemPanelChange = { new -> updateSettings { it.copy(systemPanel = new) } },
         homeWatcher = if (watcher.isInBuild) watcher.state else null,
         onHomeWatcherClick = watcher::open,
+        onOpenGoogleTvHome = if (watcher.isInBuild && watcher.state && watcher.googleTvHome) {
+            watcher::openGoogleTvHome
+        } else {
+            null
+        },
         onClose = onClose,
     )
 }

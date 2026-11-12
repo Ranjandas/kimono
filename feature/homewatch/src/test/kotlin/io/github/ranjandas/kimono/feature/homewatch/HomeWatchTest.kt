@@ -44,9 +44,52 @@ class HomeWatchTest {
         assertTrue(watch.shouldOpenKimono("com.google.android.apps.tv.launcherx", HOME_CLASS, now = 6_000))
     }
 
+    @Test
+    fun `never opens for Google TV's home going behind another app`() {
+        assertFalse(HomeWatch().shouldOpenKimono(LAUNCHERX, FRAME_CLASS, now = 0, leaving = true))
+    }
+
+    @Test
+    fun `stands aside while the user visits Google TV's home`() {
+        val visit = StockHomeVisit()
+        val watch = HomeWatch(visit = visit)
+        visit.start()
+        // Arriving, the profile chooser and coming back from it, the dashboard: all part of the visit.
+        assertFalse(watch.shouldOpenKimono(LAUNCHERX, FRAME_CLASS, now = 0))
+        assertFalse(watch.shouldOpenKimono(LAUNCHERX, HOME_CLASS, now = 10))
+        assertFalse(watch.shouldOpenKimono(LAUNCHERX, PROFILES_CLASS, now = 5_000))
+        assertFalse(watch.shouldOpenKimono(LAUNCHERX, HOME_CLASS, now = 9_000))
+        assertTrue(visit.isOpen)
+    }
+
+    @Test
+    fun `takes Home back once the visit leaves Google TV's home`() {
+        val visit = StockHomeVisit()
+        val watch = HomeWatch(visit = visit)
+        visit.start()
+        assertFalse(watch.shouldOpenKimono(LAUNCHERX, HOME_CLASS, now = 0))
+        // The user opens an app from Google TV's home, then presses Home.
+        assertFalse(watch.shouldOpenKimono(LAUNCHERX, FRAME_CLASS, now = 20_000, leaving = true))
+        assertFalse(visit.isOpen)
+        assertTrue(watch.shouldOpenKimono(LAUNCHERX, FRAME_CLASS, now = 60_000))
+    }
+
+    @Test
+    fun `a visit ended from Kimono takes Home back too`() {
+        val visit = StockHomeVisit()
+        val watch = HomeWatch(visit = visit)
+        visit.start()
+        visit.end()
+        assertTrue(watch.shouldOpenKimono(LAUNCHERX, HOME_CLASS, now = 0))
+    }
+
     private companion object {
         const val LAUNCHERX = "com.google.android.apps.tv.launcherx"
         const val DASHBOARD_CLASS = "com.google.android.apps.tv.launcherx.dashboard.DashboardHandler"
         const val HOME_CLASS = "com.google.android.apps.tv.launcherx.home.HomeActivity"
+        const val PROFILES_CLASS = "com.google.android.apps.tv.launcherx.profile.chooser.ProfileChooserActivity"
+
+        /** The class of launcherx's home pane appearing or disappearing. */
+        const val FRAME_CLASS = "android.widget.FrameLayout"
     }
 }
