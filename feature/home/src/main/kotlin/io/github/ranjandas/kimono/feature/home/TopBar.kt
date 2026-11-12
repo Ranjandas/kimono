@@ -24,6 +24,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -40,7 +41,6 @@ import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
 import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import java.time.Clock
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 
 /**
@@ -150,13 +150,15 @@ private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Mod
         ClockFormat.TwelveHour -> false
         ClockFormat.TwentyFourHour -> true
     }
-    val time = DateTimeFormatter.ofPattern(if (twentyFourHour) "HH:mm" else "h:mm a")
+    val locale = LocalConfiguration.current.locales[0]
+    val date = remember(locale) { topBarDateFormat(locale) }
+    val time = remember(locale, twentyFourHour) { topBarTimeFormat(locale, twentyFourHour) }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(now.format(DATE), style = KimonoTheme.typography.value, color = KimonoTheme.colors.textMuted)
+        Text(now.format(date), style = KimonoTheme.typography.value, color = KimonoTheme.colors.textMuted)
         Text(now.format(time), style = KimonoTheme.typography.value, fontWeight = FontWeight.Bold)
     }
 }
@@ -226,5 +228,3 @@ private fun IconButton(icon: KimonoIcon, description: String, onClick: () -> Uni
 }
 
 private const val VOLUME_SHOWN_MS = 3_000L
-
-private val DATE = DateTimeFormatter.ofPattern("EEE d MMM")
