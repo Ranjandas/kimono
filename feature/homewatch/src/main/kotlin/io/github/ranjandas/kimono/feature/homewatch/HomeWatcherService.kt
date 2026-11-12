@@ -22,8 +22,10 @@ class HomeWatcherService : AccessibilityService() {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val packageName = event.packageName?.toString()
         val className = event.className?.toString()
-        if (!watch.shouldOpenKimono(packageName, className, SystemClock.elapsedRealtime())) {
-            if (packageName in HomeWatch.STOCK_HOMES) Log.d(TAG, "Left $className alone")
+        // Google TV's home reports its home pane gone when another app comes over it.
+        val leaving = event.contentChangeTypes and AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_DISAPPEARED != 0
+        if (!watch.shouldOpenKimono(packageName, className, SystemClock.elapsedRealtime(), leaving)) {
+            if (packageName in HomeWatch.STOCK_HOMES) Log.d(TAG, "Left $className alone (leaving=$leaving)")
             return
         }
         Log.d(TAG, "Opened Kimono for $className")
@@ -49,24 +51,35 @@ class HomeWatcherService : AccessibilityService() {
 
 /**
  * When to open Kimono: when one of Google TV's home apps comes to the front, but not again within [quietMillis] of
- * the last time, so a launcher that fires several window changes in a row opens Kimono once.
+ * the last time, so a launcher that fires several window changes in a row opens Kimono once. Not when the change is
+ * that home `leaving` (going behind another app), and not during a [visit] the user asked for (#198); leaving ends
+ * the visit.
  *
  * Google TV's dashboard (the side panel that a held Home opens, with profiles, settings and inputs) belongs to the
  * same home app, but it's a panel over whatever is on screen rather than the home screen, so it's left alone.
  */
-class HomeWatch(private val quietMillis: Long = QUIET_MILLIS) {
+class HomeWatch(
+    private val quietMillis: Long = QUIET_MILLIS,
+    private val visit: StockHomeVisit = StockHomeVisit.current,
+) {
     private var lastOpenedAt: Long? = null
 
-    fun shouldOpenKimono(packageName: String?, className: String?, now: Long): Boolean {
+    fun shouldOpenKimono(packageName: String?, className: String?, now: Long, leaving: Boolean = false): Boolean {
+        if (packageName !in STOCK_HOMES) return false
+        if (leaving) visit.end()
         val last = lastOpenedAt
-        val open = packageName in STOCK_HOMES && !isDashboard(className) && (last == null || now - last >= quietMillis)
+        val quiet = last != null && now - last < quietMillis
+        val open = !leaving && !visit.isOpen && !isDashboard(className) && !quiet
         if (open) lastOpenedAt = now
         return open
     }
 
     companion object {
+        /** Google TV's home app. */
+        const val LAUNCHERX = "com.google.android.apps.tv.launcherx"
+
         /** Google TV's home and the older Android TV home. Keep in step with res/xml/home_watcher.xml. */
-        val STOCK_HOMES = setOf("com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher")
+        val STOCK_HOMES = setOf(LAUNCHERX, "com.google.android.tvlauncher")
 
         const val QUIET_MILLIS = 1_000L
 

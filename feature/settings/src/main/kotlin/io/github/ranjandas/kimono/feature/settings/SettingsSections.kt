@@ -9,15 +9,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.Panels
 import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.settings.TextSize
+import io.github.ranjandas.kimono.core.design.component.ListRow
 import io.github.ranjandas.kimono.core.design.component.SectionHeader
+import io.github.ranjandas.kimono.core.design.icon.Icon
 import io.github.ranjandas.kimono.core.design.icon.KimonoIcon
 import io.github.ranjandas.kimono.core.design.theme.CornerStyle
 import io.github.ranjandas.kimono.core.design.theme.KimonoSpacing
+import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
 /*
@@ -76,7 +85,10 @@ internal fun ScreenCareSection(
     }
 }
 
-/** What home shows, and whether Kimono opens over Google TV's home ([homeWatcher], null when it can't). */
+/**
+ * What home shows, and whether Kimono opens over Google TV's home ([homeWatcher], null when it can't). While it does,
+ * [onOpenGoogleTvHome] is the way back there for a visit (#198), or null to leave that row out.
+ */
 @Composable
 internal fun HomeSection(
     wallpaper: WallpaperChoice,
@@ -88,6 +100,7 @@ internal fun HomeSection(
     homeWatcher: Boolean?,
     onHomeWatcherClick: () -> Unit,
     watcherRow: FocusRequester,
+    onOpenGoogleTvHome: (() -> Unit)?,
 ) {
     SettingsSection("home") {
         SettingRow(KimonoIcon.Wallpaper, "Wallpaper", wallpaper.label, onStep = { onWallpaperToggle() }) {
@@ -107,7 +120,34 @@ internal fun HomeSection(
                 modifier = Modifier.focusRequester(watcherRow),
             ) { Toggle(homeWatcher, it) }
         }
+        if (onOpenGoogleTvHome != null) OpenRow(KimonoIcon.Media, "Google TV home", onOpenGoogleTvHome)
     }
+}
+
+/** A row that goes somewhere rather than changing a value: OK or Right opens it. */
+@Composable
+private fun OpenRow(icon: KimonoIcon, name: String, onOpen: () -> Unit) {
+    ListRow(
+        text = name,
+        onClick = onOpen,
+        modifier = Modifier.onPreviewKeyEvent { event ->
+            val right = event.key == Key.DirectionRight
+            if (right && event.type == KeyEventType.KeyDown) onOpen()
+            right
+        },
+        icon = icon,
+        trailingContent = { focused ->
+            Row(
+                modifier = Modifier.clearAndSetSemantics {},
+                horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.XS),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ValueText("open", focused)
+                val arrow = if (focused) KimonoTheme.colors.accent else KimonoTheme.colors.textMuted
+                Icon(KimonoIcon.ChevronRight, color = arrow, style = KimonoTheme.typography.value)
+            }
+        },
+    )
 }
 
 /** An uppercase [title] over its rows. */
