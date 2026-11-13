@@ -3,8 +3,6 @@ package io.github.ranjandas.kimono.feature.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -224,16 +222,20 @@ private fun StatusItem(
     canFocus: Boolean = false,
     onFocus: (() -> Unit)? = null,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
+    // Read from the focus state, not the click's interactions: focus given in the screen's first frame (back from
+    // settings) can land before anything collects those, and the ring would never draw (#226).
+    var focused by remember { mutableStateOf(false) }
     val colors = KimonoTheme.colors
     val button = if (onClick == null) {
         Modifier
     } else {
         Modifier
             .focusProperties { this.canFocus = canFocus }
-            .onFocusChanged { if (it.isFocused) onFocus?.invoke() }
-            .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
+            .onFocusChanged {
+                focused = it.isFocused
+                if (it.isFocused) onFocus?.invoke()
+            }
+            .clickable(indication = null, interactionSource = null, role = Role.Button, onClick = onClick)
             .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, KimonoTheme.shapes.small)
     }
     Row(
@@ -265,15 +267,16 @@ private class StatusShortcut(val canFocus: Boolean, val onOpen: (TvSetting) -> U
 /** A plain icon that shows focus with a border. */
 @Composable
 private fun IconButton(icon: KimonoIcon, description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
+    // From the focus state, like the status icons, so the ring draws even when focus lands in the first frame (#226).
+    var focused by remember { mutableStateOf(false) }
     val colors = KimonoTheme.colors
     val shape = KimonoTheme.shapes.small
     Box(
         modifier = modifier
             .size(30.dp)
             .semantics { contentDescription = description }
-            .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
+            .onFocusChanged { focused = it.isFocused }
+            .clickable(indication = null, interactionSource = null, role = Role.Button, onClick = onClick)
             .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, shape),
         contentAlignment = Alignment.Center,
     ) {
