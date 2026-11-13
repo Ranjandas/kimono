@@ -28,6 +28,7 @@ import io.github.ranjandas.kimono.feature.drawer.DrawerScreen
 import io.github.ranjandas.kimono.feature.home.HomeScreen
 import io.github.ranjandas.kimono.feature.home.RecentApps
 import io.github.ranjandas.kimono.feature.home.TvSetting
+import io.github.ranjandas.kimono.feature.homewatch.PowerMenu
 import io.github.ranjandas.kimono.feature.settings.SettingsScreen
 import io.github.ranjandas.kimono.feature.settings.TvScreen
 import io.github.ranjandas.kimono.feature.settings.WelcomePanel
@@ -260,7 +261,13 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
                 Toast.makeText(context, USAGE_ACCESS_OVER_ADB, Toast.LENGTH_LONG).show()
             }
         },
-        openTvSetting = { setting -> openTvScreen(context, setting.screen) },
+        openTvSetting = { setting ->
+            when (setting) {
+                TvSetting.Network -> openTvScreen(context, TvScreen.Network)
+                TvSetting.Sound -> openTvScreen(context, TvScreen.DisplaySound)
+                TvSetting.Power -> openPowerMenu(context)
+            }
+        },
     )
 }
 
@@ -269,15 +276,22 @@ private fun openTvScreen(context: Context, screen: TvScreen) {
     if (!TvSettings.open(context, screen)) Toast.makeText(context, SCREEN_NOT_AVAILABLE, Toast.LENGTH_SHORT).show()
 }
 
-/** The settings screen each top-bar status icon opens. */
-private val TvSetting.screen: TvScreen
-    get() = when (this) {
-        TvSetting.Network -> TvScreen.Network
-        TvSetting.Sound -> TvScreen.DisplaySound
-    }
+/**
+ * Opens the TV's power menu, which has Restart (#230). Only Kimono as home's accessibility service can ask for it,
+ * so while that's off, say how to turn it on.
+ */
+private fun openPowerMenu(context: Context) {
+    if (PowerMenu.open()) return
+    val message = if (PowerMenu.isReady) POWER_MENU_NOT_AVAILABLE else POWER_MENU_NEEDS_HOME
+    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+}
 
 // A TV build can hide parts of Settings, so Kimono says so rather than looking broken.
 private const val SCREEN_NOT_AVAILABLE = "that screen isn't available on this device"
+
+// The power menu needs the accessibility service; Kimono's settings explain it before turning it on.
+private const val POWER_MENU_NEEDS_HOME = "to restart from here, turn on Kimono as home in Kimono's settings"
+private const val POWER_MENU_NOT_AVAILABLE = "this TV didn't open its power menu"
 
 // Google TV hides the usage access screen, so the one way in is adb (docs/DEVELOPING.md).
 private const val USAGE_ACCESS_OVER_ADB =

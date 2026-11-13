@@ -47,7 +47,7 @@ import java.time.Clock
 import kotlinx.coroutines.delay
 
 /**
- * Workspaces on the left, date and time in the middle, network, volume and settings on the right. The theme is
+ * Workspaces on the left, date and time in the middle, network, volume, settings and power on the right. The theme is
  * changed in settings (#110). Like Omarchy's Waybar, the right side is icons only (#123): the volume shows its
  * level only while it changes.
  * Status values update live. [settingsFocus] focuses the gear.
@@ -57,7 +57,8 @@ import kotlinx.coroutines.delay
  *
  * With [onOpenTvSettings], Left from the gear reaches the volume and network icons, which open the TV's sound and
  * network settings (#200), since covering Google TV's home hides its quick settings. They only take focus while the
- * gear or one of them has it, so Up from a page still lands on the gear.
+ * gear or one of them has it, so Up from a page still lands on the gear. Right from the gear reaches the power button
+ * the same way, which opens the TV's power menu (#230).
  */
 @Composable
 internal fun TopBar(
@@ -104,7 +105,7 @@ internal fun TopBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val shortcut = onOpenTvSettings?.let { open ->
-                StatusShortcut(canFocus = barFocused, onOpen = open, onFocus = { onFocusArea(HomeArea.TvStatus) })
+                StatusShortcut(canFocus = barFocused, onOpen = open, onFocus = onFocusArea)
             }
             NetworkIndicator(shortcut)
             VolumeIndicator(shortcut)
@@ -114,6 +115,7 @@ internal fun TopBar(
                 onClick = onOpenSettings,
                 modifier = Modifier.focusRequester(settingsFocus).tracksFocus(HomeArea.SettingsButton, onFocusArea),
             )
+            if (shortcut != null) PowerButton(shortcut)
         }
     }
 }
@@ -173,7 +175,7 @@ private fun NetworkIndicator(shortcut: StatusShortcut?, modifier: Modifier = Mod
         modifier = modifier,
         onClick = shortcut?.opening(TvSetting.Network),
         canFocus = shortcut?.canFocus ?: false,
-        onFocus = shortcut?.onFocus,
+        onFocus = shortcut?.focusing(HomeArea.TvStatus),
     )
 }
 
@@ -203,7 +205,7 @@ private fun VolumeLevel(level: Int, shortcut: StatusShortcut?, modifier: Modifie
         modifier = modifier,
         onClick = shortcut?.opening(TvSetting.Sound),
         canFocus = shortcut?.canFocus ?: false,
-        onFocus = shortcut?.onFocus,
+        onFocus = shortcut?.focusing(HomeArea.TvStatus),
     )
 }
 
@@ -259,9 +261,28 @@ private fun StatusItem(
     }
 }
 
-/** What the status icons open, and whether they may take focus now. */
-private class StatusShortcut(val canFocus: Boolean, val onOpen: (TvSetting) -> Unit, val onFocus: () -> Unit) {
+/**
+ * The power button after the gear, which opens the TV's power menu with Restart (#230). Like the status icons, it
+ * takes focus only while the top bar has it.
+ */
+@Composable
+private fun PowerButton(shortcut: StatusShortcut, modifier: Modifier = Modifier) {
+    StatusItem(
+        KimonoIcon.Power,
+        label = null,
+        description = "Power options, such as restarting the TV",
+        modifier = modifier,
+        onClick = shortcut.opening(TvSetting.Power),
+        canFocus = shortcut.canFocus,
+        onFocus = shortcut.focusing(HomeArea.Power),
+    )
+}
+
+/** What the buttons beside the gear open, and whether they may take focus now. */
+private class StatusShortcut(val canFocus: Boolean, val onOpen: (TvSetting) -> Unit, val onFocus: (HomeArea) -> Unit) {
     fun opening(setting: TvSetting): () -> Unit = { onOpen(setting) }
+
+    fun focusing(area: HomeArea): () -> Unit = { onFocus(area) }
 }
 
 /** A plain icon that shows focus with a border. */

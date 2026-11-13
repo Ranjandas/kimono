@@ -20,6 +20,7 @@ enum class KimonoIcon(val codePoint: Int) {
     Info(0xF02FD), // nf-md-information_outline
     ChevronLeft(0xF0141), // nf-md-chevron_left
     ChevronRight(0xF0142), // nf-md-chevron_right
+    Power(0xF0425), // nf-md-power
 
     // Status
     Wifi(0xF05A9), // nf-md-wifi

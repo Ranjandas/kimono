@@ -16,7 +16,8 @@ crash reporting, and it sends nothing about you or your TV anywhere.
 - **Your list of installed apps.** Read so Kimono can show and open them.
 - **When Google TV's home opens, if you turn on Kimono as home.** Google TV doesn't let you choose a home app, so
   this option uses an Android accessibility service. It's told only when Google TV's own home comes to the front,
-  and then opens Kimono. It can't read what's on screen, what you type or anything in other apps, keeps no record
+  and then opens Kimono. When you pick the power button in Kimono's top bar, it also opens the TV's own power
+  menu, so you can restart the TV. It can't read what's on screen, what you type or anything in other apps, keeps no record
   and sends nothing anywhere. Kimono explains this and asks you before you turn it on, and you can turn it off at
   any time in the TV's accessibility settings.
 
@@ -35,7 +36,7 @@ nothing about you. Kimono's own theme draws its wallpapers on the TV and downloa
 | Usage access (optional, you turn it on) | Recent apps and screen time on home |
 | Request to delete apps | "Uninstall" in an app's options; Android asks you to confirm every time |
 | See installed apps (launcher apps only) | Showing and opening your apps |
-| Accessibility service (optional, you turn it on) | Opening Kimono when the Home button opens Google TV's home |
+| Accessibility service (optional, you turn it on) | Opening Kimono when the Home button opens Google TV's home, and the TV's power menu from the top bar |
 
 ## Children
 

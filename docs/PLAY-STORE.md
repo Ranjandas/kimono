@@ -27,11 +27,14 @@ Play Console › App content › Sensitive app permissions › Accessibility API
 - **What does it use the API for?** Google TV doesn't let people choose a home app. With the user's consent, the
   service notices when Google TV's own home comes to the front and opens Kimono instead, so the Home button opens
   the launcher the user chose. It only receives window-change events from Google TV's two home packages, can't read
-  window contents, and sends nothing off the device.
+  window contents, and sends nothing off the device. It also opens the system's power menu
+  (`GLOBAL_ACTION_POWER_DIALOG`) when the user picks the power button in Kimono's top bar, since an ordinary app
+  can't restart the TV (#230). It takes no other action.
 - **Prominent disclosure:** Kimono › Settings › Kimono as home shows the disclosure and an "Agree and continue"
   button before opening the system's accessibility settings. Nothing is turned on without it.
 - **Video:** record on the Streamer: Settings › Kimono as home, the disclosure, Agree and continue, turning on
-  Kimono as home in the system list, then an app and a Home press landing on Kimono. Upload it unlisted.
+  Kimono as home in the system list, then an app and a Home press landing on Kimono, and the top bar's power button opening the power menu.
+  Upload it unlisted.
 
 The listing can say Home opens Kimono, but shouldn't promise more than that.
 

@@ -4,25 +4,28 @@ import io.github.ranjandas.kimono.core.design.component.Hint
 
 /**
  * The parts of the home screen where the remote keys do different things. [TvStatus] is the network and volume
- * icons, which open the TV's own settings (#200).
+ * icons, which open the TV's own settings (#200), and [Power] is the power button after the gear (#230).
  */
 internal enum class HomeArea {
     SettingsButton,
     TvStatus,
+    Power,
     LastUsed,
     Recents,
     Apps,
     ;
 
     /** Whether it's on the top bar rather than a page. */
-    val inTopBar: Boolean get() = this == SettingsButton || this == TvStatus
+    val inTopBar: Boolean get() = this == SettingsButton || this == TvStatus || this == Power
 }
 
 /** The hints for the focused [area], then how to switch workspace. */
 internal fun homeHints(area: HomeArea): List<Hint> = when (area) {
-    HomeArea.SettingsButton -> listOf(Hint("◀ ▼", "move focus"), Hint("ok", "open settings"))
+    HomeArea.SettingsButton -> listOf(Hint("◀ ▶ ▼", "move focus"), Hint("ok", "open settings"))
 
     HomeArea.TvStatus -> listOf(Hint("◀ ▶ ▼", "move focus"), Hint("ok", "open tv settings"))
+
+    HomeArea.Power -> listOf(Hint("◀ ▼", "move focus"), Hint("ok", "power options"))
 
     HomeArea.LastUsed, HomeArea.Recents ->
         listOf(Hint("◀ ▶ ▲ ▼", "move focus"), Hint("ok", "open"), Hint("hold ok", "app options"))

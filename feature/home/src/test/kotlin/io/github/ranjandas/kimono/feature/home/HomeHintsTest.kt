@@ -24,8 +24,16 @@ class HomeHintsTest {
     }
 
     @Test
+    fun `ok on the power button opens the power menu`() {
+        assertEquals("power options", okAction(HomeArea.Power))
+    }
+
+    @Test
     fun `only the top bar's areas count as the top bar`() {
-        assertEquals(listOf(HomeArea.SettingsButton, HomeArea.TvStatus), HomeArea.entries.filter { it.inTopBar })
+        assertEquals(
+            listOf(HomeArea.SettingsButton, HomeArea.TvStatus, HomeArea.Power),
+            HomeArea.entries.filter { it.inTopBar },
+        )
     }
 
     @Test
