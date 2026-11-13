@@ -19,10 +19,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.design.component.AppCard
@@ -58,8 +60,7 @@ internal fun AppGridPage(
     settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    val gridFocus = remember { FocusRequester() }
-    val emptyFocus = remember { FocusRequester() }
+    val focus = remember { GridFocus() }
     val hasApps = !apps.isNullOrEmpty()
     val loaded = apps != null
     // Also when the page's apps change: an app unpinned from a page it doesn't belong on leaves it, and focus would
@@ -67,9 +68,13 @@ internal fun AppGridPage(
     LaunchedEffect(hasApps, loaded, actions.panelOpen, apps?.size) {
         when {
             actions.panelOpen || !loaded -> Unit
+
             focusArea.inTopBar -> settingsFocus.requestFocusWhenLaidOut()
-            hasApps -> gridFocus.requestFocusWhenLaidOut()
-            else -> emptyFocus.requestFocusWhenLaidOut()
+
+            // Back to the tile focused last, as when an app's options close (#228), or else the grid's first.
+            hasApps -> if (!focus.tiles.focusLast()) focus.grid.requestFocusWhenLaidOut()
+
+            else -> focus.empty.requestFocusWhenLaidOut()
         }
     }
     BackHandler(onBack = actions::onGoHome)
@@ -77,7 +82,7 @@ internal fun AppGridPage(
         // The panel is only as tall as its apps (#135): two apps get a short panel, not a screenful of empty
         // space. A full workspace still fills the page and scrolls. The hints stay at the bottom either way.
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-            GridPanel(workspace, apps, actions, gridFocus, emptyFocus, Modifier.tracksFocus(HomeArea.Apps, onFocusArea))
+            GridPanel(workspace, apps, actions, focus, Modifier.tracksFocus(HomeArea.Apps, onFocusArea))
         }
         HintBar(GridHints, Modifier.fillMaxWidth().height(HomeDimens.HintBarHeight))
     }
@@ -89,8 +94,7 @@ private fun GridPanel(
     workspace: Workspace,
     apps: List<InstalledApp>?,
     actions: PageActions,
-    gridFocus: FocusRequester,
-    emptyFocus: FocusRequester,
+    focus: GridFocus,
     modifier: Modifier = Modifier,
 ) {
     var unavailable by remember { mutableStateOf<InstalledApp?>(null) }
@@ -108,10 +112,11 @@ private fun GridPanel(
                 },
                 onShowOptions = actions.onShowOptions,
                 marks = actions.marks,
-                modifier = Modifier.weight(1f, fill = false).focusRequester(gridFocus),
+                tiles = focus.tiles,
+                modifier = Modifier.weight(1f, fill = false).focusRequester(focus.grid),
             )
 
-            else -> EmptyWorkspace(workspace, actions::onOpenAllApps, emptyFocus)
+            else -> EmptyWorkspace(workspace, actions::onOpenAllApps, focus.empty)
         }
         unavailable?.let {
             Text(
@@ -130,6 +135,7 @@ private fun AppGrid(
     onClickApp: (InstalledApp) -> Unit,
     onShowOptions: (InstalledApp) -> Unit,
     marks: AppMarks,
+    tiles: TileFocus,
     modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
@@ -147,6 +153,7 @@ private fun AppGrid(
                 label = app.label,
                 onClick = { onClickApp(app) },
                 onLongClick = { onShowOptions(app) },
+                modifier = tiles.track(app.packageName),
                 mark = marks[app.packageName],
             )
         }
@@ -182,6 +189,46 @@ private fun Note(text: String) {
         color = KimonoTheme.colors.textMuted,
     )
 }
+
+/** Where the grid page puts focus: the [grid], its [tiles] one by one, or the [empty] state's button. */
+private class GridFocus {
+    val grid = FocusRequester()
+    val tiles = TileFocus()
+    val empty = FocusRequester()
+}
+
+/**
+ * The grid's tiles by package and the one focused last. Closing an app's options goes back to that tile (#228): the
+ * grid's own focus restorer lost it while the panel had focus, and landed on the first tile, scrolled to the top.
+ */
+private class TileFocus {
+    private val requesters = mutableMapOf<String, FocusRequester>()
+    private var lastFocused: String? = null
+
+    /**
+     * Focuses the tile focused last, waiting a few frames for it to be laid out. False when there's none, or it has
+     * left the grid (uninstalled, unpinned, or scrolled away and disposed).
+     */
+    suspend fun focusLast(): Boolean {
+        val requester = lastFocused?.let(requesters::get)
+        var focused = false
+        var attempts = 0
+        while (requester != null && !focused && attempts < LAST_TILE_ATTEMPTS) {
+            if (attempts > 0) withFrameNanos { }
+            focused = runCatching { requester.requestFocus() }.getOrDefault(false)
+            attempts++
+        }
+        return focused
+    }
+
+    /** Lets the tile for [packageName] be focused again, and notes when it takes focus. */
+    fun track(packageName: String): Modifier {
+        val requester = requesters.getOrPut(packageName) { FocusRequester() }
+        return Modifier.focusRequester(requester).onFocusChanged { if (it.isFocused) lastFocused = packageName }
+    }
+}
+
+private const val LAST_TILE_ATTEMPTS = 3
 
 // Six monograms a row fill the page at about the size of a recent tile's.
 private const val GRID_COLUMNS = 6
