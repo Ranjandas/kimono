@@ -44,6 +44,7 @@ class SettingsScreenshotTest(private val theme: ThemeId, private val textSize: T
                     panels = Panels.Default,
                     onPanelsChange = {},
                     onClose = {},
+                    onOpenTvScreen = {},
                     // A fixed phrase, so the screenshot doesn't change with the date.
                     subtitle = "quiet tatami",
                 )

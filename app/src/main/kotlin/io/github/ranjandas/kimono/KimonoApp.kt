@@ -172,6 +172,7 @@ private fun Settings(
     watcher: HomeWatcherState,
     onClose: () -> Unit,
 ) {
+    val context = LocalContext.current
     SettingsScreen(
         theme = ThemeId.fromName(settings.themeName),
         onThemeChange = { new -> updateSettings { it.copy(themeName = new.name) } },
@@ -197,6 +198,11 @@ private fun Settings(
             watcher::openGoogleTvHome
         } else {
             null
+        },
+        onOpenTvScreen = { tvScreen ->
+            if (!TvSettings.open(context, tvScreen)) {
+                Toast.makeText(context, SCREEN_NOT_AVAILABLE, Toast.LENGTH_SHORT).show()
+            }
         },
         onClose = onClose,
     )
@@ -224,7 +230,7 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
     // A TV build can hide parts of Settings, so say so rather than looking broken.
     fun openScreen(screen: AppScreen): (InstalledApp) -> Unit = { app ->
         if (!dependencies.appActions.open(screen, app)) {
-            Toast.makeText(context, "that screen isn't available on this device", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, SCREEN_NOT_AVAILABLE, Toast.LENGTH_SHORT).show()
         }
     }
     return AppCallbacks(
@@ -255,6 +261,9 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
         },
     )
 }
+
+// A TV build can hide parts of Settings, so Kimono says so rather than looking broken.
+private const val SCREEN_NOT_AVAILABLE = "that screen isn't available on this device"
 
 // Google TV hides the usage access screen, so the one way in is adb (docs/DEVELOPING.md).
 private const val USAGE_ACCESS_OVER_ADB =
