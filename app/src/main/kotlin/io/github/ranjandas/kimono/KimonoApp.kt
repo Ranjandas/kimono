@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ranjandas.kimono.core.data.icons.IconStyle
 import io.github.ranjandas.kimono.core.data.idle.IdleController
 import io.github.ranjandas.kimono.core.data.settings.LauncherSettings
+import io.github.ranjandas.kimono.core.data.settings.Screensaver
 import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.workspace.Workspace
 import io.github.ranjandas.kimono.core.data.workspace.WorkspaceState
@@ -68,7 +69,14 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
     WarmWallpapers(dependencies.wallpapers, loadedSettings, theme, wallpaper)
     val shift = rememberPixelShift(isIdle && loadedSettings.pixelShift)
     KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale) {
-        Ambient(wallpaper, theme, loadedSettings.panels, isIdle, shift) {
+        Ambient(
+            wallpaper,
+            theme,
+            loadedSettings.panels,
+            isIdle,
+            shift,
+            keepAwakeFor = keepAwakeFor(loadedSettings),
+        ) {
             KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale, overWallpaper = wallpaper != null) {
                 Screens(
                     dependencies = dependencies,
@@ -197,6 +205,8 @@ private fun Settings(
         onPanelsChange = { new -> updateSettings { it.copy(panels = new) } },
         systemPanel = settings.systemPanel,
         onSystemPanelChange = { new -> updateSettings { it.copy(systemPanel = new) } },
+        screensaver = settings.screensaver,
+        onScreensaverChange = { new -> updateSettings { it.copy(screensaver = new) } },
         homeWatcher = if (watcher.isInBuild) watcher.state else null,
         onHomeWatcherClick = watcher::open,
         onOpenGoogleTvHome = if (watcher.isInBuild && watcher.state && watcher.googleTvHome) {

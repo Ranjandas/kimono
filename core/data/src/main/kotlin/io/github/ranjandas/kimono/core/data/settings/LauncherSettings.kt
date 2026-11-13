@@ -16,6 +16,7 @@ data class LauncherSettings(
     val idleTimeout: IdleTimeout = IdleTimeout.Default,
     /** While idle, nudge the whole screen a few pixels now and then, so no pixel shows the same thing all day. */
     val pixelShift: Boolean = true,
+    val screensaver: Screensaver = Screensaver.Default,
     /** Off shows the plain theme background. */
     val wallpaper: Boolean = true,
     /** An image of the user's own, set over adb; null uses the theme's wallpaper. */
@@ -47,6 +48,24 @@ enum class IdleTimeout(val label: String, val duration: Duration) {
 
     companion object {
         val Default = FortyFiveSeconds
+    }
+}
+
+/**
+ * Whose screensaver takes over once Kimono's home has gone idle. Google TV only offers its own Ambient in its
+ * settings, so Kimono can't be picked there without adb; instead home keeps the screen awake while its pixel art
+ * runs, and the TV still turns the screen off on its own energy timer.
+ */
+enum class Screensaver(val label: String) {
+    /** Home's own pixel art stays on, and Google TV's screensaver doesn't start over it. */
+    Kimono("kimono"),
+
+    /** Google TV's Ambient takes over after the TV's screensaver delay, as with any app. */
+    GoogleTv("google tv"),
+    ;
+
+    companion object {
+        val Default = Kimono
     }
 }
 

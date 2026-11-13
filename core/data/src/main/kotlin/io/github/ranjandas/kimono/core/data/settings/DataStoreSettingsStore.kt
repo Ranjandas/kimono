@@ -25,6 +25,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
         val TextSizeKey = stringPreferencesKey("settings.textSize")
         val IdleTimeoutKey = stringPreferencesKey("settings.idleTimeout")
         val PixelShiftKey = booleanPreferencesKey("settings.pixelShift")
+        val ScreensaverKey = stringPreferencesKey("settings.screensaver")
         val WallpaperKey = booleanPreferencesKey("settings.wallpaper")
         val WallpaperUrlKey = stringPreferencesKey("settings.wallpaperUrl")
         val PanelsKey = stringPreferencesKey("settings.panels")
@@ -38,6 +39,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             textSize = TextSize.entries.find { it.name == this[TextSizeKey] } ?: TextSize.Default,
             idleTimeout = IdleTimeout.entries.find { it.name == this[IdleTimeoutKey] } ?: IdleTimeout.Default,
             pixelShift = this[PixelShiftKey] ?: true,
+            screensaver = Screensaver.entries.find { it.name == this[ScreensaverKey] } ?: Screensaver.Default,
             wallpaper = this[WallpaperKey] ?: true,
             wallpaperUrl = this[WallpaperUrlKey],
             panels = Panels.entries.find { it.name == this[PanelsKey] } ?: Panels.Default,
@@ -52,6 +54,7 @@ internal class DataStoreSettingsStore(private val dataStore: DataStore<Preferenc
             this[TextSizeKey] = settings.textSize.name
             this[IdleTimeoutKey] = settings.idleTimeout.name
             this[PixelShiftKey] = settings.pixelShift
+            this[ScreensaverKey] = settings.screensaver.name
             this[WallpaperKey] = settings.wallpaper
             setOrRemove(WallpaperUrlKey, settings.wallpaperUrl)
             this[PanelsKey] = settings.panels.name

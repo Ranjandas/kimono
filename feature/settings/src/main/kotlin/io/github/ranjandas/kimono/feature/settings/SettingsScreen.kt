@@ -36,6 +36,7 @@ import androidx.tv.material3.Text
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.Panels
+import io.github.ranjandas.kimono.core.data.settings.Screensaver
 import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.design.component.Hint
@@ -84,6 +85,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     systemPanel: SystemPanel = SystemPanel.Default,
     onSystemPanelChange: (SystemPanel) -> Unit = {},
+    screensaver: Screensaver = Screensaver.Default,
+    onScreensaverChange: (Screensaver) -> Unit = {},
     homeWatcher: Boolean? = null,
     onHomeWatcherClick: () -> Unit = {},
     onOpenGoogleTvHome: (() -> Unit)? = null,
@@ -117,7 +120,14 @@ fun SettingsScreen(
                             onPanelsChange, firstRow,
                         )
                         Rule()
-                        ScreenCareSection(idleTimeout, onIdleTimeoutChange, pixelShift, onPixelShiftChange)
+                        ScreenCareSection(
+                            idleTimeout,
+                            onIdleTimeoutChange,
+                            pixelShift,
+                            onPixelShiftChange,
+                            screensaver,
+                            onScreensaverChange,
+                        )
                         Rule()
                         HomeSection(
                             wallpaper,
