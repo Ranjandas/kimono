@@ -8,7 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.DisplayMetrics
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.scale
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 /** A glyph ready to tint: white, with the shape in its alpha, trimmed to the shape's bounds. */
 class Glyph(
@@ -37,19 +41,36 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
      * works for disabled apps too, where looking the component up again would fail.
      */
     fun load(activity: ActivityInfo): AppGlyphs {
-        val icon = runCatching { activity.loadIcon(packageManager) }.getOrNull()
-        val banner = runCatching { activity.loadBanner(packageManager) }.getOrNull()
+        val icon = sharpest(activity, activity.iconResource)
+            ?: runCatching { activity.loadIcon(packageManager) }.getOrNull()
+        val banner = sharpest(activity, activity.bannerResource())
+            ?: runCatching { activity.loadBanner(packageManager) }.getOrNull()
         return AppGlyphs(
             icon = icon?.toBitmap(ICON_PX, ICON_PX),
             monochrome = icon?.monochromeLayer()?.let { glyphOf(it.toBitmap(ADAPTIVE_PX, ADAPTIVE_PX), plate = false) },
             silhouette = icon?.let(::silhouette),
-            wordmark = banner?.let { glyphOf(it.toBitmap(BANNER_WIDTH_PX, BANNER_HEIGHT_PX), plate = true) },
+            wordmark = banner?.let {
+                glyphOf(it.toBitmap(BANNER_WIDTH_PX, BANNER_HEIGHT_PX), plate = true, cutWidth = GlyphMask.CUT_WIDTH)
+            },
         )
     }
 
     /** [load] for an enabled app's activity, by name; null when it can't be found, such as just after an uninstall. */
     fun load(packageName: String, activityName: String): AppGlyphs? =
         runCatching { activityInfo(ComponentName(packageName, activityName)) }.getOrNull()?.let(::load)
+
+    /**
+     * [resource] from [activity]'s app at the highest density it ships (#232). Loading at the TV's own density hands
+     * back its xhdpi images, about 96 px for a plain icon, which the tiles then stretch two to three times and blur.
+     */
+    private fun sharpest(activity: ActivityInfo, resource: Int): Drawable? = resource.takeIf { it != 0 }?.let {
+        runCatching {
+            packageManager.getResourcesForApplication(activity.applicationInfo)
+                .getDrawableForDensity(it, DisplayMetrics.DENSITY_XXXHIGH, null)
+        }.getOrNull()
+    }
+
+    private fun ActivityInfo.bannerResource(): Int = if (banner != 0) banner else applicationInfo.banner
 
     private fun activityInfo(component: ComponentName): ActivityInfo =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -70,12 +91,14 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
     private fun Drawable.monochromeLayer(): Drawable? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) (this as? AdaptiveIconDrawable)?.monochrome else null
 
-    private fun glyphOf(source: Bitmap, plate: Boolean): Glyph? {
+    // Icons are drawn at twice the size the colour gaps were tuned at (#232), so the gaps are twice as wide to keep
+    // their look; banners are drawn at the size they always were.
+    private fun glyphOf(source: Bitmap, plate: Boolean, cutWidth: Int = GlyphMask.CUT_WIDTH * ICON_SCALE): Glyph? {
         val width = source.width
         val pixels = IntArray(width * source.height)
         source.getPixels(pixels, 0, width, 0, 0, width, source.height)
         val plateColour = if (plate) GlyphMask.plateColour(pixels) else null
-        val alpha = GlyphMask.extract(pixels, width, plateColour)
+        val alpha = GlyphMask.extract(pixels, width, plateColour, cutWidth)
         val box = GlyphMask.bounds(alpha, width)?.takeIf { it.width * it.height >= MIN_GLYPH_PIXELS }
             ?: return null
         val out = IntArray(box.width * box.height)
@@ -88,17 +111,29 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
             }
         }
         return Glyph(
-            bitmap = Bitmap.createBitmap(out, box.width, box.height, Bitmap.Config.ARGB_8888),
+            bitmap = Bitmap.createBitmap(out, box.width, box.height, Bitmap.Config.ARGB_8888).capped(),
             coverage = ink.toFloat() / (MAX_ALPHA * out.size),
             removedPlate = plateColour != null,
         )
     }
 
+    // A glyph bigger than the largest mark on screen only costs memory, so a large one is brought down to it.
+    private fun Bitmap.capped(): Bitmap {
+        val longest = max(width, height)
+        if (longest <= MAX_GLYPH_PX) return this
+        val ratio = MAX_GLYPH_PX.toFloat() / longest
+        return scale((width * ratio).roundToInt().coerceAtLeast(1), (height * ratio).roundToInt().coerceAtLeast(1))
+    }
+
     companion object {
         fun create(context: Context) = AppGlyphLoader(context.applicationContext.packageManager)
 
-        private const val ICON_PX = 192
-        private const val ADAPTIVE_PX = 288
+        // Rendered big enough that the logo, once trimmed of its margins, still covers home's last used mark (about
+        // 330 px across on a 1080p TV) without being stretched (#232).
+        private const val ICON_SCALE = 2
+        private const val ICON_PX = 192 * ICON_SCALE
+        private const val ADAPTIVE_PX = 288 * ICON_SCALE
+        private const val MAX_GLYPH_PX = 384
         private const val BANNER_WIDTH_PX = 640
         private const val BANNER_HEIGHT_PX = 360
         private const val MIN_GLYPH_PIXELS = 64

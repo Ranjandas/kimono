@@ -15,19 +15,20 @@ internal object GlyphMask {
      * The glyph's alpha, 0 to 255, for each pixel of [argb], an image [width] wide, with [plate] taken out when
      * there is one.
      */
-    fun extract(argb: IntArray, width: Int, plate: Int? = plateColour(argb)): IntArray = if (plate == null) {
-        IntArray(argb.size) { i -> if (meetsOtherColour(argb, width, i)) 0 else argb[i] ushr ALPHA_SHIFT }
-    } else {
-        IntArray(argb.size) { i -> ((argb[i] ushr ALPHA_SHIFT) * contrast(argb[i], plate)).roundToInt() }
-    }
+    fun extract(argb: IntArray, width: Int, plate: Int? = plateColour(argb), cutWidth: Int = CUT_WIDTH): IntArray =
+        if (plate == null) {
+            IntArray(argb.size) { i -> if (meetsOtherColour(argb, width, i, cutWidth)) 0 else argb[i] ushr ALPHA_SHIFT }
+        } else {
+            IntArray(argb.size) { i -> ((argb[i] ushr ALPHA_SHIFT) * contrast(argb[i], plate)).roundToInt() }
+        }
 
     // True when an opaque pixel a little to the right or below is a clearly different opaque colour. Looking only
-    // that way puts each gap on one side of the boundary, CUT_WIDTH pixels wide. Smooth gradients never trigger it.
-    private fun meetsOtherColour(argb: IntArray, width: Int, i: Int): Boolean {
+    // that way puts each gap on one side of the boundary, cutWidth pixels wide. Smooth gradients never trigger it.
+    private fun meetsOtherColour(argb: IntArray, width: Int, i: Int, cutWidth: Int): Boolean {
         val pixel = argb[i]
         if (pixel ushr ALPHA_SHIFT < OPAQUE_ALPHA) return false
         val x = i % width
-        return (1..CUT_WIDTH).any { step ->
+        return (1..cutWidth).any { step ->
             val right = if (x + step < width) argb[i + step] else 0
             val below = argb.getOrElse(i + step * width) { 0 }
             differs(pixel, right) || differs(pixel, below)
@@ -111,7 +112,9 @@ internal object GlyphMask {
 
     // Two colour areas of a logo, such as Google Play's blue and green, not two shades of one gradient.
     private const val CUT_DISTANCE = 0.3f
-    private const val CUT_WIDTH = 3
+
+    /** How wide a gap is cut where two colours meet, in pixels, for a 288 px adaptive layer or a 192 px icon. */
+    const val CUT_WIDTH = 3
 }
 
 /** A box in pixels: [left] and [top] inclusive, [right] and [bottom] exclusive. */
