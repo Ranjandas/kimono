@@ -111,7 +111,7 @@ class AppMarkCache internal constructor(
         )
 
         // Bump when the way marks are made changes, so every app's are made again.
-        private const val PIPELINE_VERSION = 3
+        private const val PIPELINE_VERSION = 5
         private const val LOGO = "logo.png"
         private const val WORDMARK = "wordmark.png"
         private const val DONE = "done"
