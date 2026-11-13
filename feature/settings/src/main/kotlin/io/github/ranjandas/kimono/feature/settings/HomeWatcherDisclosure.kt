@@ -76,6 +76,7 @@ internal class DisclosureState {
 internal const val HOME_WATCHER_DISCLOSURE =
     "Google TV always opens its own home when you press Home. To open Kimono instead, Kimono uses an Android " +
         "accessibility service. It only notices when Google TV's home comes to the front, and then opens Kimono. " +
+        "It also lets the power button in Kimono's top bar open the TV's power menu, to restart it. " +
         "It doesn't read what's on screen, what you type or anything in other apps, and nothing leaves your TV. " +
         "On the next screen, go down to Services, choose Kimono as home and turn it on. You can turn it off " +
         "there at any time."

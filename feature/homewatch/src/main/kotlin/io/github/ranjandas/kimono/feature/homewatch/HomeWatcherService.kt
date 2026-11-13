@@ -13,10 +13,26 @@ import android.view.accessibility.AccessibilityEvent
  * (route B in ADR 0001). Google TV's home shows for a moment first; that can't be avoided this way.
  *
  * Its config (res/xml/home_watcher.xml) limits it to window changes from Google TV's two home apps and gives it
- * no window contents, so it sees nothing else. Turning it off in Settings > Accessibility undoes it.
+ * no window contents, so it sees nothing else. Turning it off in Settings > Accessibility undoes it. While it runs,
+ * it can also open the TV's power menu when the top bar's power button asks ([PowerMenu], #230).
  */
 class HomeWatcherService : AccessibilityService() {
     private val watch = HomeWatch()
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        PowerMenu.attach(this)
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        PowerMenu.detach(this)
+        return super.onUnbind(intent)
+    }
+
+    override fun onDestroy() {
+        PowerMenu.detach(this)
+        super.onDestroy()
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return

@@ -1,4 +1,7 @@
 package io.github.ranjandas.kimono.feature.home
 
-/** The TV's own settings screens the top bar's status icons open (#200): the network icon and the volume icon. */
-enum class TvSetting { Network, Sound }
+/**
+ * What the top bar's buttons beside the gear open on the TV: its network and sound settings from the status icons
+ * (#200), and its power menu, with Restart, from the power button (#230).
+ */
+enum class TvSetting { Network, Sound, Power }
