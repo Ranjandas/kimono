@@ -75,7 +75,7 @@ internal fun KimonoApp(dependencies: KimonoDependencies, idle: IdleController, h
             loadedSettings.panels,
             isIdle,
             shift,
-            keepAwake = loadedSettings.screensaver == Screensaver.Kimono,
+            keepAwakeFor = keepAwakeFor(loadedSettings),
         ) {
             KimonoTheme(theme, cornerStyle, loadedSettings.textSize.scale, overWallpaper = wallpaper != null) {
                 Screens(

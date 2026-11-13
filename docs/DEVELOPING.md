@@ -213,6 +213,11 @@ nothing per frame.
 
 ### Screensaver
 
+By default (Settings → Screen care → Screensaver: kimono), home keeps the screen on while its idle pixel art
+runs, so Google TV's Ambient doesn't start over it (#236). Holding the screen on also holds off the TV's sleep
+timer (`sleep_timeout`, Google TV's energy setting), so the hold ends when that timer would have run out; then
+the TV goes to sleep as usual. `adb logcat -s Kimono` shows when the hold starts and ends.
+
 Kimono also offers its idle pixel art as the system screensaver (`KimonoDream`), made from the same cached
 wallpaper in the theme's colours, cycling so no pixel stays lit for long. Google TV's settings only list its own
 ambient mode, so pick it over adb, and note what was set before so you can put it back:
