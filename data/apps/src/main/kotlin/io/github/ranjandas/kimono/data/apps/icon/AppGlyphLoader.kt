@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
@@ -47,7 +49,9 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
             ?: runCatching { activity.loadBanner(packageManager) }.getOrNull()
         return AppGlyphs(
             icon = icon?.toBitmap(ICON_PX, ICON_PX),
-            monochrome = icon?.monochromeLayer()?.let { glyphOf(it.toBitmap(ADAPTIVE_PX, ADAPTIVE_PX), plate = false) },
+            monochrome = icon?.monochromeLayer()?.let {
+                glyphOf(it.toBitmap(ADAPTIVE_PX, ADAPTIVE_PX), plate = false, cutWidth = ADAPTIVE_CUT)
+            },
             silhouette = icon?.let(::silhouette),
             wordmark = banner?.let {
                 glyphOf(it.toBitmap(BANNER_WIDTH_PX, BANNER_HEIGHT_PX), plate = true, cutWidth = GlyphMask.CUT_WIDTH)
@@ -62,12 +66,25 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
     /**
      * [resource] from [activity]'s app at the highest density it ships (#232). Loading at the TV's own density hands
      * back its xhdpi images, about 96 px for a plain icon, which the tiles then stretch two to three times and blur.
+     * The whole lookup runs at that density, not only the top file: an adaptive icon's layers are often further
+     * files (10 Play's foreground is an inset around a PNG), and those would otherwise still come at xhdpi (#234).
      */
     private fun sharpest(activity: ActivityInfo, resource: Int): Drawable? = resource.takeIf { it != 0 }?.let {
         runCatching {
-            packageManager.getResourcesForApplication(activity.applicationInfo)
-                .getDrawableForDensity(it, DisplayMetrics.DENSITY_XXXHIGH, null)
+            atTopDensity(packageManager.getResourcesForApplication(activity.applicationInfo)).getDrawable(it, null)
         }.getOrNull()
+    }
+
+    // A fresh Resources over the same files, so the shared one the rest of Kimono uses keeps the TV's density.
+    @Suppress("DEPRECATION")
+    private fun atTopDensity(resources: Resources): Resources {
+        val metrics = DisplayMetrics().apply {
+            setTo(resources.displayMetrics)
+            densityDpi = DisplayMetrics.DENSITY_XXXHIGH
+            density = DisplayMetrics.DENSITY_XXXHIGH.toFloat() / DisplayMetrics.DENSITY_DEFAULT
+        }
+        val configuration = Configuration(resources.configuration).apply { densityDpi = DisplayMetrics.DENSITY_XXXHIGH }
+        return Resources(resources.assets, metrics, configuration)
     }
 
     private fun ActivityInfo.bannerResource(): Int = if (banner != 0) banner else applicationInfo.banner
@@ -84,15 +101,15 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
     // layer and leave the foreground empty, so fall back to the whole icon.
     private fun silhouette(icon: Drawable): Glyph? {
         val foreground = (icon as? AdaptiveIconDrawable)?.foreground
-        return foreground?.let { glyphOf(it.toBitmap(ADAPTIVE_PX, ADAPTIVE_PX), plate = true) }
+        return foreground?.let { glyphOf(it.toBitmap(ADAPTIVE_PX, ADAPTIVE_PX), plate = true, cutWidth = ADAPTIVE_CUT) }
             ?: glyphOf(icon.toBitmap(ICON_PX, ICON_PX), plate = true)
     }
 
     private fun Drawable.monochromeLayer(): Drawable? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) (this as? AdaptiveIconDrawable)?.monochrome else null
 
-    // Icons are drawn at twice the size the colour gaps were tuned at (#232), so the gaps are twice as wide to keep
-    // their look; banners are drawn at the size they always were.
+    // The colour gaps were tuned on a 192 px icon and a 288 px adaptive layer, so they widen with the bigger
+    // drawings (#232) to keep their look; banners are drawn at the size they always were.
     private fun glyphOf(source: Bitmap, plate: Boolean, cutWidth: Int = GlyphMask.CUT_WIDTH * ICON_SCALE): Glyph? {
         val width = source.width
         val pixels = IntArray(width * source.height)
@@ -128,11 +145,14 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
     companion object {
         fun create(context: Context) = AppGlyphLoader(context.applicationContext.packageManager)
 
-        // Rendered big enough that the logo, once trimmed of its margins, still covers home's last used mark (about
-        // 330 px across on a 1080p TV) without being stretched (#232).
+        // A plain icon is 192 px at xxxhdpi. Drawn at twice that, its trimmed logo still covers home's last used
+        // mark (about 330 px across on a 1080p TV) (#232).
         private const val ICON_SCALE = 2
         private const val ICON_PX = 192 * ICON_SCALE
-        private const val ADAPTIVE_PX = 288 * ICON_SCALE
+
+        // An adaptive layer is 108 dp, 432 px at xxxhdpi: drawn at its own size, its images aren't stretched.
+        private const val ADAPTIVE_PX = 432
+        private const val ADAPTIVE_CUT = GlyphMask.CUT_WIDTH * ADAPTIVE_PX / 288
         private const val MAX_GLYPH_PX = 384
         private const val BANNER_WIDTH_PX = 640
         private const val BANNER_HEIGHT_PX = 360
