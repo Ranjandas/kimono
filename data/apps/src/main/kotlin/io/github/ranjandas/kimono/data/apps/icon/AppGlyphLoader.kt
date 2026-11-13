@@ -150,9 +150,10 @@ class AppGlyphLoader private constructor(private val packageManager: PackageMana
         private const val ICON_SCALE = 2
         private const val ICON_PX = 192 * ICON_SCALE
 
-        // An adaptive layer is 108 dp, 432 px at xxxhdpi: drawn at its own size, its images aren't stretched.
-        private const val ADAPTIVE_PX = 432
-        private const val ADAPTIVE_CUT = GlyphMask.CUT_WIDTH * ADAPTIVE_PX / 288
+        // Vector layers come out sharper drawn bigger than their 432 px at xxxhdpi, and PNG layers stretch only a
+        // third, which mipmapped drawing at tile size hides.
+        private const val ADAPTIVE_PX = 288 * ICON_SCALE
+        private const val ADAPTIVE_CUT = GlyphMask.CUT_WIDTH * ICON_SCALE
         private const val MAX_GLYPH_PX = 384
         private const val BANNER_WIDTH_PX = 640
         private const val BANNER_HEIGHT_PX = 360
