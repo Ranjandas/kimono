@@ -19,6 +19,16 @@ class HomeHintsTest {
     }
 
     @Test
+    fun `ok on a status icon opens the tv's settings`() {
+        assertEquals("open tv settings", okAction(HomeArea.TvStatus))
+    }
+
+    @Test
+    fun `only the top bar's areas count as the top bar`() {
+        assertEquals(listOf(HomeArea.SettingsButton, HomeArea.TvStatus), HomeArea.entries.filter { it.inTopBar })
+    }
+
+    @Test
     fun `ok opens the last used or a recent app, and held ok its options`() {
         listOf(HomeArea.LastUsed, HomeArea.Recents).forEach { area ->
             assertEquals("open", okAction(area), "$area")
