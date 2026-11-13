@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import io.github.ranjandas.kimono.core.data.settings.ClockFormat
 import io.github.ranjandas.kimono.core.data.settings.IdleTimeout
 import io.github.ranjandas.kimono.core.data.settings.Panels
+import io.github.ranjandas.kimono.core.data.settings.Screensaver
 import io.github.ranjandas.kimono.core.data.settings.SystemPanel
 import io.github.ranjandas.kimono.core.data.settings.TextSize
 import io.github.ranjandas.kimono.core.design.component.ListRow
@@ -66,13 +67,15 @@ internal fun LookSection(
     }
 }
 
-/** What keeps an OLED panel from burning in. */
+/** What keeps an OLED panel from burning in, and whose screensaver takes over from home's idle art. */
 @Composable
 internal fun ScreenCareSection(
     idleTimeout: IdleTimeout,
     onIdleTimeoutChange: (IdleTimeout) -> Unit,
     pixelShift: Boolean,
     onPixelShiftChange: (Boolean) -> Unit,
+    screensaver: Screensaver,
+    onScreensaverChange: (Screensaver) -> Unit,
 ) {
     SettingsSection("screen care") {
         SettingRow(KimonoIcon.Idle, "Dim after", idleTimeout.label, onStep = {
@@ -82,6 +85,9 @@ internal fun ScreenCareSection(
         SettingRow(KimonoIcon.Device, "Shift pixels", if (pixelShift) "on" else "off", onStep = {
             onPixelShiftChange(!pixelShift)
         }) { Toggle(pixelShift, it) }
+        ChoiceRow(KimonoIcon.Media, "Screensaver", screensaver, Screensaver.entries, Screensaver::label) {
+            onScreensaverChange(it)
+        }
     }
 }
 

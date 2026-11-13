@@ -24,6 +24,7 @@ class DataStoreSettingsStoreTest {
             textSize = TextSize.Large,
             idleTimeout = IdleTimeout.TwoMinutes,
             pixelShift = false,
+            screensaver = Screensaver.GoogleTv,
             wallpaper = false,
             wallpaperUrl = "https://example.com/wall.webp",
             panels = Panels.Solid,
