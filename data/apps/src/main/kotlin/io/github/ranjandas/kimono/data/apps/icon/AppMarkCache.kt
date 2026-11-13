@@ -68,8 +68,8 @@ class AppMarkCache internal constructor(
     private fun make(app: InstalledApp): AppMarkBitmaps? {
         val glyphs = loader.load(app.packageName, app.activityName) ?: return null
         return AppMarkBitmaps(
-            logo = (glyphs.monochrome ?: glyphs.silhouette).usable(),
-            wordmark = glyphs.wordmark.usable(),
+            logo = (glyphs.monochrome ?: glyphs.silhouette).usable()?.mipmapped(),
+            wordmark = glyphs.wordmark.usable()?.mipmapped(),
         )
     }
 
@@ -96,7 +96,8 @@ class AppMarkCache internal constructor(
 
     private fun file(packageName: String, stamp: String, kind: String) = File(dir, "$packageName@$stamp.$kind")
 
-    private fun decode(file: File): Bitmap? = if (file.exists()) BitmapFactory.decodeFile(file.path) else null
+    private fun decode(file: File): Bitmap? =
+        if (file.exists()) BitmapFactory.decodeFile(file.path)?.mipmapped() else null
 
     private fun encode(bitmap: Bitmap, file: File) {
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, it) }
@@ -110,7 +111,7 @@ class AppMarkCache internal constructor(
         )
 
         // Bump when the way marks are made changes, so every app's are made again.
-        private const val PIPELINE_VERSION = 2
+        private const val PIPELINE_VERSION = 3
         private const val LOGO = "logo.png"
         private const val WORDMARK = "wordmark.png"
         private const val DONE = "done"
@@ -122,3 +123,7 @@ class AppMarkCache internal constructor(
 internal fun Glyph?.usable(): Bitmap? = this?.takeIf { it.coverage <= MAX_COVERAGE }?.bitmap
 
 private const val MAX_COVERAGE = 0.95f
+
+// Marks are drawn smaller than they're made on most tiles, and a big bitmap shrunk without mipmaps shimmers and
+// looks rough, more so while focus grows the tile (#232).
+private fun Bitmap.mipmapped(): Bitmap = apply { setHasMipMap(true) }
