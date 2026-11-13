@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectableGroup
@@ -21,7 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -53,6 +56,10 @@ import kotlinx.coroutines.delay
  *
  * The workspace numbers only show where you are (#219): they never take focus, so Up from any page goes straight to
  * the gear. Left and Right at the edge of a page switch workspace, and the highlight follows.
+ *
+ * With [onOpenTvSettings], Left from the gear reaches the volume and network icons, which open the TV's sound and
+ * network settings (#200), since covering Google TV's home hides its quick settings. They only take focus while the
+ * gear or one of them has it, so Up from a page still lands on the gear.
  */
 @Composable
 internal fun TopBar(
@@ -63,7 +70,9 @@ internal fun TopBar(
     clock: Clock,
     settingsFocus: FocusRequester,
     modifier: Modifier = Modifier,
+    onOpenTvSettings: ((TvSetting) -> Unit)? = null,
 ) {
+    var barFocused by remember { mutableStateOf(false) }
     Box(modifier = modifier) {
         Row(
             modifier = Modifier.align(Alignment.CenterStart).selectableGroup(),
@@ -92,12 +101,15 @@ internal fun TopBar(
         }
         DateTime(clockFormat, clock, Modifier.align(Alignment.Center))
         Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.L),
+            modifier = Modifier.align(Alignment.CenterEnd).onFocusChanged { barFocused = it.hasFocus },
+            horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            NetworkIndicator()
-            VolumeIndicator()
+            val shortcut = onOpenTvSettings?.let { open ->
+                StatusShortcut(canFocus = barFocused, onOpen = open, onFocus = { onFocusArea(HomeArea.TvStatus) })
+            }
+            NetworkIndicator(shortcut)
+            VolumeIndicator(shortcut)
             IconButton(
                 icon = KimonoIcon.Settings,
                 description = "Settings",
@@ -154,20 +166,28 @@ private fun DateTime(format: ClockFormat, clock: Clock, modifier: Modifier = Mod
 }
 
 @Composable
-private fun NetworkIndicator(modifier: Modifier = Modifier) {
+private fun NetworkIndicator(shortcut: StatusShortcut?, modifier: Modifier = Modifier) {
     val status by rememberNetworkStatus()
-    StatusItem(status.icon, label = null, description = "Network, ${status.label}", modifier = modifier)
+    StatusItem(
+        status.icon,
+        label = null,
+        description = "Network, ${status.label}",
+        modifier = modifier,
+        onClick = shortcut?.opening(TvSetting.Network),
+        canFocus = shortcut?.canFocus ?: false,
+        onFocus = shortcut?.onFocus,
+    )
 }
 
 @Composable
-private fun VolumeIndicator(modifier: Modifier = Modifier) {
+private fun VolumeIndicator(shortcut: StatusShortcut?, modifier: Modifier = Modifier) {
     val volume by rememberVolumePercent()
-    volume?.let { VolumeLevel(it, modifier) }
+    volume?.let { VolumeLevel(it, shortcut, modifier) }
 }
 
 /** The volume icon, with [level] beside it for [VOLUME_SHOWN_MS] after it changes. */
 @Composable
-private fun VolumeLevel(level: Int, modifier: Modifier = Modifier) {
+private fun VolumeLevel(level: Int, shortcut: StatusShortcut?, modifier: Modifier = Modifier) {
     var last by remember { mutableIntStateOf(level) }
     var changing by remember { mutableStateOf(false) }
     LaunchedEffect(level) {
@@ -183,19 +203,63 @@ private fun VolumeLevel(level: Int, modifier: Modifier = Modifier) {
         label = if (changing) "$level%" else null,
         description = "Volume $level%",
         modifier = modifier,
+        onClick = shortcut?.opening(TvSetting.Sound),
+        canFocus = shortcut?.canFocus ?: false,
+        onFocus = shortcut?.onFocus,
     )
 }
 
+/**
+ * A status icon, with [label] beside it. With [onClick] it's a button that shows focus with a border like the gear's,
+ * and takes focus only while [canFocus]; [onFocus] hears when it does.
+ */
 @Composable
-private fun StatusItem(icon: KimonoIcon, label: String?, description: String, modifier: Modifier = Modifier) {
+@Suppress("LongParameterList") // A status item is plain or a button; splitting it would duplicate the drawing.
+private fun StatusItem(
+    icon: KimonoIcon,
+    label: String?,
+    description: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    canFocus: Boolean = false,
+    onFocus: (() -> Unit)? = null,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
+    val colors = KimonoTheme.colors
+    val button = if (onClick == null) {
+        Modifier
+    } else {
+        Modifier
+            .focusProperties { this.canFocus = canFocus }
+            .onFocusChanged { if (it.isFocused) onFocus?.invoke() }
+            .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
+            .border(TileDefaults.BorderWidth, if (focused) colors.text else Color.Transparent, KimonoTheme.shapes.small)
+    }
     Row(
-        modifier = modifier.clearAndSetSemantics { contentDescription = description },
+        modifier = modifier
+            .then(button)
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .heightIn(min = 30.dp)
+            .padding(horizontal = KimonoSpacing.S),
         horizontalArrangement = Arrangement.spacedBy(KimonoSpacing.S),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, color = KimonoTheme.colors.textMuted, style = KimonoTheme.typography.label)
-        if (label != null) Text(label, style = KimonoTheme.typography.value)
+        // The description says it all, so TalkBack doesn't also read the glyph or the level.
+        val silent = Modifier.clearAndSetSemantics {}
+        Icon(
+            icon,
+            modifier = silent,
+            color = if (focused) colors.text else colors.textMuted,
+            style = KimonoTheme.typography.label,
+        )
+        if (label != null) Text(label, modifier = silent, style = KimonoTheme.typography.value)
     }
+}
+
+/** What the status icons open, and whether they may take focus now. */
+private class StatusShortcut(val canFocus: Boolean, val onOpen: (TvSetting) -> Unit, val onFocus: () -> Unit) {
+    fun opening(setting: TvSetting): () -> Unit = { onOpen(setting) }
 }
 
 /** A plain icon that shows focus with a border. */

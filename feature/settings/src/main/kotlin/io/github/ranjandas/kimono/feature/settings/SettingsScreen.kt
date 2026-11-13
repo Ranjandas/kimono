@@ -60,6 +60,7 @@ import java.time.LocalDate
  * [homeWatcher] is whether Kimono opens over Google TV's home (#26), or null to leave the row out. Its switch lives
  * in the system's accessibility settings, so the row opens those, after [HomeWatcherDisclosure] when it's off.
  * [onOpenGoogleTvHome] opens Google TV's own home for a visit (#198), or is null to leave that row out.
+ * [onOpenTvScreen] opens one of the TV's own settings screens (#200), or is null to leave that section out.
  */
 @Composable
 fun SettingsScreen(
@@ -86,6 +87,7 @@ fun SettingsScreen(
     homeWatcher: Boolean? = null,
     onHomeWatcherClick: () -> Unit = {},
     onOpenGoogleTvHome: (() -> Unit)? = null,
+    onOpenTvScreen: ((TvScreen) -> Unit)? = null,
     subtitle: String = PanelSubtitle.forDay(LocalDate.now()),
 ) {
     val firstRow = remember { FocusRequester() }
@@ -129,6 +131,10 @@ fun SettingsScreen(
                             disclosure.row,
                             onOpenGoogleTvHome,
                         )
+                        if (onOpenTvScreen != null) {
+                            Rule()
+                            TvSection(onOpenTvScreen)
+                        }
                     }
                 }
             }

@@ -48,7 +48,7 @@ internal fun HomePage(
     LaunchedEffect(hasApps, loaded, actions.panelOpen) {
         when {
             actions.panelOpen || !loaded -> Unit
-            focusArea == HomeArea.SettingsButton || !hasApps -> settingsFocus.requestFocusWhenLaidOut()
+            focusArea.inTopBar || !hasApps -> settingsFocus.requestFocusWhenLaidOut()
             else -> focus.of(focusArea).requestFocusWhenLaidOut()
         }
     }

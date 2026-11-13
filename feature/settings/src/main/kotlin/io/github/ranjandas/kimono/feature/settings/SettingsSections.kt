@@ -30,8 +30,8 @@ import io.github.ranjandas.kimono.core.design.theme.KimonoTheme
 import io.github.ranjandas.kimono.core.design.theme.ThemeId
 
 /*
- * The three sections of the settings panel (#155): how things look, what keeps an OLED panel from burning in, and
- * what home shows.
+ * The sections of the settings panel (#155): how things look, what keeps an OLED panel from burning in, what home
+ * shows, and the way to the TV's own settings (#200).
  */
 
 /** How things look. [firstRow] goes on the theme row, which takes focus when the screen opens. */
@@ -121,6 +121,14 @@ internal fun HomeSection(
             ) { Toggle(homeWatcher, it) }
         }
         if (onOpenGoogleTvHome != null) OpenRow(KimonoIcon.Media, "Google TV home", onOpenGoogleTvHome)
+    }
+}
+
+/** Rows that open the TV's own settings screens, since covering Google TV's home hides its quick settings (#200). */
+@Composable
+internal fun TvSection(onOpen: (TvScreen) -> Unit) {
+    SettingsSection("tv") {
+        TvScreen.entries.forEach { screen -> OpenRow(screen.icon, screen.label) { onOpen(screen) } }
     }
 }
 

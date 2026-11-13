@@ -1,5 +1,6 @@
 package io.github.ranjandas.kimono
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,7 +27,9 @@ import io.github.ranjandas.kimono.data.apps.LaunchResult
 import io.github.ranjandas.kimono.feature.drawer.DrawerScreen
 import io.github.ranjandas.kimono.feature.home.HomeScreen
 import io.github.ranjandas.kimono.feature.home.RecentApps
+import io.github.ranjandas.kimono.feature.home.TvSetting
 import io.github.ranjandas.kimono.feature.settings.SettingsScreen
+import io.github.ranjandas.kimono.feature.settings.TvScreen
 import io.github.ranjandas.kimono.feature.settings.WelcomePanel
 import kotlinx.coroutines.launch
 
@@ -134,6 +137,7 @@ private fun Screens(
                 iconStyles = icons.styles,
                 onChangeIconStyle = actions.changeIconStyle,
                 holdFocus = welcoming,
+                onOpenTvSettings = actions.openTvSetting,
             ) {
                 DrawerScreen(
                     apps = apps.orEmpty(),
@@ -172,6 +176,7 @@ private fun Settings(
     watcher: HomeWatcherState,
     onClose: () -> Unit,
 ) {
+    val context = LocalContext.current
     SettingsScreen(
         theme = ThemeId.fromName(settings.themeName),
         onThemeChange = { new -> updateSettings { it.copy(themeName = new.name) } },
@@ -198,6 +203,7 @@ private fun Settings(
         } else {
             null
         },
+        onOpenTvScreen = { tvScreen -> openTvScreen(context, tvScreen) },
         onClose = onClose,
     )
 }
@@ -213,6 +219,7 @@ private class AppCallbacks(
     val uninstall: (InstalledApp) -> Unit,
     val requestUsageAccess: () -> Unit,
     val changeIconStyle: (InstalledApp, IconStyle) -> Unit,
+    val openTvSetting: (TvSetting) -> Unit,
 )
 
 @Composable
@@ -224,7 +231,7 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
     // A TV build can hide parts of Settings, so say so rather than looking broken.
     fun openScreen(screen: AppScreen): (InstalledApp) -> Unit = { app ->
         if (!dependencies.appActions.open(screen, app)) {
-            Toast.makeText(context, "that screen isn't available on this device", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, SCREEN_NOT_AVAILABLE, Toast.LENGTH_SHORT).show()
         }
     }
     return AppCallbacks(
@@ -253,8 +260,24 @@ private fun appCallbacks(dependencies: KimonoDependencies, workspaces: Workspace
                 Toast.makeText(context, USAGE_ACCESS_OVER_ADB, Toast.LENGTH_LONG).show()
             }
         },
+        openTvSetting = { setting -> openTvScreen(context, setting.screen) },
     )
 }
+
+/** Opens one of the TV's own settings screens (#200), or says this TV hides it. */
+private fun openTvScreen(context: Context, screen: TvScreen) {
+    if (!TvSettings.open(context, screen)) Toast.makeText(context, SCREEN_NOT_AVAILABLE, Toast.LENGTH_SHORT).show()
+}
+
+/** The settings screen each top-bar status icon opens. */
+private val TvSetting.screen: TvScreen
+    get() = when (this) {
+        TvSetting.Network -> TvScreen.Network
+        TvSetting.Sound -> TvScreen.DisplaySound
+    }
+
+// A TV build can hide parts of Settings, so Kimono says so rather than looking broken.
+private const val SCREEN_NOT_AVAILABLE = "that screen isn't available on this device"
 
 // Google TV hides the usage access screen, so the one way in is adb (docs/DEVELOPING.md).
 private const val USAGE_ACCESS_OVER_ADB =

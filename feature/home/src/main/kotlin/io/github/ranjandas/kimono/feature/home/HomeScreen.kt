@@ -62,6 +62,8 @@ internal object HomeDimens {
  * the app list is still loading. The top bar reads the time from [clock], which tests fix. Coming back from settings,
  * [startOnSettingsButton] puts focus back on the gear it was opened from. While [holdFocus], something drawn over the
  * screen (the first-run welcome) has focus, so the page doesn't take it; it takes it back once that closes.
+ * [onOpenTvSettings] makes the top bar's network and volume icons open the TV's own settings (#200), or is null to
+ * leave them as plain indicators.
  */
 @Composable
 fun HomeScreen(
@@ -86,6 +88,7 @@ fun HomeScreen(
     clock: Clock = Clock.systemDefaultZone(),
     startOnSettingsButton: Boolean = false,
     holdFocus: Boolean = false,
+    onOpenTvSettings: ((TvSetting) -> Unit)? = null,
     allApps: @Composable () -> Unit,
 ) {
     val workspace = workspaces.current
@@ -110,6 +113,7 @@ fun HomeScreen(
                 },
                 clock = clock,
                 settingsFocus = settingsFocus,
+                onOpenTvSettings = onOpenTvSettings,
                 modifier = barModifier,
             )
         }) { page ->
@@ -122,7 +126,7 @@ fun HomeScreen(
                     onRequestUsageAccess = onRequestUsageAccess,
                     systemPanel = systemPanel,
                     screenTime = screenTime,
-                    focusArea = focusArea.takeUnless { it == HomeArea.SettingsButton && gearWorkspace != page }
+                    focusArea = focusArea.takeUnless { it.inTopBar && gearWorkspace != page }
                         ?: HomeArea.Apps,
                     onFocusArea = { focusArea = it },
                     settingsFocus = settingsFocus,
