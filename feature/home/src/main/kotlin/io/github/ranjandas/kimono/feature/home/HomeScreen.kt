@@ -118,6 +118,7 @@ fun HomeScreen(
             )
         }) { page ->
             val pageApps = remember(apps, workspaces) { apps?.forWorkspace(page, workspaces) }
+            val pageFocus = focusArea.takeUnless { it.inTopBar && gearWorkspace != page } ?: HomeArea.Apps
             when (page) {
                 Workspace.Home -> HomePage(
                     apps = pageApps,
@@ -126,13 +127,13 @@ fun HomeScreen(
                     onRequestUsageAccess = onRequestUsageAccess,
                     systemPanel = systemPanel,
                     screenTime = screenTime,
-                    focusArea = focusArea.takeUnless { it.inTopBar && gearWorkspace != page }
-                        ?: HomeArea.Apps,
+                    focusArea = pageFocus,
                     onFocusArea = { focusArea = it },
                     settingsFocus = settingsFocus,
                 )
 
-                Workspace.Watch, Workspace.Play -> AppGridPage(page, pageApps, pageActions)
+                Workspace.Watch, Workspace.Play ->
+                    AppGridPage(page, pageApps, pageActions, pageFocus, { focusArea = it }, settingsFocus)
 
                 Workspace.AllApps -> allApps()
             }
