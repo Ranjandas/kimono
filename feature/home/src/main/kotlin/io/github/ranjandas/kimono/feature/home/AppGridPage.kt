@@ -153,7 +153,9 @@ private fun AppGrid(
                 label = app.label,
                 onClick = { onClickApp(app) },
                 onLongClick = { onShowOptions(app) },
-                modifier = tiles.track(app.packageName),
+                modifier = Modifier
+                    .focusRequester(tiles.requesterFor(app.packageName))
+                    .onFocusChanged { if (it.isFocused) tiles.focused(app.packageName) },
                 mark = marks[app.packageName],
             )
         }
@@ -221,10 +223,12 @@ private class TileFocus {
         return focused
     }
 
-    /** Lets the tile for [packageName] be focused again, and notes when it takes focus. */
-    fun track(packageName: String): Modifier {
-        val requester = requesters.getOrPut(packageName) { FocusRequester() }
-        return Modifier.focusRequester(requester).onFocusChanged { if (it.isFocused) lastFocused = packageName }
+    /** What focuses the tile for [packageName] again. */
+    fun requesterFor(packageName: String): FocusRequester = requesters.getOrPut(packageName) { FocusRequester() }
+
+    /** Notes that the tile for [packageName] took focus. */
+    fun focused(packageName: String) {
+        lastFocused = packageName
     }
 }
 
