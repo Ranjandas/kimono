@@ -202,10 +202,13 @@ on the TV: the dusk Kimono draws the Yūgure landscape for the hour (`kimono:yug
 under any theme:
 
 ```sh
-adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper https://example.com/wall.jpg
-adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper kimono:moon
-adb shell am start -n io.github.ranjandas.kimono/.HomeActivity --es kimono.wallpaper ""   # back to the theme's
+adb shell am start -n io.github.ranjandas.kimono/.SetWallpaper --es kimono.wallpaper https://example.com/wall.jpg
+adb shell am start -n io.github.ranjandas.kimono/.SetWallpaper --es kimono.wallpaper kimono:moon
+adb shell am start -n io.github.ranjandas.kimono/.SetWallpaper --es kimono.wallpaper ""   # back to the theme's
 ```
+
+Only adb can do this: `.SetWallpaper` needs a permission adb's shell has and other apps can't get, and Kimono
+ignores the extra when it arrives any other way.
 
 Settings' wallpaper row turns it off and on again. Its panels row sets how much of the wallpaper shows
 through the tiles (clear, frosted or solid); the glass is a blurred copy made once per wallpaper, so it costs

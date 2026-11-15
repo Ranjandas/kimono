@@ -42,6 +42,14 @@
             </intent-filter>
         </activity>
 
+        <!-- Sets the wallpaper from adb (docs/DEVELOPING.md). Only callers holding DUMP get through: adb's shell has
+             it, and ordinary apps can't, so no other app can change the wallpaper or make Kimono download (#203). -->
+        <activity-alias
+            android:name=".SetWallpaper"
+            android:exported="true"
+            android:permission="android.permission.DUMP"
+            android:targetActivity=".HomeActivity" />
+
         <!-- The pixel art as the system screensaver, for those who pick it. -->
         <service
             android:name=".KimonoDream"

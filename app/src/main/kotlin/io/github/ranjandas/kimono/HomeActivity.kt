@@ -89,18 +89,27 @@ class HomeActivity : ComponentActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean =
         idle.onKey(isDown = event.action == KeyEvent.ACTION_DOWN) || super.dispatchKeyEvent(event)
 
-    // Sets a wallpaper of the user's own, since typing a URL with a remote is painful (docs/DEVELOPING.md). An
-    // empty value goes back to the theme's. Only https links are taken, and the kimono: links of the wallpapers
-    // Kimono draws, which pin one of those under any theme.
+    // Sets a wallpaper of the user's own, since typing a URL with a remote is painful (docs/DEVELOPING.md).
     private fun applyWallpaperExtra(intent: Intent) {
-        val url = intent.getStringExtra(WALLPAPER_EXTRA) ?: return
-        if (url.isNotEmpty() && !url.startsWith("https://") && DrawnWallpaper.fromUrl(url) == null) return
+        val url = wallpaperExtra(intent.component?.className, intent.getStringExtra(WALLPAPER_EXTRA)) ?: return
         lifecycleScope.launch {
             dependencies.settingsStore.update { it.copy(wallpaperUrl = url.ifEmpty { null }, wallpaper = true) }
         }
     }
+}
 
-    private companion object {
-        const val WALLPAPER_EXTRA = "kimono.wallpaper"
-    }
+internal const val WALLPAPER_EXTRA = "kimono.wallpaper"
+
+// The alias in the manifest that only adb can start (#203).
+internal const val SET_WALLPAPER_ALIAS = "io.github.ranjandas.kimono.SetWallpaper"
+
+/**
+ * The wallpaper link an intent asks for, or null to leave the wallpaper alone. It's only taken from intents that
+ * came in through [SET_WALLPAPER_ALIAS], whose permission keeps other apps out; the home activity itself is
+ * exported, so anything could send it the extra. An empty value goes back to the theme's. Only https links are taken,
+ * and the kimono: links of the wallpapers Kimono draws, which pin one of those under any theme.
+ */
+internal fun wallpaperExtra(component: String?, url: String?): String? {
+    if (component != SET_WALLPAPER_ALIAS || url == null) return null
+    return url.takeIf { it.isEmpty() || it.startsWith("https://") || DrawnWallpaper.fromUrl(it) != null }
 }
