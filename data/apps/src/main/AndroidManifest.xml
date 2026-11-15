@@ -20,5 +20,10 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <!-- To check whether this TV has a usage access screen before asking for access (#188). -->
+        <intent>
+            <action android:name="android.settings.USAGE_ACCESS_SETTINGS" />
+            <data android:scheme="package" />
+        </intent>
     </queries>
 </manifest>

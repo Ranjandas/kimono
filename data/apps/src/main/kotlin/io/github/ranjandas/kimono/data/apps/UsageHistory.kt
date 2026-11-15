@@ -31,6 +31,12 @@ interface UsageHistory {
      */
     suspend fun screenTime(since: Instant): List<ScreenTime>
 
+    /**
+     * Whether this TV has a usage access screen to send the user to. Google TV hides it, so there the only way in
+     * is adb, and Kimono doesn't ask (#188).
+     */
+    fun canOpenAccessSettings(): Boolean
+
     /** Opens the usage access screen in Settings. False when this device has none. */
     fun openAccessSettings(): Boolean
 
@@ -91,15 +97,22 @@ internal class SystemUsageHistory(context: Context, private val ioDispatcher: Co
         }
     }
 
+    // Asked once: the screen doesn't come and go while Kimono runs. Visible through this module's <queries>.
+    private val hasAccessSettings by lazy {
+        appContext.packageManager.resolveActivity(accessSettingsIntent(), 0) != null
+    }
+
+    override fun canOpenAccessSettings(): Boolean = hasAccessSettings
+
     override fun openAccessSettings(): Boolean = try {
-        val uri = Uri.fromParts("package", appContext.packageName, null)
-        appContext.startActivity(
-            Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
+        appContext.startActivity(accessSettingsIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         true
     } catch (_: ActivityNotFoundException) {
         false
     }
+
+    private fun accessSettingsIntent() =
+        Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.fromParts("package", appContext.packageName, null))
 
     private fun readUses(begin: Long, end: Long): List<AppUse> {
         val events = usageStats.queryEvents(begin, end) ?: return emptyList()
