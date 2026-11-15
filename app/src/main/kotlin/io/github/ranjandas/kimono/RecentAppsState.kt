@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.first
 /**
  * What the last used tile and the recents row show, read again each time Kimono comes back to the front: that's
  * when the user has just left an app, or may have just granted usage access. With usage access they're the apps
- * opened anywhere; without it, the apps opened from Kimono ([launches]), and only with neither is access asked for,
- * where the TV has a screen for it.
+ * opened anywhere; without it, or when the system returns none, the apps opened from Kimono ([launches]). Only
+ * with neither is access asked for, where the TV has a screen for it.
  */
 @Composable
 internal fun rememberRecentApps(history: UsageHistory, launches: LaunchHistory, apps: List<InstalledApp>?): RecentApps {
@@ -30,7 +30,8 @@ internal fun rememberRecentApps(history: UsageHistory, launches: LaunchHistory, 
             // Only apps Kimono can launch: this drops launchers, Settings panels and uninstalled apps.
             val launchable = apps.orEmpty().associateBy { it.packageName }
             val access = history.hasAccess()
-            val packages = if (access) history.recentPackages() else launches.recent.first()
+            // The apps opened from Kimono also stand in when the system's usage history comes back empty (#239).
+            val packages = (if (access) history.recentPackages() else emptyList()).ifEmpty { launches.recent.first() }
             recents = recentAppsOf(packages, launchable, askForAccess = !access && history.canOpenAccessSettings())
         }
     }
