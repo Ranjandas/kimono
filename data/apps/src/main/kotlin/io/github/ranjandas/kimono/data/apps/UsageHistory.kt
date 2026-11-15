@@ -57,6 +57,16 @@ internal fun longestFirst(times: List<ScreenTime>): List<ScreenTime> =
 /** One time an app came to the foreground. */
 internal data class AppUse(val packageName: String, val timeMillis: Long)
 
+/**
+ * The recent packages from [events], or from [lastUsed] (each package's last use as the system's daily totals keep
+ * it) when the events come back empty. Uses after [now] are dropped: a TV whose clock once jumped ahead keeps
+ * future-dated entries, which would otherwise sit first for good (#239).
+ */
+internal fun recentFrom(events: List<AppUse>, lastUsed: List<AppUse>, now: Long): List<String> {
+    val past = events.filter { it.timeMillis <= now }
+    return mostRecentFirst(past.ifEmpty { lastUsed.filter { it.timeMillis in 1..now } })
+}
+
 /** Each package once, by its latest use, most recent first. */
 internal fun mostRecentFirst(uses: List<AppUse>): List<String> = uses
     .groupBy { it.packageName }
@@ -80,8 +90,12 @@ internal class SystemUsageHistory(context: Context, private val ioDispatcher: Co
     override suspend fun recentPackages(window: Duration): List<String> {
         if (!hasAccess()) return emptyList()
         return withContext(ioDispatcher) {
-            val end = System.currentTimeMillis()
-            mostRecentFirst(readUses(end - window.toMillis(), end)).filter { it != appContext.packageName }
+            val now = System.currentTimeMillis()
+            val begin = now - window.toMillis()
+            // Read past now too: once the TV's clock has jumped ahead, the system files new events under that
+            // future date, and a query ending now misses them (#239).
+            val recent = recentFrom(readUses(begin, Long.MAX_VALUE), readLastUsed(begin), now)
+            recent.filter { it != appContext.packageName }
         }
     }
 
@@ -113,6 +127,11 @@ internal class SystemUsageHistory(context: Context, private val ioDispatcher: Co
 
     private fun accessSettingsIntent() =
         Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.fromParts("package", appContext.packageName, null))
+
+    private fun readLastUsed(begin: Long): List<AppUse> = usageStats
+        .queryUsageStats(UsageStatsManager.INTERVAL_BEST, begin, Long.MAX_VALUE)
+        .orEmpty()
+        .map { AppUse(it.packageName, it.lastTimeUsed) }
 
     private fun readUses(begin: Long, end: Long): List<AppUse> {
         val events = usageStats.queryEvents(begin, end) ?: return emptyList()

@@ -33,4 +33,24 @@ class UsageHistoryTest {
             longestFirst(times),
         )
     }
+
+    @Test
+    fun `recents come from events when there are some`() {
+        val events = listOf(AppUse("youtube", 200))
+        val lastUsed = listOf(AppUse("plex", 300))
+        assertEquals(listOf("youtube"), recentFrom(events, lastUsed, now = 1_000))
+    }
+
+    @Test
+    fun `recents fall back to last used times when events are empty`() {
+        val lastUsed = listOf(AppUse("plex", 300), AppUse("youtube", 500), AppUse("never", 0))
+        assertEquals(listOf("youtube", "plex"), recentFrom(emptyList(), lastUsed, now = 1_000))
+    }
+
+    @Test
+    fun `future-dated uses are dropped`() {
+        val events = listOf(AppUse("future", 5_000))
+        val lastUsed = listOf(AppUse("future", 5_000), AppUse("plex", 300))
+        assertEquals(listOf("plex"), recentFrom(events, lastUsed, now = 1_000))
+    }
 }
