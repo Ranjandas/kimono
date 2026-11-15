@@ -25,9 +25,9 @@ A calm, text-first home screen for Google TV and Android TV, inspired by [Omarch
 - **Kimono as home:** an optional setting so the Home button opens Kimono (see below).
 - Shortcuts to the TV's own network, sound and power settings.
 
-| Watch | Kimono Sumi |
+| Watch | Settings |
 | --- | --- |
-| ![Watch workspace](docs/store/screenshots/02-watch.png) | ![Kimono Sumi theme](docs/store/screenshots/06-oled.png) |
+| ![Watch workspace](docs/store/screenshots/02-watch.png) | ![Settings: themes, panels and screen care](docs/store/screenshots/05-settings.png) |
 
 ## Install
 
