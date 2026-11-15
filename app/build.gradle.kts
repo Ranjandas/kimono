@@ -46,6 +46,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Puts the native libraries' symbol tables (from dependencies; Kimono has no native code of its own) in
+            // the bundle, so Play can symbolicate native crashes and stops warning about missing debug symbols.
+            ndk.debugSymbolLevel = "SYMBOL_TABLE"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
             signingConfig = signingConfigs.findByName("release")
         }
