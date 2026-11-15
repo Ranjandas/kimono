@@ -110,7 +110,8 @@ dependencies {
     implementation(project(":feature:drawer"))
     implementation(project(":feature:settings"))
     implementation(project(":data:apps"))
-    implementation(project(":data:media"))
+    // :data:media (continue watching) stays in the repo but out of the app until a source is wired: its
+    // WorkManager starts and opens a database on every cold start for nothing (#192).
     // Kimono as home without adb (route B, ADR 0001), an accessibility service. It ships on Play with the
     // accessibility declaration (docs/PLAY-STORE.md); if Play refuses it, make this debug and benchmark only.
     implementation(project(":feature:homewatch"))
