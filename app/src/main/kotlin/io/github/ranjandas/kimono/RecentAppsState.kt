@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.first
 /**
  * What the last used tile and the recents row show, read again each time Kimono comes back to the front: that's
  * when the user has just left an app, or may have just granted usage access. With usage access they're the apps
- * opened anywhere; without it, or when the system returns none, the apps opened from Kimono ([launches]). Only
- * with neither is access asked for, where the TV has a screen for it.
+ * opened anywhere, topped up with the apps opened from Kimono ([launches]); without it, just the latter. Only with
+ * neither is access asked for, where the TV has a screen for it.
  */
 @Composable
 internal fun rememberRecentApps(history: UsageHistory, launches: LaunchHistory, apps: List<InstalledApp>?): RecentApps {
@@ -30,22 +30,31 @@ internal fun rememberRecentApps(history: UsageHistory, launches: LaunchHistory, 
             // Only apps Kimono can launch: this drops launchers, Settings panels and uninstalled apps.
             val launchable = apps.orEmpty().associateBy { it.packageName }
             val access = history.hasAccess()
-            // The apps opened from Kimono also stand in when the system's usage history comes back empty (#239).
-            val packages = (if (access) history.recentPackages() else emptyList()).ifEmpty { launches.recent.first() }
-            recents = recentAppsOf(packages, launchable, askForAccess = !access && history.canOpenAccessSettings())
+            val system = if (access) history.recentPackages() else emptyList()
+            recents = recentAppsOf(
+                system,
+                launches.recent.first(),
+                launchable,
+                askForAccess = !access && history.canOpenAccessSettings(),
+            )
         }
     }
     return recents
 }
 
 /**
- * The recents to show for [packages], keeping those in [launchable]. With nothing to show, the row asks for usage
- * access only if [askForAccess]: where the TV hides that screen (Google TV), a prompt nobody can act on would greet
- * every new user, so the tiles just say the apps they open will show there (#188).
+ * The recents to show: the [system]'s, then any from [launches] it left out, keeping those in [launchable]. The
+ * system's history can hold only an app or two, as on a TV whose clock once jumped ahead (#239), so Kimono's own
+ * launches fill the rest of the row rather than leave it empty. With nothing to show, the row asks for usage access
+ * only if [askForAccess]: where the TV hides that screen (Google TV), a prompt nobody can act on would greet every
+ * new user, so the tiles just say the apps they open will show there (#188).
  */
-internal fun recentAppsOf(packages: List<String>, launchable: Map<String, InstalledApp>, askForAccess: Boolean) =
-    if (packages.isEmpty() && askForAccess) {
-        RecentApps.NeedsAccess
-    } else {
-        RecentApps.Apps(packages.mapNotNull(launchable::get))
-    }
+internal fun recentAppsOf(
+    system: List<String>,
+    launches: List<String>,
+    launchable: Map<String, InstalledApp>,
+    askForAccess: Boolean,
+): RecentApps {
+    val apps = (system + launches).distinct().mapNotNull(launchable::get)
+    return if (apps.isEmpty() && askForAccess) RecentApps.NeedsAccess else RecentApps.Apps(apps)
+}
